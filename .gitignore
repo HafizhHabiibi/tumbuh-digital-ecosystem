@@ -1,0 +1,12 @@
+# Node
+node_modules/
+.env
+
+# Flutter
+**/build/
+**/.dart_tool/
+**/.flutter-plugins
+
+# General
+.DS_Store
+*.log

@@ -1,12 +1,12 @@
-import nodemailer from 'nodemailer';
+import nodemailer from "nodemailer";
 
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    service: "gmail",
     auth: {
         user: process.env.MAIL_USER,
-        pass: process.env.MAIL_PASS
-    }
-})
+        pass: process.env.MAIL_PASS,
+    },
+});
 
 export const kirimEmailResetPassword = async (email, token) => {
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
@@ -14,7 +14,7 @@ export const kirimEmailResetPassword = async (email, token) => {
     await transporter.sendMail({
         from: `"Posyandu Digital" <${process.env.MAIL_USER}>`,
         to: email,
-        subject: 'Reset Password Posyandu Digital',
+        subject: "Reset Password Posyandu Digital",
         html: `
         <div style="font-family: Arial, sans-serif; max-width: 480px; margin: auto;" >
             <h2>Reset Password</h2>
@@ -29,6 +29,6 @@ export const kirimEmailResetPassword = async (email, token) => {
                 Link ini berlaku selama <strong>15 menit</strong>.
                 Jika Anda tidak merasa meminta reset password, abaikan email ini.
             </p>
-        </div>`
-    })
-}
+        </div>`,
+    });
+};

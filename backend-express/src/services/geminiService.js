@@ -1,8 +1,10 @@
 import axios from "axios";
 import db from "../database/connection.js";
 
-const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-1.5-flash";
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+const getGeminiUrl = () => {
+    const model = process.env.GEMINI_MODEL || "gemini-2.0-flash";
+    return `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+};
 
 const LABEL_STATUS_TBU = {
     sangat_pendek: "sangat pendek untuk usiannya",
@@ -62,7 +64,7 @@ const callGeminiWithRetry = async (prompt, maxRetry = 3) => {
     for (let attempt = 1; attempt <= maxRetry; attempt++) {
         try {
             const response = await axios.post(
-                `${GEMINI_URL}?key=${process.env.GEMINI_API_KEY}`,
+                `${getGeminiUrl()}?key=${process.env.GEMINI_API_KEY}`,
                 {
                     contents: [
                         {
@@ -71,7 +73,7 @@ const callGeminiWithRetry = async (prompt, maxRetry = 3) => {
                     ],
                     generationConfig: {
                         temperature: 0.7,
-                        maxOutputTokens: 500,
+                        maxOutputTokens: 4096,
                     },
                 },
                 {

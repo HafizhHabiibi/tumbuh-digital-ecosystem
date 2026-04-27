@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import * as UserModel from "../models/userModel.js";
-import * as PasswordResetModel from "../models/passwordResetMode.js";
+import * as PasswordResetModel from "../models/passwordResetModel.js";
 import * as mailerService from "../services/mailerService.js";
 import { generateToken } from "../utils/jwt.js";
 import { success, error } from "../utils/response.js";

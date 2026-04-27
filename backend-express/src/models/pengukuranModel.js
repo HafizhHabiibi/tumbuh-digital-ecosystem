@@ -1,6 +1,6 @@
 import db from "../database/connection.js";
 
-export const create = async (data) => {
+export const createPengukuran = async (data) => {
     const [result] = await db.query(
         `INSERT INTO pengukuran
         (anak_id, kader_id, tanggal_ukur, berat_badan,
@@ -68,7 +68,7 @@ export const findById = async (id) => {
             ot.nama_lengkap AS nama_orang_tua,
             sr.id AS saw_result_id,
             sr.skor_akhir,
-            sr.kategori_risiko
+            sr.kategori_risiko,
             ai.insight_teks,
             ai.dibuat_pada AS insight_dibuat_pada
         FROM pengukuran p

@@ -111,7 +111,7 @@ export const createPengukuran = async (req, res) => {
                 kategori_risiko: sawResult.kategori_risiko,
             })
             .catch((err) => {
-                console.error("[GEMINI] ASYNC ERROR", err.message);
+                console.error("[GEMINI ASYNC ERROR]", err.message);
             });
 
         return success(
@@ -173,7 +173,7 @@ export const getDetailPengukuran = async (req, res) => {
 
         const pengukuran = await PengukuranModel.findById(id);
         if (!pengukuran) {
-            return error(res, "Data pengukuran tidak ditemukan", 400);
+            return error(res, "Data pengukuran tidak ditemukan", 404);
         }
 
         return success(res, pengukuran, "Detail pengukuran berhasil diambil");
@@ -182,7 +182,7 @@ export const getDetailPengukuran = async (req, res) => {
     }
 };
 
-export const getRangkingAnak = async (req, res) => {
+export const getRankingAnak = async (req, res) => {
     try {
         const ranking = await sawService.getRankingSAW();
         return success(res, ranking, "Ranking anak berhasil diambil");
@@ -214,7 +214,7 @@ export const getInsight = async (req, res) => {
             return success(
                 res,
                 null,
-                "Insight belum tersedia, silahkan coba dalam beberap waktu kedepan",
+                "Insight belum tersedia, silahkan coba dalam beberapa waktu kedepan",
             );
         }
 

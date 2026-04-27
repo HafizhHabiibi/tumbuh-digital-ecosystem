@@ -75,7 +75,7 @@ export const createPengukuran = async (req, res) => {
             jenis_kelamin: anak.jenis_kelamin,
         });
 
-        const pengukuran_id = await PengukuranModel.create({
+        const pengukuran_id = await PengukuranModel.createPengukuran({
             anak_id,
             kader_id: kader.id,
             tanggal_ukur,

@@ -18,10 +18,16 @@ router.get("/ranking", authorizeRole("kader", "puskesmas"), getRankingAnak);
 
 router.post("/", authorizeRole("kader"), createPengukuran);
 
-router.get("/:id", authorizeRole("kader", "puskesmas"), getDetailPengukuran);
+router.get(
+    "/anak/:anak_id",
+    authorizeRole("kader", "puskesmas"),
+    getRiwayatPengukuran,
+);
 
 router.get("/:id/saw", authorizeRole("kader", "puskesmas"), getDetailSAW);
 
 router.get("/:id/insight", authorizeRole("orang_tua"), getInsight);
+
+router.get("/:id", authorizeRole("kader", "puskesmas"), getDetailPengukuran);
 
 export default router;

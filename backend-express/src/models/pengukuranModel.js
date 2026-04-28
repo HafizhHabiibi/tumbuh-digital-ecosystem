@@ -70,7 +70,7 @@ export const findById = async (id) => {
             sr.skor_akhir,
             sr.kategori_risiko,
             ai.insight_teks,
-            ai.dibuat_pada AS insight_dibuat_pada
+            ai.created_at AS insight_dibuat_pada
         FROM pengukuran p
         JOIN anak a ON a.id = p.anak_id
         JOIN orang_tua ot ON ot.id = a.orang_tua_id

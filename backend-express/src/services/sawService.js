@@ -93,14 +93,14 @@ export const getRankingSAW = async () => {
         `SELECT
         a.id AS anak_id,
         a.nama AS nama_anak,
-        a.tanggal_lahir,
+        DATE_FORMAT(a.tanggal_lahir,'%Y-%m-%d') AS tanggal_lahir,
         a.jenis_kelamin,
         ot.nama_lengkap AS nama_orang_tua,
         ot.no_hp AS no_hp_orang_tua,
         sr.skor_akhir,
         sr.kategori_risiko,
         sr.calculated_at,
-        p.tanggal_ukur,
+        DATE_FORMAT(p.tanggal_ukur,'%Y-%m-%d') AS tanggal_ukur,
         p.berat_badan,
         p.tinggi_badan,
         p.status_gizi
@@ -115,7 +115,12 @@ export const getRankingSAW = async () => {
         JOIN pengukuran p ON p.id = sr.pengukuran_id
         ORDER BY sr.skor_akhir ASC`,
     );
-    return rows;
+    return rows.map((row) => ({
+        ...row,
+        skor_akhir: parseFloat(row.skor_akhir),
+        berat_badan: parseFloat(row.berat_badan),
+        tinggi_badan: parseFloat(row.tinggi_badan),
+    }));
 };
 
 export const getDetailSAW = async (pengukuran_id) => {

@@ -143,7 +143,7 @@ export const generateInsight = async (anak_id, pengukuran_id, data) => {
 
 export const getInsight = async (pengukuran_id) => {
     const [rows] = await db.query(
-        `SELECT insight_teks, dibuat_pada
+        `SELECT insight_teks, created_at
         FROM ai_insight
         WHERE pengukuran_id = ?`,
         [pengukuran_id],

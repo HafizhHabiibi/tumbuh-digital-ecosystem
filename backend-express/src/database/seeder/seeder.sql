@@ -1,13 +1,13 @@
 USE posyandu_pui
 
 INSERT INTO users (id, email, password_hash, role, is_active)
-VALUES ('019d9f36-c7d5-7521-ab23-5d9781be981f', 'meongterbang22@gmail.com', '$2b$10$Mhr2gvidDSlqg5mTeWKtd.MW6yowc18ZMAzwQrJEIWRvDd18XtBSC', 'kader', TRUE);
+VALUES ('019dda60-ea68-7769-a1a2-5b6c7eb4b88b', 'meongterbang22@gmail.com', '$2b$10$TvDpyXeKv8RONf80MfaOBeReHtG6l/6xR.TibMDFZKwWCV9cqenEG', 'kader', TRUE);
 
 INSERT INTO kader (id, user_id, nama_lengkap, no_hp)
-VALUES ('019d9f36-c7d8-70cc-822b-859688f83f5f', '019d9f36-c7d5-7521-ab23-5d9781be981f', 'Riri', '081234567890');
+VALUES ('019dda60-ea69-7d52-9a83-7245eb046fdf', '019dda60-ea68-7769-a1a2-5b6c7eb4b88b', 'Riri', '081234567890');
 
 INSERT INTO users (id, email, password_hash, role, is_active)
-VALUES ('019d9f36-c826-7d77-8f44-27d586eef134', 'bullmini123@gmail.com', '$2b$10$uECPSCymeDJVrGRrt3YFQeKuBA9SqEK9bVLIOnaSezN/bG04PF/Hy', 'puskesmas', TRUE);
+VALUES ('019dda60-eaa0-724d-8166-1e49ab0dcc33', 'bullmini123@gmail.com', '$2b$10$EaFo.dl1vgGJrzXj4NrvjeKi2yQabGUUViBXCQgkkg0Ot10el9NMC', 'puskesmas', TRUE);
 
 INSERT INTO puskesmas_user (id, user_id, nama_lengkap, jabatan, no_hp)
-VALUES ('019d9f36-c826-7d77-8f44-27d629140b2c', '019d9f36-c826-7d77-8f44-27d586eef134', 'Ciko', 'Bidan', '081234567891');
+VALUES ('019dda60-eaa0-724d-8166-1e4a6ccbde50', '019dda60-eaa0-724d-8166-1e49ab0dcc33', 'Ciko', 'Bidan', '081234567891');

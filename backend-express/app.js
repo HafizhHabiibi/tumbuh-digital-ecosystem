@@ -4,6 +4,7 @@ import "dotenv/config";
 import authRoutes from "./src/routes/auth.js";
 import kaderRoutes from "./src/routes/kader.js";
 import pengukuranRoutes from "./src/routes/pengukuran.js";
+import riwayatPemberianRoutes from "./src/routes/riwayatPemberian.js";
 
 const app = express();
 
@@ -13,6 +14,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/kader", kaderRoutes);
 app.use("/api/pengukuran", pengukuranRoutes);
+app.use("/api/riwayat-pemberian", riwayatPemberianRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

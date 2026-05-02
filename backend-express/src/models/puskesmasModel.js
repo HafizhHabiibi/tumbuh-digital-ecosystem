@@ -1,4 +1,3 @@
-import { use } from "react";
 import db from "../database/connection.js";
 
 export const findByUserId = async (user_id) => {

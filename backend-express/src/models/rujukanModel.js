@@ -42,33 +42,44 @@ export const findById = async (id) => {
     const [rows] = await db.query(
         `SELECT
             r.*,
-            a.nama AS nama_anak,
-            a.tanggal_lahir,
+            a.nama                                   AS nama_anak,
+            DATE_FORMAT(a.tanggal_lahir, '%Y-%m-%d') AS tanggal_lahir,
             a.jenis_kelamin,
             ot.nama_lengkap AS nama_orang_tua,
-            ot.no_hp AS no_hp_orang_tua,
-            k.nama_lengkap AS nama_kader,
-            sr.skor_akhir,
+            ot.no_hp        AS no_hp_orang_tua,
+            k.nama_lengkap  AS nama_kader,
+            CAST(sr.skor_akhir AS DECIMAL(5,4))      AS skor_akhir,
             sr.kategori_risiko,
-            p.tanggal_ukur,
-            p.berat_badan,
-            p.tinggi_badan,
-            p.zscore_bbu,
-            p.zscore_tbu,
-            p.zscore_bbtb,
+            DATE_FORMAT(p.tanggal_ukur, '%Y-%m-%d')  AS tanggal_ukur,
+            CAST(p.berat_badan  AS DECIMAL(5,2))     AS berat_badan,
+            CAST(p.tinggi_badan AS DECIMAL(5,2))     AS tinggi_badan,
+            CAST(p.zscore_bbu   AS DECIMAL(6,3))     AS zscore_bbu,
+            CAST(p.zscore_tbu   AS DECIMAL(6,3))     AS zscore_tbu,
+            CAST(p.zscore_bbtb  AS DECIMAL(6,3))     AS zscore_bbtb,
             p.status_gizi,
             pu.nama_lengkap AS ditangani_oleh
         FROM rujukan r
-        JOIN anak a ON a.id = r.anak_id
-        JOIN orang_tua ot ON ot.id = a.orang_tua_id
-        JOIN kader k ON k.id = r.kader_id
-        JOIN saw_result sr ON sr.id = r.saw_result_id
-        JOIN pengukuran p ON p.id = sr.pengukuran_id
+        JOIN anak a              ON a.id  = r.anak_id
+        JOIN orang_tua ot        ON ot.id = a.orang_tua_id
+        JOIN kader k             ON k.id  = r.kader_id
+        JOIN saw_result sr       ON sr.id = r.saw_result_id
+        JOIN pengukuran p        ON p.id  = sr.pengukuran_id
         LEFT JOIN puskesmas_user pu ON pu.id = r.puskesmas_user_id
         WHERE r.id = ?`,
         [id],
     );
-    return rows[0] || null;
+
+    if (!rows[0]) return null;
+
+    return {
+        ...rows[0],
+        skor_akhir: parseFloat(rows[0].skor_akhir),
+        berat_badan: parseFloat(rows[0].berat_badan),
+        tinggi_badan: parseFloat(rows[0].tinggi_badan),
+        zscore_bbu: parseFloat(rows[0].zscore_bbu),
+        zscore_tbu: parseFloat(rows[0].zscore_tbu),
+        zscore_bbtb: parseFloat(rows[0].zscore_bbtb),
+    };
 };
 
 export const findByAnak = async (anak_id) => {
@@ -116,7 +127,7 @@ export const updateStatus = async (id, data) => {
         [
             data.status,
             data.catatan_puskesmas || null,
-            data.puskesmas_user.id,
+            data.puskesmas_user_id,
             id,
         ],
     );

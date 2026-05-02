@@ -10,22 +10,22 @@ import { authenticate } from "../middlewares/auth.js";
 import { authorizeRole } from "../middlewares/role.js";
 import { getDataConnect } from "firebase-admin/data-connect";
 
-const router = express.Router();
+const routes = express.Router();
 
-router.use(authenticate);
+routes.use(authenticate);
 
-router.get(
+routes.get(
     "/anak/:anak_id",
-    authorizeRole("Kader", "puskesmas"),
+    authorizeRole("kader", "puskesmas"),
     getRujukanByAnak,
 );
 
-router.post("/", authorizeRole("Kader"), createRujukan);
+routes.post("/", authorizeRole("kader"), createRujukan);
 
-router.get("/", authorizeRole("puskesmas"), getAllRujukan);
+routes.get("/", authorizeRole("puskesmas"), getAllRujukan);
 
-router.get("/:id", authorizeRole("kader", "puskesmas"), getDetailRujukan);
+routes.get("/:id", authorizeRole("kader", "puskesmas"), getDetailRujukan);
 
-router.put("/:id/status", authorizeRole("puskesmas"), updateStatusRujukan);
+routes.put("/:id/status", authorizeRole("puskesmas"), updateStatusRujukan);
 
-export default router;
+export default routes;

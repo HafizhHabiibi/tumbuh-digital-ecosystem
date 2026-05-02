@@ -38,7 +38,7 @@ export const createRujukan = async (req, res) => {
             return error(res, "Data SAW tidak ditemukan", 404);
         }
 
-        if (sawDetail.kategori_risiko == -"rendah") {
+        if (sawDetail.kategori_risiko === "rendah") {
             return error(
                 res,
                 "Rujukan hanya bisa diajukan untuk anak dengan risiko sedang atau tinggi",
@@ -138,11 +138,10 @@ export const updateStatusRujukan = async (req, res) => {
             );
         }
 
-        const [puRows] = await db.query(
-            `SELECT id FROM puskesma_user WHERE user_id =?`,
-            [req.user.id],
-        );
-        const puskesmas_user_id = puRows[0]?.id;
+        const puskesmas = await PuskesmasModel.findByUserId(req.user.id);
+        // console.log("[DEBUG] req.user.id:", req.user.id);
+        // console.log("[DEBUG] puskesmas:", puskesmas);
+        const puskesmas_user_id = puskesmas?.id;
 
         await RujukanModel.updateStatus(id, {
             status,

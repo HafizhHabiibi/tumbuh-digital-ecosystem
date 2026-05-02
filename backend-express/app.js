@@ -5,7 +5,7 @@ import authRoutes from "./src/routes/auth.js";
 import kaderRoutes from "./src/routes/kader.js";
 import pengukuranRoutes from "./src/routes/pengukuran.js";
 import riwayatPemberianRoutes from "./src/routes/riwayatPemberian.js";
-import rujukanRouter from "./src/routes/rujukan.js";
+import rujukanRoutes from "./src/routes/rujukan.js";
 
 const app = express();
 
@@ -16,7 +16,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/kader", kaderRoutes);
 app.use("/api/pengukuran", pengukuranRoutes);
 app.use("/api/riwayat-pemberian", riwayatPemberianRoutes);
-app.use("/api/rujukan", rujukanRouter);
+app.use("/api/rujukan", rujukanRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

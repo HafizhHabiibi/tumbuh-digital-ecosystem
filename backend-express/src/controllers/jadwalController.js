@@ -36,6 +36,15 @@ export const createJadwal = async (req, res) => {
             return error(res, "Data kader tidak ditemukan", 404);
         }
 
+        const existing = await JadwalModel.findByTanggal(tanggal);
+        if (existing) {
+            return error(
+                res,
+                "Sudah ada jadwal posyandu pada tanggal tersebut",
+                409,
+            );
+        }
+
         const id = await JadwalModel.create({
             kader_id: kader.id,
             tanggal,
@@ -53,7 +62,7 @@ export const createJadwal = async (req, res) => {
             `di ${lokasi}. Harap hadir tepat waktu.`;
 
         Promise.all(
-            semuaOrangTua.map((orangTua) =>
+            semuaOrangTua.map((ot) =>
                 fcmService.sendNotification(
                     ot.id,
                     "jadwal Posyandu Baru",

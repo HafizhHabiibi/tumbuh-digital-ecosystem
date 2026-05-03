@@ -1,4 +1,4 @@
-import db from "../database/db,js";
+import db from "../database/connection.js";
 
 export const create = async (data) => {
     const [result] = await db.query(
@@ -49,6 +49,15 @@ export const findById = async (id) => {
         JOIN kader k ON k.id = j.kader_id
         WHERE j.id = ?`,
         [id],
+    );
+    return rows[0] || null;
+};
+
+export const findByTanggal = async (tanggal) => {
+    const [rows] = await db.query(
+        `SELECT id FROM jadwal_posyandu WHERE tanggal = ?
+        LIMIT 1`,
+        [tanggal],
     );
     return rows[0] || null;
 };

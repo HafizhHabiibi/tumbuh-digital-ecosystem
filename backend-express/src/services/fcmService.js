@@ -23,7 +23,7 @@ const initFirebase = () => {
 
 initFirebase();
 
-export const kirimNotifikasi = async (
+export const sendNotification = async (
     orang_tua_id,
     judul,
     pesan,
@@ -70,7 +70,7 @@ export const kirimNotifikasi = async (
             `[FCM OK] "${judul}" terkirim ke orang_tua_id: ${orang_tua_id}`,
         );
         return { success: true };
-    } catch {
+    } catch (err) {
         err;
     }
     {

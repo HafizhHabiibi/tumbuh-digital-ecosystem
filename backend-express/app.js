@@ -6,7 +6,7 @@ import kaderRoutes from "./src/routes/kader.js";
 import pengukuranRoutes from "./src/routes/pengukuran.js";
 import riwayatPemberianRoutes from "./src/routes/riwayatPemberian.js";
 import rujukanRoutes from "./src/routes/rujukan.js";
-import jadwalRoutes from "../src/routes/jadwal.js";
+import jadwalRoutes from "./src/routes/jadwal.js";
 
 const app = express();
 

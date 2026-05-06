@@ -1,7 +1,7 @@
 import db from "../database/connection.js";
 
-export const findByOrangTUa = async (orang_tua_id) => {
-    cons[rows] = await db.query(
+export const findByOrangTua = async (orang_tua_id) => {
+    const [rows] = await db.query(
         `SELECT
             n.id,
             n.judul,
@@ -10,7 +10,7 @@ export const findByOrangTUa = async (orang_tua_id) => {
             n.sudah_dibaca,
             n.sent_at,
             n.rujukan_id,
-            n.jadwal_id,
+            n.jadwal_id
         FROM notifikasi n
         WHERE n.orang_tua_id = ?
         ORDER BY n.sent_at DESC`,
@@ -41,7 +41,7 @@ export const tandaiDibaca = async (id, orang_tua_id) => {
     return result.affectedRows;
 };
 
-export const tandaiSemuaDIbaca = async (orang_tua_id) => {
+export const tandaiSemuaDibaca = async (orang_tua_id) => {
     const [result] = await db.query(
         `UPDATE notifikasi
         SET sudah_dibaca = TRUE

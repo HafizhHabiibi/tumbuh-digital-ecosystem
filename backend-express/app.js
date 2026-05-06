@@ -7,6 +7,7 @@ import pengukuranRoutes from "./src/routes/pengukuran.js";
 import riwayatPemberianRoutes from "./src/routes/riwayatPemberian.js";
 import rujukanRoutes from "./src/routes/rujukan.js";
 import jadwalRoutes from "./src/routes/jadwal.js";
+import notifikasiRoutes from "./src/routes/notifikasi.js";
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use("/api/pengukuran", pengukuranRoutes);
 app.use("/api/riwayat-pemberian", riwayatPemberianRoutes);
 app.use("/api/rujukan", rujukanRoutes);
 app.use("/api/jadwal", jadwalRoutes);
+app.use("/api/notifikasi", notifikasiRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

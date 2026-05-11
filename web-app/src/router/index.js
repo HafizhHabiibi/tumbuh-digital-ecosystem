@@ -27,6 +27,7 @@ const routes = [
     {
         path: "/kader",
         meta: { requiresAuth: true, role: "kader" },
+        component: () => import("../views/kader/KaderLayout.vue"),
         children: [
             {
                 path: "dashboard",
@@ -81,6 +82,7 @@ const routes = [
     {
         path: "/puskesmas",
         meta: { requiresAuth: true, role: "puskesmas" },
+        component: () => import("../views/puskesmas/PuskesmasLayout.vue"),
         children: [
             {
                 path: "dashboard",

@@ -8,9 +8,6 @@ export const useAuthStore = defineStore("auth", () => {
 
     const isLoggedIn = computed(() => !!token.value);
     const role = computed(() => user.value?.role || null);
-
-    const isLoggedIn = computed(() => !!token.value);
-    const role = computed(() => user.value?.role || null);
     const isKader = computed(() => role.value === "kader");
     const isPuskesmas = computed(() => role.value === "puskesmas");
 

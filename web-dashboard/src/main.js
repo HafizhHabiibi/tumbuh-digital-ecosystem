@@ -2,7 +2,7 @@ import { createApp } from "vue";
 import { createPinia } from "pinia";
 
 import PrimeVue from "primevue/config";
-import Aura from "@primevue/themes/aura";
+import Aura from "@primeuix/themes/aura";
 
 import VueApexCharts from "vue3-apexcharts";
 import ToastService from "primevue/toastservice";

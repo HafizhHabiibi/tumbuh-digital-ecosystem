@@ -28,7 +28,8 @@ router.get("/orang-tua", getOrangTua);
 router.get("/orang-tua/:id", getOrangTuaById);
 router.get("/orang-tua/:id/anak", getAnakByOrangTua);
 
-(router.post("/anak", createAnak), router.get("/anak", getAllAnak));
+router.post("/anak", createAnak);
+router.get("/anak", getAllAnak);
 router.get("/anak/:id", getAnakById);
 
 export default router;

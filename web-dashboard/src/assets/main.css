@@ -1,14 +1,81 @@
+/*
+ * main.css — Design Tokens Tumbuh Dashboard
+ * Semua warna, shadow, dan nilai desain didefinisikan di sini.
+ * Gunakan var(--nama-token) di semua komponen, jangan hardcode hex.
+ */
+
+@import "@fontsource/poppins/400.css";
+@import "@fontsource/poppins/500.css";
+@import "@fontsource/poppins/600.css";
+@import "@fontsource/poppins/700.css";
+@import "@fontsource/poppins/800.css";
 @import "tailwindcss";
 
-html,
-body,
-#app {
-    margin: 0;
-    padding: 0;
-    min-height: 100%;
-    font-family: Inter, sans-serif;
+/* ─────────────────────────────────────────────────────────────────── *
+ *  COLOR TOKENS
+ * ─────────────────────────────────────────────────────────────────── */
+:root {
+    /* ── Brand hijau (green scale) ──────────────────────────────── */
+    --color-green-50: #f5fbef; /* surface / background form */
+    --color-green-100: #e4f5d4;
+    --color-green-200: #c8eaaa;
+    --color-green-300: #9fd67a;
+    --color-green-400: #74be4c;
+    --color-green-500: #52a32e;
+    --color-green-600: #008f24; /* primary CTA / branding panel */
+    --color-green-700: #006e1c; /* hover, link, focus */
+    --color-green-800: #005015;
+    --color-green-900: #004d13; /* darkest gradient stop */
+
+    /* ── Neutral / text ─────────────────────────────────────────── */
+    --color-text-heading: #171d16; /* judul, label penting */
+    --color-text-body: #3f4a3c; /* teks biasa */
+    --color-text-muted: #6f7a6b; /* placeholder, ikon */
+
+    /* ── Input ──────────────────────────────────────────────────── */
+    --color-input-bg: #eff6e9;
+    --color-input-border: #becab8;
+
+    /* ── Surface ────────────────────────────────────────────────── */
+    --color-surface: #f5fbef; /* background section kanan */
+    --color-card-border: rgba(190, 202, 184, 0.4);
+
+    /* ── Focus & shadow ─────────────────────────────────────────── */
+    --color-focus-ring: rgba(0, 110, 28, 0.2);
+    --color-shadow-green: rgba(0, 110, 28, 0.35);
+    --color-shadow-green-hover: rgba(0, 110, 28, 0.45);
+}
+
+/* ─────────────────────────────────────────────────────────────────── *
+ *  BASE STYLES
+ * ─────────────────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
 }
 
 body {
-    background-color: #f5f7fb;
+    font-family: "Poppins", sans-serif;
+    color: var(--color-text-body);
+    background: white;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─────────────────────────────────────────────────────────────────── *
+ *  FOCUS VISIBLE — accessibility
+ *  Hanya tampil saat navigasi keyboard, tidak saat klik mouse.
+ * ─────────────────────────────────────────────────────────────────── */
+:focus-visible {
+    outline: 2px solid var(--color-green-700);
+    outline-offset: 2px;
+    border-radius: 4px;
 }

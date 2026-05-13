@@ -9,6 +9,7 @@
         "preview": "vite preview"
     },
     "dependencies": {
+        "@fontsource/poppins": "^5.2.7",
         "@primeuix/themes": "^2.0.3",
         "@tailwindcss/vite": "^4.3.0",
         "apexcharts": "^5.11.0",

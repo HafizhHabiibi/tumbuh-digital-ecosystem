@@ -12,9 +12,9 @@ export const kirimEmailResetPassword = async (email, token) => {
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
 
     await transporter.sendMail({
-        from: `"Posyandu Digital" <${process.env.MAIL_USER}>`,
+        from: `"Tumbuh Posyandu" <${process.env.MAIL_USER}>`,
         to: email,
-        subject: "Reset Password Posyandu Digital",
+        subject: "Reset Password Tumbuh Posyandu",
         html: `
         <div style="font-family: Arial, sans-serif; max-width: 480px; margin: auto;" >
             <h2>Reset Password</h2>

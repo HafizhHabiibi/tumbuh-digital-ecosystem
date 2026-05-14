@@ -1,15 +1,26 @@
 <template>
-    <div class="flex min-h-screen bg-gray-100">
+    <div class="flex min-h-dvh bg-[#f5fbef]">
         <!-- Sidebar -->
-        <AppSidebar />
+        <AppSidebar
+            id="app-sidebar"
+            :open="sidebarOpen"
+            @close="sidebarOpen = false"
+        />
 
-        <!-- Content Area -->
-        <div class="flex flex-col flex-1">
-            <!-- Header -->
-            <AppHeader />
+        <!-- Area konten kanan -->
+        <div class="flex flex-col flex-1 min-w-0 overflow-x-hidden">
+            <!-- Header mobile only -->
+            <AppHeader
+                :sidebar-open="sidebarOpen"
+                @toggle-sidebar="sidebarOpen = !sidebarOpen"
+            />
 
-            <!-- Page Content -->
-            <main class="flex-1 p-6">
+            <!-- Konten halaman -->
+            <main
+                id="main-content"
+                class="flex-1 overflow-y-auto"
+                tabindex="-1"
+            >
                 <RouterView />
             </main>
         </div>
@@ -17,8 +28,9 @@
 </template>
 
 <script setup>
-import { RouterView } from "vue-router";
+import { ref } from "vue";
+import AppSidebar from "@/components/layout/AppSidebar.vue";
+import AppHeader from "@/components/layout/AppHeader.vue";
 
-import AppSidebar from "./AppSidebar.vue";
-import AppHeader from "./AppHeader.vue";
+const sidebarOpen = ref(false);
 </script>

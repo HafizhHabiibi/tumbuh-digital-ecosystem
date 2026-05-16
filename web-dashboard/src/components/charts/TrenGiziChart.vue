@@ -37,7 +37,7 @@
 
         <!-- Chart -->
         <apexchart
-            v-else
+            v-else-if="categories.length > 0"
             type="line"
             height="280"
             :options="chartOptions"

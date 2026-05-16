@@ -26,7 +26,7 @@
 
         <!-- Chart -->
         <apexchart
-            v-else
+            v-else-if="series.length > 0 && series.some((v) => v > 0)"
             type="donut"
             height="280"
             :options="chartOptions"

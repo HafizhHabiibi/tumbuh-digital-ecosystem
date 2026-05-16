@@ -27,7 +27,7 @@
 
         <!-- Chart -->
         <apexchart
-            v-else
+            v-else-if="series[0]?.data?.some((v) => v > 0)"
             type="bar"
             height="280"
             :options="chartOptions"

@@ -6,7 +6,7 @@ const pengukuranService = {
         return api.post("/pengukuran", payload);
     },
     getRiwayatPengukuran(anakId) {
-        return api.get(`/pengukuran/anak/${anakId}/riwayat`);
+        return api.get(`/pengukuran/anak/${anakId}`);
     },
     getDetailPengukuran(id) {
         return api.get(`/pengukuran/${id}`);
@@ -15,7 +15,7 @@ const pengukuranService = {
         return api.get("/pengukuran/ranking");
     },
     getDetailSAW(id) {
-        return api.get(`/pengukuran/saw/${id}`);
+        return api.get(`/pengukuran/${id}/saw`);
     },
 };
 

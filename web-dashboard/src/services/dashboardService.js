@@ -6,17 +6,17 @@ const dashboardService = {
     },
 
     getDistribusiGizi() {
-        return api.get("/dashboard/distribusi-gizi");
+        return api.get("/dashboard/distribusi");
     },
 
     getTrenGizi(bulan = 6) {
-        return api.get("/dashboard/tren-gizi", {
+        return api.get("/dashboard/tren", {
             params: { bulan },
         });
     },
 
     getDistribusiRisiko() {
-        return api.get("/dashboard/distribusi-risiko");
+        return api.get("/dashboard/risiko");
     },
 };
 

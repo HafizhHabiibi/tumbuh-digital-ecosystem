@@ -101,7 +101,10 @@ export const findByAnak = async (anak_id) => {
         ORDER BY r.created_at DESC`,
         [anak_id],
     );
-    return rows;
+    return rows.map((row) => ({
+        ...row,
+        skor_akhir: row.skor_akhir !== null ? parseFloat(row.skor_akhir) : null,
+    }));
 };
 
 export const findAktifByAnak = async (anak_id) => {

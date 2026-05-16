@@ -11,6 +11,7 @@
 
     <!-- Sidebar panel -->
     <aside
+        id="app-sidebar"
         class="sidebar-panel flex flex-col flex-shrink-0 w-60 h-dvh z-50 px-3 py-5"
         :class="{ 'sidebar--open': open }"
         role="navigation"

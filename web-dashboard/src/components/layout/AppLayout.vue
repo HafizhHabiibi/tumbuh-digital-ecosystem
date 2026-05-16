@@ -1,11 +1,7 @@
 <template>
     <div class="flex min-h-dvh bg-[#f5fbef]">
         <!-- Sidebar -->
-        <AppSidebar
-            id="app-sidebar"
-            :open="sidebarOpen"
-            @close="sidebarOpen = false"
-        />
+        <AppSidebar :open="sidebarOpen" @close="sidebarOpen = false" />
 
         <!-- Area konten kanan -->
         <div class="flex flex-col flex-1 min-w-0 overflow-x-hidden">

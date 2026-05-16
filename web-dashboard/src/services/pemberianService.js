@@ -2,11 +2,11 @@ import api from "./api";
 
 const pemberianService = {
     createRiwayat(payload) {
-        return api.post("/pemberian", payload);
+        return api.post("/riwayat-pemberian", payload);
     },
 
     getRiwayatByAnak(anakId, jenis = null) {
-        return api.get(`/pemberian/anak/${anakId}`, {
+        return api.get(`/riwayat-pemberian/anak/${anakId}`, {
             params: jenis ? { jenis } : {},
         });
     },

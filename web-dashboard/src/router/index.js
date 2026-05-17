@@ -40,6 +40,12 @@ const routes = [
                 component: () => import("../views/kader/OrangTuaView.vue"),
             },
             {
+                path: "orang-tua/:id",
+                name: "KaderDetailOrangTua",
+                component: () =>
+                    import("../views/kader/DetailOrangTuaView.vue"),
+            },
+            {
                 path: "anak",
                 name: "KaderAnak",
                 component: () => import("../views/kader/AnakView.vue"),

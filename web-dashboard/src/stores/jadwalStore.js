@@ -54,8 +54,14 @@ export const useJadwalStore = defineStore("jadwal", {
         /**
          * Jadwal terdekat (paling pertama dari jadwal mendatang)
          */
-        jadwalTerdekat: (state, getters) => {
-            return getters.jadwalMendatang[0] || null;
+        jadwalTerdekat: (state) => {
+            const today = new Date().toISOString().split("T")[0];
+            return (
+                state.jadwalList
+                    .filter((j) => j.tanggal >= today)
+                    .sort((a, b) => a.tanggal.localeCompare(b.tanggal))[0] ||
+                null
+            );
         },
     },
 

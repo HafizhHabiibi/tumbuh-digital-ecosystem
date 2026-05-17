@@ -332,7 +332,7 @@ const handleSubmit = async (payload) => {
 
 /* ── Navigasi detail ─────────────────────────────────────────────── */
 const lihatDetail = (id) => {
-    router.push({ name: "KaderDetailAnak", params: { id } });
+    router.push({ name: "KaderDetailOrangTua", params: { id } });
 };
 
 onMounted(() => kaderStore.fetchAllOrangTua());

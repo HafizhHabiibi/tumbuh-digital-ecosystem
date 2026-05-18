@@ -79,6 +79,19 @@
                     </div>
                 </Transition>
 
+                <!-- ── Turnstile — selalu tampil, baik form maupun resend ── -->
+                <!-- [1] Satu instance saja, ditampilkan di luar v-if/v-else  -->
+                <!--     agar widget tidak destroy/recreate saat state berubah -->
+                <div class="flex justify-center mb-5">
+                    <VueTurnstile
+                        ref="turnstileRef"
+                        :site-key="siteKey"
+                        action="forgot-password"
+                        theme="light"
+                        v-model="token"
+                    />
+                </div>
+
                 <!-- ── Form (tersembunyi setelah sukses) ──────────────── -->
                 <form
                     v-if="!submitted"
@@ -120,7 +133,7 @@
 
                         <button
                             type="submit"
-                            :disabled="loading || !isValid"
+                            :disabled="loading || !isValid || !turnstileToken"
                             class="btn-primary w-full text-white font-semibold text-sm py-3.5 rounded-xl transition-all duration-200 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
                             :aria-busy="loading"
                         >
@@ -140,13 +153,13 @@
                 </form>
 
                 <!-- ── Kirim ulang (setelah sukses) ───────────────────── -->
-                <div v-else class="mt-4 text-center">
-                    <p class="text-sm text-body">
+                <div v-else class="mt-2">
+                    <p class="text-sm text-body text-center">
                         Tidak menerima email?
                         <button
                             type="button"
-                            class="font-bold text-brand-primary hover:opacity-70 transition-opacity"
-                            :disabled="loading"
+                            class="font-bold text-brand-primary hover:opacity-70 transition-opacity disabled:opacity-40"
+                            :disabled="loading || !turnstileToken"
                             @click="$emit('resend')"
                         >
                             Kirim ulang
@@ -159,20 +172,42 @@
 </template>
 
 <script setup>
+import { ref, computed } from "vue";
+import VueTurnstile from "vue-turnstile";
 import BrandingIllustration from "@/components/ui/BrandingIllustration.vue";
 
-defineProps({
+const props = defineProps({
     email: { type: String, required: true },
+    turnstileToken: { type: String, default: "" },
     isValid: { type: Boolean, default: false },
     loading: { type: Boolean, default: false },
     error: { type: String, default: null },
-    /** true setelah email berhasil dikirim, form diganti pesan sukses */
     submitted: { type: Boolean, default: false },
-    /** email yang terakhir disubmit — ditampilkan di pesan sukses */
     submittedEmail: { type: String, default: "" },
 });
 
-defineEmits(["submit", "update:email", "resend"]);
+const emit = defineEmits([
+    "submit",
+    "update:email",
+    "update:turnstileToken",
+    "resend",
+]);
+
+const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
+
+// [2] Ref ke instance VueTurnstile untuk akses method .reset()
+const turnstileRef = ref(null);
+
+// [3] Computed writable sebagai jembatan v-model untuk VueTurnstile
+const token = computed({
+    get: () => props.turnstileToken,
+    set: (val) => emit("update:turnstileToken", val),
+});
+
+// [4] Expose resetTurnstile agar bisa dipanggil dari parent
+defineExpose({
+    resetTurnstile: () => turnstileRef.value?.reset(),
+});
 </script>
 
 <style scoped>

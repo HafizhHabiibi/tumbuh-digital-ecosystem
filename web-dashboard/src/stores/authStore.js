@@ -49,11 +49,24 @@ export const useAuthStore = defineStore("auth", () => {
     };
 
     // ========== ACTIONS ==========
-    const login = async (email, password) => {
+
+    /**
+     * Login dengan email, password, dan token Turnstile
+     * @param {string} email
+     * @param {string} password
+     * @param {string} turnstileToken — token dari widget Cloudflare Turnstile
+     * @returns {boolean}
+     */
+    const login = async (email, password, turnstileToken) => {
+        // [DIUBAH] tambah turnstileToken
         loading.value.login = true;
         error.value.login = null;
         try {
-            const res = await authService.login(email, password);
+            const res = await authService.login(
+                email,
+                password,
+                turnstileToken,
+            ); // [DIUBAH]
             setAuth(res.data);
             return true;
         } catch (err) {
@@ -70,15 +83,16 @@ export const useAuthStore = defineStore("auth", () => {
 
     /**
      * Kirim email reset password
-     * Dipakai di ForgotPasswordView.vue
      * @param {string} email
+     * @param {string} turnstileToken — token dari widget Cloudflare Turnstile
      * @returns {boolean}
      */
-    const forgotPassword = async (email) => {
+    const forgotPassword = async (email, turnstileToken) => {
+        // [DIUBAH] tambah turnstileToken
         loading.value.forgotPassword = true;
         error.value.forgotPassword = null;
         try {
-            await authService.forgotPassword(email);
+            await authService.forgotPassword(email, turnstileToken); // [DIUBAH]
             return true;
         } catch (err) {
             error.value.forgotPassword =
@@ -91,7 +105,6 @@ export const useAuthStore = defineStore("auth", () => {
 
     /**
      * Reset password dengan token dari email
-     * Dipakai di ResetPasswordView.vue
      * @param {string} token
      * @param {string} password_baru
      * @returns {boolean}
@@ -113,7 +126,6 @@ export const useAuthStore = defineStore("auth", () => {
 
     /**
      * Ganti password dari halaman profil (user sudah login)
-     * Dipakai di ProfilView.vue
      * @param {string} password_lama
      * @param {string} password_baru
      * @returns {boolean}

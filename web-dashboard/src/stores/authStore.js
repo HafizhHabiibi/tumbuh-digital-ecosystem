@@ -50,13 +50,6 @@ export const useAuthStore = defineStore("auth", () => {
 
     // ========== ACTIONS ==========
 
-    /**
-     * Login dengan email, password, dan token Turnstile
-     * @param {string} email
-     * @param {string} password
-     * @param {string} turnstileToken — token dari widget Cloudflare Turnstile
-     * @returns {boolean}
-     */
     const login = async (email, password, turnstileToken) => {
         // [DIUBAH] tambah turnstileToken
         loading.value.login = true;
@@ -81,12 +74,6 @@ export const useAuthStore = defineStore("auth", () => {
         clearAuth();
     };
 
-    /**
-     * Kirim email reset password
-     * @param {string} email
-     * @param {string} turnstileToken — token dari widget Cloudflare Turnstile
-     * @returns {boolean}
-     */
     const forgotPassword = async (email, turnstileToken) => {
         // [DIUBAH] tambah turnstileToken
         loading.value.forgotPassword = true;
@@ -103,12 +90,6 @@ export const useAuthStore = defineStore("auth", () => {
         }
     };
 
-    /**
-     * Reset password dengan token dari email
-     * @param {string} token
-     * @param {string} password_baru
-     * @returns {boolean}
-     */
     const resetPassword = async (token, password_baru) => {
         loading.value.resetPassword = true;
         error.value.resetPassword = null;
@@ -124,12 +105,6 @@ export const useAuthStore = defineStore("auth", () => {
         }
     };
 
-    /**
-     * Ganti password dari halaman profil (user sudah login)
-     * @param {string} password_lama
-     * @param {string} password_baru
-     * @returns {boolean}
-     */
     const changePassword = async (password_lama, password_baru) => {
         loading.value.changePassword = true;
         error.value.changePassword = null;
@@ -167,7 +142,7 @@ export const useAuthStore = defineStore("auth", () => {
         resetPassword,
         changePassword,
 
-        // Helpers (dipakai jika perlu set auth manual, misal refresh token)
+        // Helpers
         setAuth,
         clearAuth,
     };

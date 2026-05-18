@@ -148,10 +148,22 @@
                             </RouterLink>
                         </div>
 
+                        <!-- Turnstile widget -->
+                        <div class="flex justify-center">
+                            <!-- [1] Tambah ref="turnstileRef" agar bisa dipanggil .reset() -->
+                            <VueTurnstile
+                                ref="turnstileRef"
+                                :site-key="siteKey"
+                                action="login"
+                                theme="light"
+                                v-model="token"
+                            />
+                        </div>
+
                         <!-- Submit -->
                         <button
                             type="submit"
-                            :disabled="loading || !isValid"
+                            :disabled="loading || !isValid || !turnstileToken"
                             class="btn-login w-full text-white font-semibold text-sm py-3.5 rounded-xl transition-all duration-200 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
                             :aria-busy="loading"
                         >
@@ -175,25 +187,42 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
+import VueTurnstile from "vue-turnstile";
 import BrandingIllustration from "@/components/ui/BrandingIllustration.vue";
 
 const props = defineProps({
-    /** Nilai input email (v-model:email) */
     email: { type: String, required: true },
-    /** Nilai input password (v-model:password) */
     password: { type: String, required: true },
-    /** Form valid atau tidak — dikontrol parent */
+    turnstileToken: { type: String, default: "" },
     isValid: { type: Boolean, default: false },
-    /** Sedang loading/submit */
     loading: { type: Boolean, default: false },
-    /** Pesan error dari store/API */
     error: { type: String, default: null },
 });
 
-defineEmits(["submit", "update:email", "update:password"]);
+const emit = defineEmits([
+    "submit",
+    "update:email",
+    "update:password",
+    "update:turnstileToken",
+]);
 
+const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
 const showPassword = ref(false);
+
+// [1] Ref ke instance VueTurnstile untuk akses method .reset()
+const turnstileRef = ref(null);
+
+// [2] Computed writable sebagai jembatan v-model untuk VueTurnstile
+const token = computed({
+    get: () => props.turnstileToken,
+    set: (val) => emit("update:turnstileToken", val),
+});
+
+// [3] Expose resetTurnstile agar bisa dipanggil dari parent via template ref
+defineExpose({
+    resetTurnstile: () => turnstileRef.value?.reset(),
+});
 </script>
 
 <style scoped>
@@ -289,11 +318,6 @@ const showPassword = ref(false);
 
 /* ─── Ilustrasi mobile (filter hijau) ────────────────────────────── */
 .illustration--green {
-    /*
-        SVG di-load sebagai <img>, tidak bisa pakai currentColor.
-        Filter ini mengonversi warna hitam default ke #006e1c (hijau brand).
-        Generator: https://codepen.io/sosuke/pen/Pjoqqp
-    */
     filter: invert(28%) sepia(64%) saturate(620%) hue-rotate(94deg)
         brightness(85%) contrast(101%);
 }

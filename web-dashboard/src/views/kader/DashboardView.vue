@@ -6,7 +6,7 @@
                 <h1 class="page-title">Dashboard</h1>
                 <p class="page-subtitle">
                     Selamat datang,
-                    <strong>{{ authStore.user?.nama ?? "Kader" }}</strong> —
+                    <strong>{{ authStore.namaLengkap ?? "Kader" }}</strong> —
                     data per {{ tanggalHariIni }}
                 </p>
             </div>

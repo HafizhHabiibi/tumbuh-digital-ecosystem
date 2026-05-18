@@ -1,12 +1,19 @@
 import api from "./api.js";
 
-export const login = async (email, password) => {
-    const res = await api.post("/auth/login", { email, password });
+export const login = async (email, password, turnstileToken) => {
+    const res = await api.post("/auth/login", {
+        email,
+        password,
+        turnstileToken,
+    });
     return res.data;
 };
 
-export const forgotPassword = async (email) => {
-    const res = await api.post("/auth/forgot-password", { email });
+export const forgotPassword = async (email, turnstileToken) => {
+    const res = await api.post("/auth/forgot-password", {
+        email,
+        turnstileToken,
+    });
     return res.data;
 };
 

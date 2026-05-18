@@ -13,7 +13,11 @@
                     class="text-sm mt-1 m-0"
                     style="color: var(--color-text-muted)"
                 >
-                    Selamat datang — data per {{ tanggalHariIni }}
+                    Selamat datang,
+                    <strong style="color: var(--color-green-700)">{{
+                        authStore.namaLengkap
+                    }}</strong>
+                    — data per {{ tanggalHariIni }}
                 </p>
             </div>
             <button
@@ -250,6 +254,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
+import { useAuthStore } from "@/stores/authStore";
 import { useDashboardStore } from "@/stores/dashboardStore";
 import { useRujukanStore } from "@/stores/rujukanStore";
 import StatCard from "@/components/ui/StatCard.vue";
@@ -259,6 +264,7 @@ import DistribusiGiziChart from "@/components/charts/DistribusiGiziChart.vue";
 import RisikoChart from "@/components/charts/RisikoChart.vue";
 
 const router = useRouter();
+const authStore = useAuthStore();
 const dashboardStore = useDashboardStore();
 const rujukanStore = useRujukanStore();
 

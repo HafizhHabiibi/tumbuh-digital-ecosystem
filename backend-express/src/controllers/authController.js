@@ -152,6 +152,112 @@ export const login = async (req, res) => {
     }
 };
 
+export const loginMobile = async (req, res) => {
+    try {
+        const { email, password, fcm_token } = req.body;
+
+        if (!email || !password) {
+            return error(res, "Email dan password wajib diisi", 400);
+        }
+
+        // [1] Cek lockout
+        const lockout = await LoginAttemptModel.checkAccountLockout(email);
+        if (lockout.locked) {
+            return error(
+                res,
+                `Akun sementara dikunci karena ${lockout.attemptCount}x percobaan gagal. ` +
+                    `Coba lagi dalam ${lockout.remainingMinutes} menit atau reset password Anda.`,
+                429,
+            );
+        }
+
+        // [2] Cek user & pastikan role orang_tua
+        const user = await UserModel.findByEmail(email);
+        if (!user) {
+            await LoginAttemptModel.recordFailedAttempt(email);
+            return error(res, "Email atau password salah", 400);
+        }
+
+        if (user.role !== "orang_tua") {
+            return error(res, "Akses ditolak", 403);
+        }
+
+        // [3] Cek password
+        const passwordMatch = await bcrypt.compare(
+            password,
+            user.password_hash,
+        );
+        if (!passwordMatch) {
+            await LoginAttemptModel.recordFailedAttempt(email);
+
+            const updated = await LoginAttemptModel.checkAccountLockout(email);
+            const sisaPercobaan = Math.max(0, 5 - updated.attemptCount);
+
+            if (sisaPercobaan === 0) {
+                return error(
+                    res,
+                    "Akun dikunci karena terlalu banyak percobaan gagal. Coba lagi dalam 15 menit.",
+                    429,
+                );
+            }
+
+            return error(
+                res,
+                `Email atau password salah. Sisa percobaan: ${sisaPercobaan}`,
+                400,
+            );
+        }
+
+        await LoginAttemptModel.clearFailedAttempts(email);
+
+        // [4] Generate token
+        const token = generateToken({ id: user.id, role: user.role });
+        const refreshToken = generateRefreshToken({
+            id: user.id,
+            role: user.role,
+        });
+        const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+        await RefreshTokenModel.save(user.id, refreshToken, expiresAt);
+
+        // [5] Update FCM token kalau ada
+        if (
+            fcm_token &&
+            typeof fcm_token === "string" &&
+            fcm_token.length < 256
+        ) {
+            await db.query(
+                `UPDATE orang_tua SET fcm_token = ? WHERE user_id = ?`,
+                [fcm_token, user.id],
+            );
+        }
+
+        // [6] Ambil profil
+        const [rows] = await db.query(
+            `SELECT * FROM orang_tua WHERE user_id = ?`,
+            [user.id],
+        );
+        const profil = rows[0];
+
+        return success(
+            res,
+            {
+                token,
+                refresh_token: refreshToken,
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    role: user.role,
+                    profil,
+                },
+            },
+            "Login berhasil",
+        );
+    } catch (err) {
+        console.error("[loginMobile]", err);
+        return error(res, "Terjadi kesalahan server", 500);
+    }
+};
+
 export const changePassword = async (req, res) => {
     try {
         const { password_lama, password_baru } = req.body;

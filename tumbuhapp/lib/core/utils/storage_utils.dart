@@ -1,5 +1,5 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../constants/app_constant.dart';
+import '../constant/app_constants.dart';
 
 class StorageUtils {
   StorageUtils._();

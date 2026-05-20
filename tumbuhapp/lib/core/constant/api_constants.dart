@@ -1,7 +1,6 @@
 class ApiConstants {
   ApiConstants._();
 
-  // Base URL — ganti IP sesuai jaringan kalau test di device fisik
   static const String baseUrl = 'http://localhost:3000/api';
 
   // Auth
@@ -12,18 +11,17 @@ class ApiConstants {
   // Orang Tua & Anak
   static const String profil = '/orang-tua/profil';
   static const String daftarAnak = '/orang-tua/anak';
-  static String detailAnak(int id) => '/orang-tua/anak/$id';
+  static String detailAnak(String id) => '/orang-tua/anak/$id';
 
   // Pengukuran
-  static String pengukuranAnak(int id) => '/orang-tua/anak/$id/pengukuran';
-  static String detailPengukuran(int id) => '/pengukuran/$id';
+  static String pengukuranAnak(String id) => '/orang-tua/anak/$id/pengukuran';
   static String insightPengukuran(int id) => '/pengukuran/$id/insight';
 
   // Pemberian
-  static String pemberianAnak(int id) => '/orang-tua/anak/$id/pemberian';
+  static String pemberianAnak(String id) => '/orang-tua/anak/$id/pemberian';
 
   // Rujukan
-  static String rujukanAnak(int id) => '/orang-tua/anak/$id/rujukan';
+  static String rujukanAnak(String id) => '/orang-tua/anak/$id/rujukan';
 
   // Notifikasi
   static const String notifikasi = '/notifikasi';

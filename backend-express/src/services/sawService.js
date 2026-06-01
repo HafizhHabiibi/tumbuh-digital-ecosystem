@@ -4,7 +4,7 @@ const normalisasiZScore = (zscore) => {
     const MIN = -3;
     const MAX = 2;
     const clipped = Math.max(MIN, Math.min(MAX, zscore));
-    return (clipped - MIN) / (MAX - MIN);
+    return 1 - (clipped - MIN) / (MAX - MIN);
 };
 
 const normalisasiKehadiran = async (anak_id) => {
@@ -16,12 +16,12 @@ const normalisasiKehadiran = async (anak_id) => {
         [anak_id],
     );
     const total = parseInt(rows[0].total) || 0;
-    return Math.min(total / 12, 1.0);
+    return 1 - Math.min(total / 12, 1.0);
 };
 
 const tentukanKategoriRisiko = (skor_akhir) => {
-    if (skor_akhir < 0.3334) return "tinggi";
-    if (skor_akhir < 0.6667) return "sedang";
+    if (skor_akhir > 0.6667) return "tinggi";
+    if (skor_akhir > 0.3334) return "sedang";
     return "rendah";
 };
 
@@ -113,7 +113,7 @@ export const getRankingSAW = async () => {
             LIMIT 1
         )
         JOIN pengukuran p ON p.id = sr.pengukuran_id
-        ORDER BY sr.skor_akhir ASC`,
+        ORDER BY sr.skor_akhir DESC`,
     );
     return rows.map((row) => ({
         ...row,

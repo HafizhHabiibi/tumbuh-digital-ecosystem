@@ -335,19 +335,7 @@ onMounted(fetchData);
     border: 1px solid var(--color-card-border);
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
-.btn-primary {
-    background: linear-gradient(
-        135deg,
-        var(--color-green-600),
-        var(--color-green-800)
-    );
-    box-shadow: 0 2px 8px var(--color-shadow-green);
-    border: none;
-    cursor: pointer;
-}
-.btn-primary:hover {
-    filter: brightness(1.08);
-}
+
 .th-cell {
     text-align: left;
     padding: 0.75rem 1rem;

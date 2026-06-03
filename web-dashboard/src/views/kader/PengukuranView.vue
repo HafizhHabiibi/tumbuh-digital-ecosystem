@@ -429,23 +429,7 @@ onMounted(() => {
     margin: 0 0 0 0.25rem;
 }
 
-.btn-primary {
-    background: linear-gradient(
-        135deg,
-        var(--color-green-600),
-        var(--color-green-800)
-    );
-    box-shadow: 0 2px 8px var(--color-shadow-green);
-    transition:
-        filter 0.15s,
-        transform 0.15s;
-}
-.btn-primary:hover:not(:disabled) {
-    filter: brightness(1.08);
-}
-.btn-primary:active:not(:disabled) {
-    transform: scale(0.98);
-}
+
 
 .slide-down-enter-active,
 .slide-down-leave-active {

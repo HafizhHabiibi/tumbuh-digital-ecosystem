@@ -391,20 +391,7 @@ const handleSubmit = async () => {
 .toggle-pass:hover {
     color: var(--color-text-body);
 }
-.btn-primary {
-    background: linear-gradient(
-        135deg,
-        var(--color-green-600),
-        var(--color-green-800)
-    );
-    box-shadow: 0 2px 8px var(--color-shadow-green);
-    border: none;
-    cursor: pointer;
-    transition: filter 0.15s;
-}
-.btn-primary:hover:not(:disabled) {
-    filter: brightness(1.08);
-}
+
 .slide-down-enter-active,
 .slide-down-leave-active {
     transition: all 0.25s ease;

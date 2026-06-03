@@ -432,24 +432,7 @@ onMounted(() => {
     border: 1px solid var(--color-card-border);
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
-.btn-primary {
-    background: linear-gradient(
-        135deg,
-        var(--color-green-600),
-        var(--color-green-800)
-    );
-    box-shadow: 0 2px 8px var(--color-shadow-green);
-    transition:
-        filter 0.15s,
-        transform 0.15s;
-}
-.btn-primary:hover:not(:disabled) {
-    filter: brightness(1.08);
-}
-.btn-primary:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
+
 
 .input-field {
     background: var(--color-input-bg);

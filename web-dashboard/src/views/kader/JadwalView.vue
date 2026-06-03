@@ -433,20 +433,7 @@ onMounted(() => jadwalStore.fetchAllJadwal());
     );
     box-shadow: 0 4px 16px var(--color-shadow-green);
 }
-.btn-primary {
-    background: linear-gradient(
-        135deg,
-        var(--color-green-600),
-        var(--color-green-800)
-    );
-    box-shadow: 0 2px 8px var(--color-shadow-green);
-    transition: filter 0.15s;
-    border: none;
-    cursor: pointer;
-}
-.btn-primary:hover {
-    filter: brightness(1.08);
-}
+
 .skeleton {
     background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
     background-size: 200% 100%;

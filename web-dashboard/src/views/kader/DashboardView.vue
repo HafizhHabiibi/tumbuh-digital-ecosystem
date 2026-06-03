@@ -213,7 +213,7 @@ onMounted(() => dashboardStore.fetchAll(selectedBulan.value));
     white-space: nowrap;
 }
 .btn-refresh:hover:not(:disabled) {
-    background: #f5fbef;
+    background: var(--color-green-50);
     border-color: var(--color-green-700);
     color: var(--color-green-700);
 }

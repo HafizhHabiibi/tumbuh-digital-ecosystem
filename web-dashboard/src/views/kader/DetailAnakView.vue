@@ -520,7 +520,7 @@ import { useRoute, useRouter } from "vue-router";
 import { Dialog } from "primevue";
 import { useKaderStore } from "@/stores/kaderStore";
 import { usePengukuranStore } from "@/stores/pengukuranStore";
-import { usePemberianStore, LABEL_JENIS } from "@/stores/pemberian";
+import { usePemberianStore, LABEL_JENIS } from "@/stores/pemberianStore";
 import { useRujukanStore } from "@/stores/rujukanStore";
 
 import AnakCard from "@/components/cards/AnakCard.vue";
@@ -663,17 +663,7 @@ onMounted(fetchData);
     border: 1px solid var(--color-card-border);
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
-.btn-primary {
-    background: linear-gradient(
-        135deg,
-        var(--color-green-600),
-        var(--color-green-800)
-    );
-    box-shadow: 0 2px 8px var(--color-shadow-green);
-}
-.btn-primary:hover {
-    filter: brightness(1.08);
-}
+
 .th-cell {
     text-align: left;
     padding: 0.75rem 1rem;

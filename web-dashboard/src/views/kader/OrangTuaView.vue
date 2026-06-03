@@ -339,20 +339,7 @@ onMounted(() => kaderStore.fetchAllOrangTua());
 </script>
 
 <style scoped>
-.btn-primary {
-    background: linear-gradient(
-        135deg,
-        var(--color-green-600),
-        var(--color-green-800)
-    );
-    box-shadow: 0 2px 8px var(--color-shadow-green);
-}
-.btn-primary:hover {
-    filter: brightness(1.08);
-}
-.btn-primary:active {
-    transform: scale(0.97);
-}
+
 
 .table-card {
     background: white;

@@ -4,23 +4,25 @@
         Bar chart distribusi risiko stunting berdasarkan hasil SAW.
         Tiga kategori: Rendah, Sedang, Tinggi.
     -->
-    <div class="chart-card">
-        <header class="chart-header">
-            <div>
-                <h3 class="chart-title">Distribusi Risiko Stunting</h3>
-                <p class="chart-subtitle">Berdasarkan hasil analisis SAW</p>
-            </div>
-        </header>
-
+    <ChartCard
+        title="Distribusi Risiko Stunting"
+        subtitle="Berdasarkan hasil analisis SAW"
+        :loading="loading"
+        :empty="!series[0]?.data?.some((v) => v > 0)"
+    >
         <!-- Skeleton -->
-        <div v-if="loading" class="chart-skeleton" aria-label="Memuat chart...">
-            <div class="skeleton-bars">
-                <div v-for="i in 3" :key="i" class="skeleton-bar-wrap">
+        <div v-if="loading" class="py-4">
+            <div class="flex items-end justify-center gap-8 h-[200px]">
+                <div
+                    v-for="i in 3"
+                    :key="i"
+                    class="flex flex-col items-center gap-2 w-[60px] h-full justify-end"
+                >
                     <div
-                        class="skeleton skeleton--bar"
+                        class="skeleton w-full"
                         :style="{ height: `${40 + i * 20}%` }"
                     />
-                    <div class="skeleton skeleton--label" />
+                    <div class="skeleton w-12 h-3" />
                 </div>
             </div>
         </div>
@@ -33,11 +35,12 @@
             :options="chartOptions"
             :series="series"
         />
-    </div>
+    </ChartCard>
 </template>
 
 <script setup>
 import { computed } from "vue";
+import ChartCard from "./ChartCard.vue";
 
 const props = defineProps({
     data: { type: Array, default: () => [] },
@@ -113,72 +116,3 @@ const chartOptions = computed(() => ({
     },
 }));
 </script>
-
-<style scoped>
-.chart-card {
-    background: white;
-    border-radius: 1rem;
-    padding: 1.25rem 1.5rem;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-    border: 1px solid rgba(190, 202, 184, 0.3);
-}
-
-.chart-header {
-    margin-bottom: 0.5rem;
-}
-
-.chart-title {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--color-text-heading);
-    margin: 0 0 0.2rem;
-}
-.chart-subtitle {
-    font-size: 0.75rem;
-    color: var(--color-text-muted);
-    margin: 0;
-}
-
-/* ─── Skeleton ────────────────────────────────────────────────────── */
-.chart-skeleton {
-    padding: 1rem 0;
-}
-.skeleton-bars {
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    gap: 2rem;
-    height: 200px;
-}
-.skeleton-bar-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-    width: 60px;
-    height: 100%;
-    justify-content: flex-end;
-}
-.skeleton {
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-    border-radius: 0.375rem;
-}
-.skeleton--bar {
-    width: 100%;
-}
-.skeleton--label {
-    width: 48px;
-    height: 12px;
-}
-
-@keyframes shimmer {
-    0% {
-        background-position: 200% 0;
-    }
-    100% {
-        background-position: -200% 0;
-    }
-}
-</style>

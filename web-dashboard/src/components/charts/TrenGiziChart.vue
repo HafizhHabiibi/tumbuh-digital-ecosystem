@@ -4,16 +4,16 @@
         Line chart tren status gizi N bulan terakhir.
         Mendukung filter 3 / 6 / 12 bulan via emit.
     -->
-    <div class="chart-card">
-        <header class="chart-header">
-            <div>
-                <h3 class="chart-title">Tren Status Gizi</h3>
-                <p class="chart-subtitle">{{ bulan }} bulan terakhir</p>
-            </div>
-
-            <!-- Filter bulan -->
+    <ChartCard
+        title="Tren Status Gizi"
+        :subtitle="`${bulan} bulan terakhir`"
+        :loading="loading"
+        :empty="categories.length === 0"
+    >
+        <!-- Filter bulan -->
+        <template #actions>
             <div
-                class="bulan-filter"
+                class="flex gap-1 bg-gray-100 p-0.5 rounded-lg shrink-0"
                 role="group"
                 aria-label="Filter rentang waktu"
             >
@@ -28,11 +28,11 @@
                     {{ opt }}B
                 </button>
             </div>
-        </header>
+        </template>
 
         <!-- Skeleton -->
-        <div v-if="loading" class="chart-skeleton" aria-label="Memuat chart...">
-            <div class="skeleton skeleton--chart" />
+        <div v-if="loading" class="py-2">
+            <div class="skeleton h-[280px] w-full !rounded-lg" />
         </div>
 
         <!-- Chart -->
@@ -43,11 +43,12 @@
             :options="chartOptions"
             :series="series"
         />
-    </div>
+    </ChartCard>
 </template>
 
 <script setup>
 import { computed } from "vue";
+import ChartCard from "./ChartCard.vue";
 
 const props = defineProps({
     data: { type: Array, default: () => [] },
@@ -146,43 +147,7 @@ const chartOptions = computed(() => ({
 </script>
 
 <style scoped>
-.chart-card {
-    background: white;
-    border-radius: 1rem;
-    padding: 1.25rem 1.5rem;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-    border: 1px solid rgba(190, 202, 184, 0.3);
-}
-
-.chart-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 0.5rem;
-    gap: 1rem;
-}
-
-.chart-title {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--color-text-heading);
-    margin: 0 0 0.2rem;
-}
-.chart-subtitle {
-    font-size: 0.75rem;
-    color: var(--color-text-muted);
-    margin: 0;
-}
-
-/* ─── Filter tombol bulan ─────────────────────────────────────────── */
-.bulan-filter {
-    display: flex;
-    gap: 0.25rem;
-    background: #f3f4f6;
-    padding: 0.2rem;
-    border-radius: 0.5rem;
-    flex-shrink: 0;
-}
+/* ─── Filter tombol bulan (spesifik TrenGizi) ────────────────────── */
 .filter-btn {
     font-family: "Poppins", sans-serif;
     font-size: 0.7rem;
@@ -204,29 +169,5 @@ const chartOptions = computed(() => ({
 .filter-btn:hover:not(.filter-btn--active) {
     background: rgba(0, 110, 28, 0.08);
     color: var(--color-green-700);
-}
-
-/* ─── Skeleton ────────────────────────────────────────────────────── */
-.chart-skeleton {
-    padding: 0.5rem 0;
-}
-.skeleton {
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-    border-radius: 0.5rem;
-}
-.skeleton--chart {
-    height: 280px;
-    width: 100%;
-}
-
-@keyframes shimmer {
-    0% {
-        background-position: 200% 0;
-    }
-    100% {
-        background-position: -200% 0;
-    }
 }
 </style>

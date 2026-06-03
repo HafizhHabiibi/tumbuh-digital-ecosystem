@@ -2,30 +2,15 @@
 import { defineStore } from "pinia";
 import pemberianService from "@/services/pemberianService";
 
-export const JENIS_VALID = ["imunisasi", "vitamin_a", "obat_cacing", "pmt"];
+export const JENIS_VALID = ["vitamin_a", "obat_cacing", "pmt"];
 
 export const PILIHAN = {
-    imunisasi: [
-        "BCG",
-        "Hepatitis B 1",
-        "Hepatitis B 2",
-        "Polio 1",
-        "Polio 2",
-        "Polio 3",
-        "Polio 4",
-        "DPT-HB-Hib 1",
-        "DPT-HB-Hib 2",
-        "DPT-HB-Hib 3",
-        "Campak Rubella (MR)",
-        "IPV",
-    ],
     vitamin_a: ["Vitamin A Biru 100.000 IU", "Vitamin A Merah 200.000 IU"],
     obat_cacing: ["Albendazole 400mg"],
     pmt: ["Biskuit PMT Balita"],
 };
 
 export const LABEL_JENIS = {
-    imunisasi: "Imunisasi",
     vitamin_a: "Vitamin A",
     obat_cacing: "Obat Cacing",
     pmt: "PMT (Pemberian Makanan Tambahan)",
@@ -68,18 +53,6 @@ export const usePemberianStore = defineStore("pemberian", {
                 );
                 return acc;
             }, {});
-        },
-
-        imunisasiSudahDiterima: (state) => {
-            return state.riwayat.list
-                .filter((r) => r.jenis === "imunisasi")
-                .map((r) => r.nama_item);
-        },
-
-        imunisasiBelumDiterima: (state, getters) => {
-            return PILIHAN.imunisasi.filter(
-                (item) => !getters.imunisasiSudahDiterima.includes(item),
-            );
         },
 
         jumlahPerJenis: (state) => {

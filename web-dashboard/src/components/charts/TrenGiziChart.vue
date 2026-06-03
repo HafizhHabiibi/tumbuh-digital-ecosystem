@@ -178,7 +178,7 @@ const chartOptions = computed(() => ({
 .bulan-filter {
     display: flex;
     gap: 0.25rem;
-    background: #f5fbef;
+    background: #f3f4f6;
     padding: 0.2rem;
     border-radius: 0.5rem;
     flex-shrink: 0;

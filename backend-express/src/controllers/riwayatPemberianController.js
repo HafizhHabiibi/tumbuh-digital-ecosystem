@@ -4,26 +4,12 @@ import * as KaderModel from "../models/kaderModel.js";
 import { success, error } from "../utils/response.js";
 
 const PILIHAN = {
-    imunisasi: [
-        "BCG",
-        "Hepatitis B 1",
-        "Hepatitis B 2",
-        "Polio 1",
-        "Polio 2",
-        "Polio 3",
-        "Polio 4",
-        "DPT-HB-Hib 1",
-        "DPT-HB-Hib 2",
-        "DPT-HB-Hib 3",
-        "Campak Rubella (MR)",
-        "IPV",
-    ],
     vitamin_a: ["Vitamin A Biru 100.000 IU", "Vitamin A Merah 200.000 IU"],
     obat_cacing: ["Albendazole 400mg"],
     pmt: ["Biskuit PMT Balita"],
 };
 
-const JENIS_VALID = ["imunisasi", "vitamin_a", "obat_cacing", "pmt"];
+const JENIS_VALID = ["vitamin_a", "obat_cacing", "pmt"];
 
 export const createRiwayat = async (req, res) => {
     try {

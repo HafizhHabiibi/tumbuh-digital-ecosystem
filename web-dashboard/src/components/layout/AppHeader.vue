@@ -6,7 +6,7 @@
     >
         <!-- Hamburger -->
         <button
-            class="w-9 h-9 flex items-center justify-center rounded-lg border-0 bg-transparent text-[#3f4a3c] cursor-pointer text-lg transition-colors hover:bg-[#eff6e9] hover:text-[#006e1c]"
+            class="w-9 h-9 flex items-center justify-center rounded-lg border-0 bg-transparent text-[#3f4a3c] cursor-pointer text-lg transition-colors hover:bg-slate-100 hover:text-[var(--color-green-700)]"
             :aria-label="sidebarOpen ? 'Tutup menu' : 'Buka menu'"
             :aria-expanded="sidebarOpen"
             aria-controls="app-sidebar"

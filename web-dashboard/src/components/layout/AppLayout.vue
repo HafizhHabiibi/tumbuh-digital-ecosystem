@@ -1,5 +1,5 @@
 <template>
-    <div class="flex min-h-dvh bg-[#f5fbef]">
+    <div class="flex min-h-dvh bg-white">
         <!-- Sidebar -->
         <AppSidebar :open="sidebarOpen" @close="sidebarOpen = false" />
 

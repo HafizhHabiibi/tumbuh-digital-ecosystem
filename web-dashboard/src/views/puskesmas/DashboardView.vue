@@ -170,7 +170,7 @@
                     <div
                         v-for="r in rujukanStore.rujukanAktif.slice(0, 5)"
                         :key="r.id"
-                        class="flex items-center gap-4 px-4 py-3 transition-colors cursor-pointer hover:bg-[#f5fbef]"
+                        class="flex items-center gap-4 px-4 py-3 transition-colors cursor-pointer hover:bg-slate-50"
                         @click="router.push({ name: 'PuskesmasRujukan' })"
                     >
                         <div

@@ -239,7 +239,7 @@
 
 <script setup>
 import { reactive, computed } from "vue";
-import { JENIS_VALID, LABEL_JENIS, PILIHAN } from "@/stores/pemberian";
+import { JENIS_VALID, LABEL_JENIS, PILIHAN } from "@/stores/pemberianStore";
 
 const props = defineProps({
     loading: { type: Boolean, default: false },

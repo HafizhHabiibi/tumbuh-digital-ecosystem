@@ -337,7 +337,7 @@ import {
     usePemberianStore,
     JENIS_VALID,
     LABEL_JENIS,
-} from "@/stores/pemberian";
+} from "@/stores/pemberianStore";
 import { useKaderStore } from "@/stores/kaderStore";
 import FormPemberian from "@/components/forms/FormPemberian.vue";
 

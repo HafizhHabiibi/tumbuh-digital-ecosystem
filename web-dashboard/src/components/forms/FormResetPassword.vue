@@ -380,39 +380,13 @@ const strengthLabel = computed(
     box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
 }
 
-/* ─── Tipografi ───────────────────────────────────────────────────── */
-.text-heading {
-    color: var(--color-text-heading);
-}
-.text-body {
-    color: var(--color-text-body);
-}
-.text-brand-primary {
-    color: var(--color-green-700);
+/* ─── Input icon (auth layout, wider spacing) ─────────────────────── */
+.input-icon {
+    left: 1rem;
+    font-size: unset;
 }
 
-/* ─── Input ───────────────────────────────────────────────────────── */
-.input-field {
-    background: var(--color-input-bg);
-    border: 1px solid var(--color-input-border);
-    color: var(--color-text-heading);
-    outline: none;
-    transition:
-        border-color 0.2s,
-        box-shadow 0.2s;
-}
-.input-field::placeholder {
-    color: var(--color-text-muted);
-}
-.input-field:focus {
-    border-color: var(--color-green-700);
-    box-shadow: 0 0 0 2px var(--color-focus-ring);
-}
-.input-field:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
+/* ─── Input state modifiers ───────────────────────────────────────── */
 .input-field--error {
     border-color: #fca5a5 !important;
     box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15) !important;
@@ -422,70 +396,11 @@ const strengthLabel = computed(
     box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.15) !important;
 }
 
-.input-icon {
-    position: absolute;
-    left: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--color-text-muted);
-    pointer-events: none;
-}
 
-/* ─── Toggle password ─────────────────────────────────────────────── */
-.toggle-password {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--color-text-muted);
-    transition: color 0.2s;
-    padding: 0;
-    line-height: 1;
-}
-.toggle-password:hover {
-    color: var(--color-text-body);
-}
-
-/* ─── Tombol ──────────────────────────────────────────────────────── */
-.btn-primary {
-    background: linear-gradient(
-        135deg,
-        var(--color-green-600) 0%,
-        var(--color-green-700) 60%,
-        var(--color-green-900) 100%
-    );
-    box-shadow: 0 4px 14px var(--color-shadow-green);
-}
-.btn-primary:hover:not(:disabled) {
-    filter: brightness(1.08);
-    box-shadow: 0 6px 18px var(--color-shadow-green-hover);
-}
-
-/* ─── Alert ───────────────────────────────────────────────────────── */
-.error-alert {
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-    color: #b91c1c;
-}
-.success-alert {
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
-    color: #15803d;
-}
 
 /* ─── Ilustrasi mobile ────────────────────────────────────────────── */
 .illustration--green {
     filter: invert(28%) sepia(64%) saturate(620%) hue-rotate(94deg)
         brightness(85%) contrast(101%);
-}
-
-/* ─── Transisi ────────────────────────────────────────────────────── */
-.slide-down-enter-active,
-.slide-down-leave-active {
-    transition: all 0.25s ease;
-}
-.slide-down-enter-from,
-.slide-down-leave-to {
-    opacity: 0;
-    transform: translateY(-8px);
 }
 </style>

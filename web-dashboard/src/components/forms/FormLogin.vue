@@ -164,7 +164,7 @@
                         <button
                             type="submit"
                             :disabled="loading || !isValid || !turnstileToken"
-                            class="btn-login w-full text-white font-semibold text-sm py-3.5 rounded-xl transition-all duration-200 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
+                            class="btn-primary w-full text-white font-semibold text-sm py-3.5 rounded-xl transition-all duration-200 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
                             :aria-busy="loading"
                         >
                             <template v-if="loading">
@@ -238,98 +238,16 @@ defineExpose({
     border: 1px solid rgba(190, 202, 184, 0.4);
 }
 
-/* ─── Tipografi warna ─────────────────────────────────────────────── */
-.text-heading {
-    color: var(--color-text-heading);
-}
-.text-body {
-    color: var(--color-text-body);
-}
-.text-brand-primary {
-    color: var(--color-green-700);
-}
-
-/* ─── Input ───────────────────────────────────────────────────────── */
-.input-field {
-    background: var(--color-input-bg);
-    border: 1px solid var(--color-input-border);
-    color: var(--color-text-heading);
-    outline: none;
-    transition:
-        border-color 0.2s,
-        box-shadow 0.2s;
-}
-.input-field::placeholder {
-    color: var(--color-text-muted);
-}
-.input-field:focus {
-    border-color: var(--color-green-700);
-    box-shadow: 0 0 0 2px var(--color-focus-ring);
-}
-.input-field:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
+/* ─── Input icon (auth layout, wider spacing) ─────────────────────── */
 .input-icon {
-    position: absolute;
     left: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--color-text-muted);
-    pointer-events: none;
+    font-size: unset;
 }
 
-/* ─── Toggle password ─────────────────────────────────────────────── */
-.toggle-password {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--color-text-muted);
-    transition: color 0.2s;
-    padding: 0;
-    line-height: 1;
-}
-.toggle-password:hover {
-    color: var(--color-text-body);
-}
-
-/* ─── Tombol login ────────────────────────────────────────────────── */
-.btn-login {
-    background: linear-gradient(
-        135deg,
-        var(--color-green-600) 0%,
-        var(--color-green-700) 60%,
-        var(--color-green-900) 100%
-    );
-    box-shadow: 0 4px 14px var(--color-shadow-green);
-}
-.btn-login:hover:not(:disabled) {
-    filter: brightness(1.08);
-    box-shadow: 0 6px 18px var(--color-shadow-green-hover);
-}
-
-/* ─── Error alert ─────────────────────────────────────────────────── */
-.error-alert {
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-    color: #b91c1c;
-}
 
 /* ─── Ilustrasi mobile (filter hijau) ────────────────────────────── */
 .illustration--green {
     filter: invert(28%) sepia(64%) saturate(620%) hue-rotate(94deg)
         brightness(85%) contrast(101%);
-}
-
-/* ─── Transisi error ──────────────────────────────────────────────── */
-.slide-down-enter-active,
-.slide-down-leave-active {
-    transition: all 0.25s ease;
-}
-.slide-down-enter-from,
-.slide-down-leave-to {
-    opacity: 0;
-    transform: translateY(-8px);
 }
 </style>

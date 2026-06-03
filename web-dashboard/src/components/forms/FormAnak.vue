@@ -4,12 +4,7 @@
         <Transition name="slide-down">
             <div
                 v-if="error"
-                class="flex items-start gap-2 px-3 py-2.5 rounded-xl text-sm"
-                style="
-                    background: #fef2f2;
-                    border: 1px solid #fecaca;
-                    color: #b91c1c;
-                "
+                class="error-alert flex items-start gap-2 px-3 py-2.5 rounded-xl text-sm"
                 role="alert"
                 aria-live="assertive"
             >
@@ -116,19 +111,20 @@
         <!-- Tanggal Lahir -->
         <div class="space-y-1.5">
             <label for="tanggal_lahir" class="field-label">Tanggal Lahir</label>
-            <div class="relative">
-                <i class="pi pi-calendar input-icon" aria-hidden="true" />
-                <input
+                <DatePicker
                     id="tanggal_lahir"
                     v-model="form.tanggal_lahir"
-                    type="date"
-                    :max="today"
+                    :max-date="todayDate"
                     :disabled="loading"
-                    class="input-field w-full pl-9 pr-4 py-2.5 rounded-xl text-sm"
+                    date-format="dd/mm/yy"
+                    placeholder="Pilih tanggal lahir"
+                    show-icon
+                    icon-display="input"
+                    fluid
+                    class="w-full"
                     aria-required="true"
                     :aria-invalid="!!fieldError.tanggal_lahir"
                 />
-            </div>
             <!-- Preview usia -->
             <p
                 v-if="form.tanggal_lahir && !fieldError.tanggal_lahir"
@@ -206,6 +202,7 @@
 
 <script setup>
 import { ref, computed, reactive } from "vue";
+import { DatePicker } from "primevue";
 
 const props = defineProps({
     loading: { type: Boolean, default: false },
@@ -221,6 +218,8 @@ const form = reactive({
     tanggal_lahir: "",
     no_kk: "",
 });
+
+const submitted = ref(false);
 
 const jkOptions = [
     {
@@ -240,7 +239,7 @@ const jkOptions = [
 ];
 
 /* ── Hari ini sebagai max date ───────────────────────────────────── */
-const today = new Date().toISOString().split("T")[0];
+const todayDate = new Date();
 
 /* ── Preview usia ────────────────────────────────────────────────── */
 const previewUsia = computed(() => {
@@ -258,11 +257,13 @@ const previewUsia = computed(() => {
 /* ── Validasi per field ──────────────────────────────────────────── */
 const fieldError = computed(() => {
     const e = {};
-    if (!form.orang_tua_id) e.orang_tua_id = "Pilih orang tua terlebih dahulu";
+    if (submitted.value && !form.orang_tua_id)
+        e.orang_tua_id = "Pilih orang tua terlebih dahulu";
     if (form.nama && form.nama.trim().length < 2)
         e.nama = "Nama minimal 2 karakter";
-    if (!form.jenis_kelamin) e.jenis_kelamin = "Pilih jenis kelamin";
-    if (form.tanggal_lahir && new Date(form.tanggal_lahir) > new Date())
+    if (submitted.value && !form.jenis_kelamin)
+        e.jenis_kelamin = "Pilih jenis kelamin";
+    if (form.tanggal_lahir && form.tanggal_lahir > new Date())
         e.tanggal_lahir = "Tanggal lahir tidak boleh di masa depan";
     if (form.no_kk && !/^\d{16}$/.test(form.no_kk))
         e.no_kk = "No. KK harus tepat 16 digit angka";
@@ -282,84 +283,16 @@ const isValid = computed(
 
 /* ── Submit ──────────────────────────────────────────────────────── */
 const handleSubmit = () => {
+    submitted.value = true;
     if (!isValid.value || props.loading) return;
     emit("submit", {
         orang_tua_id: form.orang_tua_id,
         nama: form.nama.trim(),
         jenis_kelamin: form.jenis_kelamin,
-        tanggal_lahir: form.tanggal_lahir,
+        tanggal_lahir: form.tanggal_lahir
+            ? form.tanggal_lahir.toISOString().split("T")[0]
+            : "",
         no_kk: form.no_kk,
     });
 };
 </script>
-
-<style scoped>
-.field-label {
-    display: block;
-    font-size: 0.8rem;
-    font-weight: 600;
-    margin-left: 0.25rem;
-    color: var(--color-text-body);
-}
-.input-icon {
-    position: absolute;
-    left: 0.75rem;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 0.85rem;
-    color: var(--color-text-muted);
-    pointer-events: none;
-}
-.input-field {
-    background: var(--color-input-bg);
-    border: 1px solid var(--color-input-border);
-    color: var(--color-text-heading);
-    outline: none;
-    transition:
-        border-color 0.2s,
-        box-shadow 0.2s;
-    font-family: "Poppins", sans-serif;
-}
-.input-field::placeholder {
-    color: var(--color-text-muted);
-    font-size: 0.82rem;
-}
-.input-field:focus {
-    border-color: var(--color-green-700);
-    box-shadow: 0 0 0 2px var(--color-focus-ring);
-}
-.input-field:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-.error-hint {
-    font-size: 0.72rem;
-    color: #dc2626;
-    margin: 0 0 0 0.25rem;
-}
-
-.btn-submit {
-    background: linear-gradient(
-        135deg,
-        var(--color-green-600),
-        var(--color-green-800)
-    );
-    box-shadow: 0 2px 8px var(--color-shadow-green);
-}
-.btn-submit:hover:not(:disabled) {
-    filter: brightness(1.08);
-}
-.btn-submit:active:not(:disabled) {
-    transform: scale(0.97);
-}
-
-.slide-down-enter-active,
-.slide-down-leave-active {
-    transition: all 0.25s ease;
-}
-.slide-down-enter-from,
-.slide-down-leave-to {
-    opacity: 0;
-    transform: translateY(-6px);
-}
-</style>

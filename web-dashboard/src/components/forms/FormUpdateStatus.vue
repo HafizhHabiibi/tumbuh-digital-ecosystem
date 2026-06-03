@@ -36,13 +36,9 @@
         <Transition name="slide-down">
             <div
                 v-if="error"
-                class="flex items-start gap-2 px-3 py-2.5 rounded-xl text-sm"
-                style="
-                    background: #fef2f2;
-                    border: 1px solid #fecaca;
-                    color: #b91c1c;
-                "
+                class="error-alert flex items-start gap-2 px-3 py-2.5 rounded-xl text-sm"
                 role="alert"
+                aria-live="assertive"
             >
                 <i
                     class="pi pi-exclamation-circle mt-0.5 flex-shrink-0"
@@ -182,53 +178,3 @@ const handleSubmit = () => {
     emit("submit", payload);
 };
 </script>
-
-<style scoped>
-.field-label {
-    display: block;
-    font-size: 0.8rem;
-    font-weight: 600;
-    margin-left: 0.25rem;
-    color: var(--color-text-body);
-}
-.input-field {
-    background: var(--color-input-bg);
-    border: 1px solid var(--color-input-border);
-    color: var(--color-text-heading);
-    outline: none;
-    transition:
-        border-color 0.2s,
-        box-shadow 0.2s;
-    font-family: "Poppins", sans-serif;
-}
-.input-field:focus {
-    border-color: var(--color-green-700);
-    box-shadow: 0 0 0 2px var(--color-focus-ring);
-}
-.input-field:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-.btn-submit {
-    background: linear-gradient(
-        135deg,
-        var(--color-green-600),
-        var(--color-green-800)
-    );
-    box-shadow: 0 2px 8px var(--color-shadow-green);
-    border: none;
-    cursor: pointer;
-}
-.btn-submit:hover:not(:disabled) {
-    filter: brightness(1.08);
-}
-.slide-down-enter-active,
-.slide-down-leave-active {
-    transition: all 0.25s ease;
-}
-.slide-down-enter-from,
-.slide-down-leave-to {
-    opacity: 0;
-    transform: translateY(-6px);
-}
-</style>

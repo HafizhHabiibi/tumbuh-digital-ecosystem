@@ -4,12 +4,7 @@
         <Transition name="slide-down">
             <div
                 v-if="error"
-                class="flex items-start gap-2 px-3 py-2.5 rounded-xl text-sm"
-                style="
-                    background: #fef2f2;
-                    border: 1px solid #fecaca;
-                    color: #b91c1c;
-                "
+                class="error-alert flex items-start gap-2 px-3 py-2.5 rounded-xl text-sm"
                 role="alert"
                 aria-live="assertive"
             >
@@ -149,18 +144,19 @@
             <label for="tanggal_pemberian" class="field-label"
                 >Tanggal Pemberian</label
             >
-            <div class="relative">
-                <i class="pi pi-calendar input-icon" aria-hidden="true" />
-                <input
-                    id="tanggal_pemberian"
-                    v-model="form.tanggal_pemberian"
-                    type="date"
-                    :max="today"
-                    :disabled="loading"
-                    class="input-field w-full pl-9 pr-4 py-2.5 rounded-xl text-sm"
-                    aria-required="true"
-                />
-            </div>
+            <DatePicker
+                id="tanggal_pemberian"
+                v-model="form.tanggal_pemberian"
+                :max-date="todayDate"
+                :disabled="loading"
+                date-format="dd/mm/yy"
+                placeholder="Pilih tanggal pemberian"
+                show-icon
+                icon-display="input"
+                fluid
+                class="w-full"
+                aria-required="true"
+            />
         </div>
 
         <!-- Dosis (opsional) -->
@@ -238,7 +234,8 @@
 </template>
 
 <script setup>
-import { reactive, computed } from "vue";
+import { reactive, computed, watch } from "vue";
+import { DatePicker } from "primevue";
 import { JENIS_VALID, LABEL_JENIS, PILIHAN } from "@/stores/pemberianStore";
 
 const props = defineProps({
@@ -250,13 +247,14 @@ const props = defineProps({
 });
 const emit = defineEmits(["submit", "cancel"]);
 
-const today = new Date().toISOString().split("T")[0];
+const todayDate = new Date();
+const todayStr = todayDate.toISOString().split("T")[0];
 
 const form = reactive({
     anak_id: props.anakId || "",
     jenis: "",
     nama_item: "",
-    tanggal_pemberian: today,
+    tanggal_pemberian: todayDate,
     dosis: "",
     keterangan: "",
 });
@@ -295,8 +293,6 @@ const labelNamaItem = computed(() => {
 });
 
 /* ── Reset nama_item saat jenis berubah ──────────────────────────── */
-const stopWatch = computed(() => form.jenis); // dipantau via watch
-import { watch } from "vue";
 watch(
     () => form.jenis,
     () => {
@@ -320,73 +316,12 @@ const handleSubmit = () => {
         anak_id: props.anakId || form.anak_id,
         jenis: form.jenis,
         nama_item: form.nama_item,
-        tanggal_pemberian: form.tanggal_pemberian,
+        tanggal_pemberian: form.tanggal_pemberian
+            ? form.tanggal_pemberian.toISOString().split("T")[0]
+            : todayStr,
     };
     if (form.dosis.trim()) payload.dosis = form.dosis.trim();
     if (form.keterangan.trim()) payload.keterangan = form.keterangan.trim();
     emit("submit", payload);
 };
 </script>
-
-<style scoped>
-.field-label {
-    display: block;
-    font-size: 0.8rem;
-    font-weight: 600;
-    margin-left: 0.25rem;
-    color: var(--color-text-body);
-}
-.input-icon {
-    position: absolute;
-    left: 0.75rem;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 0.85rem;
-    color: var(--color-text-muted);
-    pointer-events: none;
-}
-.input-field {
-    background: var(--color-input-bg);
-    border: 1px solid var(--color-input-border);
-    color: var(--color-text-heading);
-    outline: none;
-    transition:
-        border-color 0.2s,
-        box-shadow 0.2s;
-    font-family: "Poppins", sans-serif;
-}
-.input-field::placeholder {
-    color: var(--color-text-muted);
-    font-size: 0.82rem;
-}
-.input-field:focus {
-    border-color: var(--color-green-700);
-    box-shadow: 0 0 0 2px var(--color-focus-ring);
-}
-.input-field:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.btn-submit {
-    background: linear-gradient(
-        135deg,
-        var(--color-green-600),
-        var(--color-green-800)
-    );
-    box-shadow: 0 2px 8px var(--color-shadow-green);
-}
-.btn-submit:hover:not(:disabled) {
-    filter: brightness(1.08);
-}
-
-.slide-down-enter-active,
-.slide-down-leave-active {
-    transition: all 0.25s ease;
-}
-.slide-down-enter-from,
-.slide-down-leave-to {
-    opacity: 0;
-    transform: translateY(-6px);
-}
-</style>

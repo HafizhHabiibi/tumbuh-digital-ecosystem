@@ -4,12 +4,7 @@
         <Transition name="slide-down">
             <div
                 v-if="error"
-                class="flex items-start gap-2 px-3 py-2.5 rounded-xl text-sm"
-                style="
-                    background: #fef2f2;
-                    border: 1px solid #fecaca;
-                    color: #b91c1c;
-                "
+                class="error-alert flex items-start gap-2 px-3 py-2.5 rounded-xl text-sm"
                 role="alert"
                 aria-live="assertive"
             >
@@ -221,6 +216,7 @@ const props = defineProps({
 const emit = defineEmits(["submit", "cancel"]);
 
 const showPassword = ref(false);
+const submitted = ref(false);
 
 const form = reactive({
     nama_lengkap: "",
@@ -244,6 +240,16 @@ const fieldError = computed(() => {
         e.password = "Password minimal 6 karakter";
     if (form.no_hp && !/^(\+62|08)\d{7,12}$/.test(form.no_hp))
         e.no_hp = "Format nomor HP tidak valid";
+    // Validasi field wajib (tampil setelah submit)
+    if (submitted.value) {
+        if (!e.nama_lengkap && !form.nama_lengkap.trim())
+            e.nama_lengkap = "Nama lengkap wajib diisi";
+        if (!e.nik && !form.nik) e.nik = "NIK wajib diisi";
+        if (!e.email && !form.email) e.email = "Email wajib diisi";
+        if (!e.password && !form.password) e.password = "Password wajib diisi";
+        if (!e.no_hp && !form.no_hp.trim()) e.no_hp = "No. HP wajib diisi";
+        if (!form.alamat.trim()) e.alamat = "Alamat wajib diisi";
+    }
     return e;
 });
 
@@ -261,6 +267,7 @@ const isValid = computed(
 
 /* ── Submit ──────────────────────────────────────────────────────── */
 const handleSubmit = () => {
+    submitted.value = true;
     if (!isValid.value || props.loading) return;
     emit("submit", {
         nama_lengkap: form.nama_lengkap.trim(),
@@ -272,77 +279,3 @@ const handleSubmit = () => {
     });
 };
 </script>
-
-<style scoped>
-.field-label {
-    display: block;
-    font-size: 0.8rem;
-    font-weight: 600;
-    margin-left: 0.25rem;
-    color: var(--color-text-body);
-}
-
-.input-icon {
-    position: absolute;
-    left: 0.75rem;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 0.85rem;
-    color: var(--color-text-muted);
-    pointer-events: none;
-}
-
-.input-field {
-    background: var(--color-input-bg);
-    border: 1px solid var(--color-input-border);
-    color: var(--color-text-heading);
-    outline: none;
-    transition:
-        border-color 0.2s,
-        box-shadow 0.2s;
-    font-family: "Poppins", sans-serif;
-}
-.input-field::placeholder {
-    color: var(--color-text-muted);
-    font-size: 0.82rem;
-}
-.input-field:focus {
-    border-color: var(--color-green-700);
-    box-shadow: 0 0 0 2px var(--color-focus-ring);
-}
-.input-field:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.error-hint {
-    font-size: 0.72rem;
-    color: #dc2626;
-    margin: 0 0 0 0.25rem;
-}
-
-.btn-submit {
-    background: linear-gradient(
-        135deg,
-        var(--color-green-600),
-        var(--color-green-800)
-    );
-    box-shadow: 0 2px 8px var(--color-shadow-green);
-}
-.btn-submit:hover:not(:disabled) {
-    filter: brightness(1.08);
-}
-.btn-submit:active:not(:disabled) {
-    transform: scale(0.97);
-}
-
-.slide-down-enter-active,
-.slide-down-leave-active {
-    transition: all 0.25s ease;
-}
-.slide-down-enter-from,
-.slide-down-leave-to {
-    opacity: 0;
-    transform: translateY(-6px);
-}
-</style>

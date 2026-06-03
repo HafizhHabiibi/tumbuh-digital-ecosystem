@@ -32,13 +32,13 @@
     --color-text-body: #3f4a3c; /* teks biasa */
     --color-text-muted: #6f7a6b; /* placeholder, ikon */
 
-    /* ── Input ──────────────────────────────────────────────────── */
-    --color-input-bg: #eff6e9;
-    --color-input-border: #becab8;
+    /* ── Input ───────────────────────────────────────────────── */
+    --color-input-bg: #ffffff;
+    --color-input-border: #d4ddd0;
 
-    /* ── Surface ────────────────────────────────────────────────── */
-    --color-surface: #f5fbef; /* background section kanan */
-    --color-card-border: rgba(190, 202, 184, 0.4);
+    /* ── Surface ─────────────────────────────────────────────── */
+    --color-surface: #fafbf9;
+    --color-card-border: rgba(190, 202, 184, 0.35);
 
     /* ── Focus & shadow ─────────────────────────────────────────── */
     --color-focus-ring: rgba(0, 110, 28, 0.2);
@@ -78,4 +78,168 @@ body {
     outline: 2px solid var(--color-green-700);
     outline-offset: 2px;
     border-radius: 4px;
+}
+
+/* ─────────────────────────────────────────────────────────────────── *
+ *  FORM UTILITIES — shared across all form components
+ * ─────────────────────────────────────────────────────────────────── */
+
+/* ── Label ─────────────────────────────────────────────────────────── */
+.field-label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-left: 0.25rem;
+    color: var(--color-text-body);
+}
+
+/* ── Input ──────────────────────────────────────────────────────────── */
+.input-field {
+    background: var(--color-input-bg);
+    border: 1px solid var(--color-input-border);
+    color: var(--color-text-heading);
+    outline: none;
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
+    font-family: "Poppins", sans-serif;
+}
+.input-field::placeholder {
+    color: var(--color-text-muted);
+    font-size: 0.82rem;
+}
+.input-field:focus {
+    border-color: var(--color-green-700);
+    box-shadow: 0 0 0 2px var(--color-focus-ring);
+}
+.input-field:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ── Input icon (positioned inside relative wrapper) ───────────────── */
+.input-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    pointer-events: none;
+}
+
+/* ── Error hint below field ────────────────────────────────────────── */
+.error-hint {
+    font-size: 0.72rem;
+    color: #dc2626;
+    margin: 0 0 0 0.25rem;
+}
+
+/* ── Alerts ─────────────────────────────────────────────────────────── */
+.error-alert {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+}
+.success-alert {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #15803d;
+}
+
+/* ── Toggle password button ────────────────────────────────────────── */
+.toggle-password {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text-muted);
+    transition: color 0.2s;
+    padding: 0;
+    line-height: 1;
+}
+.toggle-password:hover {
+    color: var(--color-text-body);
+}
+
+/* ── Typography utilities ──────────────────────────────────────────── */
+.text-heading {
+    color: var(--color-text-heading);
+}
+.text-body {
+    color: var(--color-text-body);
+}
+.text-brand-primary {
+    color: var(--color-green-700);
+}
+
+/* ── Submit button (CRUD form modals) ────────────────────────── */
+.btn-submit {
+    background: var(--color-green-700);
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+}
+.btn-submit:hover:not(:disabled) {
+    background: var(--color-green-800);
+}
+.btn-submit:active:not(:disabled) {
+    transform: scale(0.98);
+}
+
+/* ── Primary button (page-level CTA) ─────────────────────────── */
+.btn-primary {
+    background: var(--color-green-700);
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+}
+.btn-primary:hover:not(:disabled) {
+    background: var(--color-green-800);
+}
+.btn-primary:active:not(:disabled) {
+    transform: scale(0.98);
+}
+.btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ── Slide-down transition ─────────────────────────────────────────── */
+.slide-down-enter-active,
+.slide-down-leave-active {
+    transition: all 0.25s ease;
+}
+.slide-down-enter-from,
+.slide-down-leave-to {
+    opacity: 0;
+    transform: translateY(-6px);
+}
+
+/* ─────────────────────────────────────────────────────────────────── *
+ *  PRIMEVUE DATEPICKER — green theme overrides
+ * ─────────────────────────────────────────────────────────────────── */
+.p-datepicker-panel {
+    font-family: "Poppins", sans-serif;
+    border: 1px solid var(--color-input-border);
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+.p-datepicker-header {
+    border-bottom: 1px solid var(--color-input-border);
+}
+.p-datepicker-day-cell.p-datepicker-today > .p-datepicker-day {
+    background: var(--color-green-100);
+    color: var(--color-green-700);
+}
+.p-datepicker-day-cell.p-datepicker-today > .p-datepicker-day.p-datepicker-day-selected {
+    background: var(--color-green-700);
+    color: white;
+}
+.p-datepicker-day-selected {
+    background: var(--color-green-700) !important;
+    color: white !important;
+}
+.p-datepicker-day:not(.p-disabled):not(.p-datepicker-day-selected):hover {
+    background: var(--color-green-50);
+    color: var(--color-green-800);
 }

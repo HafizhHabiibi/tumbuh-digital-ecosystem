@@ -1,19 +1,29 @@
 <template>
-    <div class="dashboard">
+    <div class="p-6 max-w-6xl mx-auto space-y-6">
         <!-- ─── Header halaman ─────────────────────────────────────── -->
-        <header class="dashboard-header">
+        <div class="flex items-start justify-between gap-4 flex-wrap">
             <div>
-                <h1 class="page-title">Dashboard</h1>
-                <p class="page-subtitle">
+                <h1
+                    class="text-2xl font-bold m-0"
+                    style="color: var(--color-text-heading)"
+                >
+                    Dashboard
+                </h1>
+                <p
+                    class="text-sm mt-1 m-0"
+                    style="color: var(--color-text-muted)"
+                >
                     Selamat datang,
-                    <strong>{{ authStore.namaLengkap ?? "Kader" }}</strong> —
-                    data per {{ tanggalHariIni }}
+                    <strong style="color: var(--color-green-700)">{{
+                        authStore.namaLengkap ?? "Kader"
+                    }}</strong>
+                    — data per {{ tanggalHariIni }}
                 </p>
             </div>
 
             <!-- Tombol refresh -->
             <button
-                class="btn-refresh"
+                class="btn-refresh flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-all"
                 :disabled="dashboardStore.isAnyLoading"
                 aria-label="Muat ulang data dashboard"
                 @click="refresh"
@@ -23,22 +33,31 @@
                     :class="{ 'pi-spin': dashboardStore.isAnyLoading }"
                     aria-hidden="true"
                 />
-                <span class="btn-refresh__label">Perbarui</span>
+                <span class="max-[480px]:hidden">Perbarui</span>
             </button>
-        </header>
+        </div>
 
         <!-- ─── Error global ───────────────────────────────────────── -->
         <Transition name="slide-down">
             <div
                 v-if="hasError"
-                class="error-banner"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm"
+                style="
+                    background: #fef2f2;
+                    border: 1px solid #fecaca;
+                    color: #b91c1c;
+                "
                 role="alert"
                 aria-live="assertive"
             >
-                <i class="pi pi-exclamation-triangle" aria-hidden="true" />
+                <i
+                    class="pi pi-exclamation-triangle shrink-0"
+                    aria-hidden="true"
+                />
                 <span>Gagal memuat sebagian data. Coba perbarui halaman.</span>
                 <button
-                    class="error-banner__close"
+                    class="ml-auto bg-transparent border-0 cursor-pointer p-0 leading-none"
+                    style="color: #b91c1c"
                     aria-label="Tutup peringatan"
                     @click="clearErrors"
                 >
@@ -49,7 +68,7 @@
 
         <!-- ─── Stat Cards ─────────────────────────────────────────── -->
         <section aria-label="Ringkasan statistik">
-            <div class="stat-grid">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatCard
                     label="Total Anak Terdaftar"
                     icon="pi-users"
@@ -84,9 +103,9 @@
 
         <!-- ─── Charts ─────────────────────────────────────────────── -->
         <section aria-label="Grafik dan visualisasi data">
-            <div class="charts-grid">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <!-- Tren gizi — lebar penuh di atas -->
-                <div class="charts-grid__full">
+                <div class="lg:col-span-2">
                     <TrenGiziChart
                         v-model:bulan="selectedBulan"
                         :data="dashboardStore.trenGizi"
@@ -158,59 +177,11 @@ onMounted(() => dashboardStore.fetchAll(selectedBulan.value));
 </script>
 
 <style scoped>
-/* ─── Wrapper ─────────────────────────────────────────────────────── */
-.dashboard {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    padding: 1.5rem;
-    max-width: 1280px;
-    margin: 0 auto;
-}
-
-/* ─── Header ──────────────────────────────────────────────────────── */
-.dashboard-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 1rem;
-    flex-wrap: wrap;
-}
-
-.page-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--color-text-heading);
-    margin: 0 0 0.25rem;
-}
-.page-subtitle {
-    font-size: 0.85rem;
-    color: var(--color-text-muted);
-    margin: 0;
-}
-.page-subtitle strong {
-    color: var(--color-green-700);
-    font-weight: 600;
-}
-
 /* ─── Tombol refresh ──────────────────────────────────────────────── */
 .btn-refresh {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.5rem 1rem;
-    border-radius: 0.625rem;
-    border: 1px solid var(--color-input-border);
     background: white;
     color: var(--color-text-body);
-    font-family: "Poppins", sans-serif;
-    font-size: 0.8rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition:
-        background 0.15s,
-        border-color 0.15s;
-    white-space: nowrap;
+    border-color: var(--color-input-border);
 }
 .btn-refresh:hover:not(:disabled) {
     background: var(--color-green-50);
@@ -220,76 +191,5 @@ onMounted(() => dashboardStore.fetchAll(selectedBulan.value));
 .btn-refresh:disabled {
     opacity: 0.5;
     cursor: not-allowed;
-}
-
-@media (max-width: 480px) {
-    .btn-refresh__label {
-        display: none;
-    }
-}
-
-/* ─── Error banner ────────────────────────────────────────────────── */
-.error-banner {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-    color: #b91c1c;
-    border-radius: 0.75rem;
-    font-size: 0.85rem;
-}
-.error-banner__close {
-    margin-left: auto;
-    background: none;
-    border: none;
-    color: #b91c1c;
-    cursor: pointer;
-    padding: 0;
-    line-height: 1;
-}
-
-/* ─── Stat grid ───────────────────────────────────────────────────── */
-.stat-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
-}
-@media (max-width: 1024px) {
-    .stat-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-@media (max-width: 480px) {
-    .stat-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* ─── Charts grid ─────────────────────────────────────────────────── */
-.charts-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-}
-.charts-grid__full {
-    grid-column: 1 / -1;
-}
-@media (max-width: 768px) {
-    .charts-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* ─── Transisi error ──────────────────────────────────────────────── */
-.slide-down-enter-active,
-.slide-down-leave-active {
-    transition: all 0.25s ease;
-}
-.slide-down-enter-from,
-.slide-down-leave-to {
-    opacity: 0;
-    transform: translateY(-8px);
 }
 </style>

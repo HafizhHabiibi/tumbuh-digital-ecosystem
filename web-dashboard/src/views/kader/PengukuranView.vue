@@ -121,21 +121,19 @@
                         <label for="tanggal_ukur" class="field-label"
                             >Tanggal Pengukuran</label
                         >
-                        <div class="relative">
-                            <i
-                                class="pi pi-calendar input-icon"
-                                aria-hidden="true"
-                            />
-                            <input
-                                id="tanggal_ukur"
-                                v-model="form.tanggal_ukur"
-                                type="date"
-                                :max="today"
-                                :disabled="pengukuranStore.loading.create"
-                                class="input-field w-full pl-9 pr-4 py-2.5 rounded-xl text-sm"
-                                aria-required="true"
-                            />
-                        </div>
+                        <DatePicker
+                            id="tanggal_ukur"
+                            v-model="form.tanggal_ukur"
+                            :max-date="todayDate"
+                            :disabled="pengukuranStore.loading.create"
+                            date-format="dd/mm/yy"
+                            placeholder="Pilih tanggal pengukuran"
+                            show-icon
+                            icon-display="input"
+                            fluid
+                            class="w-full"
+                            aria-required="true"
+                        />
                     </div>
 
                     <!-- Berat & Tinggi Badan — 2 kolom -->
@@ -300,6 +298,7 @@
 
 <script setup>
 import { ref, computed, reactive, onMounted } from "vue";
+import { DatePicker } from "primevue";
 import { usePengukuranStore } from "@/stores/pengukuranStore";
 import { useKaderStore } from "@/stores/kaderStore";
 import PengukuranResultCard from "@/components/cards/PengukuranResultCard.vue";
@@ -307,11 +306,11 @@ import PengukuranResultCard from "@/components/cards/PengukuranResultCard.vue";
 const pengukuranStore = usePengukuranStore();
 const kaderStore = useKaderStore();
 
-const today = new Date().toISOString().split("T")[0];
+const todayDate = new Date();
 
 const form = reactive({
     anak_id: "",
-    tanggal_ukur: today,
+    tanggal_ukur: todayDate,
     berat_badan: null,
     tinggi_badan: null,
     lingkar_kepala: null,
@@ -364,7 +363,9 @@ const handleSubmit = async () => {
 
     const payload = {
         anak_id: form.anak_id,
-        tanggal_ukur: form.tanggal_ukur,
+        tanggal_ukur: form.tanggal_ukur
+            ? form.tanggal_ukur.toISOString().split("T")[0]
+            : todayDate.toISOString().split("T")[0],
         berat_badan: form.berat_badan,
         tinggi_badan: form.tinggi_badan,
     };

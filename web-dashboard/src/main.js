@@ -28,6 +28,19 @@ app.use(PrimeVue, {
     ripple: true,
     theme: {
         preset: Aura,
+        options: {
+            darkModeSelector: false,
+            cssLayer: false,
+        },
+    },
+    pt: {
+        datepicker: {
+            pcInputText: {
+                root: {
+                    class: "input-field w-full pl-9 pr-4 py-2.5 rounded-xl text-sm",
+                },
+            },
+        },
     },
 });
 

@@ -13,8 +13,7 @@
                     class="text-sm mt-1 m-0"
                     style="color: var(--color-text-muted)"
                 >
-                    Catat dan pantau riwayat imunisasi, vitamin, dan pemberian
-                    lainnya
+                    Catat dan pantau riwayat vitamin dan pemberian lainnya
                 </p>
             </div>
             <button
@@ -105,7 +104,7 @@
             </Transition>
 
             <!-- ─── Ringkasan per jenis ────────────────────────── -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                 <div
                     v-for="jenis in JENIS_VALID"
                     :key="jenis"
@@ -156,71 +155,6 @@
                 >
                     {{ LABEL_JENIS[jenis] }}
                 </button>
-            </div>
-
-            <!-- ─── Progress imunisasi (hanya saat filter imunisasi/semua) -->
-            <div
-                v-if="filterAktif === 'semua' || filterAktif === 'imunisasi'"
-                class="card p-4 rounded-2xl space-y-3"
-            >
-                <div class="flex items-center justify-between">
-                    <h3
-                        class="text-sm font-semibold m-0"
-                        style="color: var(--color-text-heading)"
-                    >
-                        <i
-                            class="pi pi-shield mr-1.5"
-                            style="color: var(--color-green-700)"
-                            aria-hidden="true"
-                        />
-                        Progress Imunisasi
-                    </h3>
-                    <span
-                        class="text-xs font-medium px-2 py-1 rounded-full"
-                        style="
-                            background: var(--color-green-100);
-                            color: var(--color-green-700);
-                        "
-                    >
-                        {{ pemberianStore.imunisasiSudahDiterima.length }} /
-                        {{ totalImunisasi }}
-                    </span>
-                </div>
-                <!-- Progress bar -->
-                <div
-                    class="h-2 rounded-full overflow-hidden"
-                    style="background: var(--color-input-border)"
-                >
-                    <div
-                        class="h-full rounded-full transition-all duration-700"
-                        style="background: var(--color-green-600)"
-                        :style="`width: ${progressImunisasi}%`"
-                    />
-                </div>
-                <!-- Daftar imunisasi -->
-                <div class="flex flex-wrap gap-1.5">
-                    <span
-                        v-for="item in PILIHAN.imunisasi"
-                        :key="item"
-                        class="text-xs px-2 py-1 rounded-full font-medium transition-all"
-                        :style="
-                            pemberianStore.imunisasiSudahDiterima.includes(item)
-                                ? 'background: var(--color-green-100); color: var(--color-green-700)'
-                                : 'background: #f3f4f6; color: #9ca3af'
-                        "
-                    >
-                        <i
-                            v-if="
-                                pemberianStore.imunisasiSudahDiterima.includes(
-                                    item,
-                                )
-                            "
-                            class="pi pi-check mr-1 text-[10px]"
-                            aria-hidden="true"
-                        />
-                        {{ item }}
-                    </span>
-                </div>
             </div>
 
             <!-- ─── Tabel riwayat ─────────────────────────────── -->
@@ -389,7 +323,6 @@
                 :error="pemberianStore.error.create"
                 :anak-id="anakTerpilihId"
                 :anak-list="kaderStore.anakList"
-                :imunisasi-sudah="pemberianStore.imunisasiSudahDiterima"
                 @submit="handleSubmit"
                 @cancel="closeForm"
             />
@@ -404,7 +337,6 @@ import {
     usePemberianStore,
     JENIS_VALID,
     LABEL_JENIS,
-    PILIHAN,
 } from "@/stores/pemberian";
 import { useKaderStore } from "@/stores/kaderStore";
 import FormPemberian from "@/components/forms/FormPemberian.vue";
@@ -418,7 +350,6 @@ const showForm = ref(false);
 
 /* ── Ikon per jenis ──────────────────────────────────────────────── */
 const ikonJenis = {
-    imunisasi: "pi-shield",
     vitamin_a: "pi-sun",
     obat_cacing: "pi-heart",
     pmt: "pi-apple",
@@ -426,13 +357,11 @@ const ikonJenis = {
 
 /* ── Warna badge jenis ───────────────────────────────────────────── */
 const warnaJenis = {
-    imunisasi: "#1d4ed8",
     vitamin_a: "#d97706",
     obat_cacing: "#15803d",
     pmt: "#7c3aed",
 };
 const warnaBgJenis = {
-    imunisasi: "#dbeafe",
     vitamin_a: "#fef3c7",
     obat_cacing: "#dcfce7",
     pmt: "#ede9fe",
@@ -445,12 +374,6 @@ const riwayatTampil = computed(() => {
         (r) => r.jenis === filterAktif.value,
     );
 });
-
-/* ── Progress imunisasi ──────────────────────────────────────────── */
-const totalImunisasi = PILIHAN.imunisasi.length;
-const progressImunisasi = computed(
-    () => (pemberianStore.imunisasiSudahDiterima.length / totalImunisasi) * 100,
-);
 
 /* ── Format tanggal ──────────────────────────────────────────────── */
 const formatTanggal = (tgl) =>

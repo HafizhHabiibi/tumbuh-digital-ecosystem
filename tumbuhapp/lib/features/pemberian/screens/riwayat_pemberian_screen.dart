@@ -60,7 +60,6 @@ class _RiwayatPemberianScreenState
   Widget _buildFilterChips(PemberianState state) {
     final filters = [
       {'value': 'semua', 'label': 'Semua'},
-      {'value': 'imunisasi', 'label': 'Imunisasi'},
       {'value': 'vitamin_a', 'label': 'Vitamin A'},
       {'value': 'obat_cacing', 'label': 'Obat Cacing'},
       {'value': 'pmt', 'label': 'PMT'},
@@ -139,18 +138,8 @@ class _RiwayatPemberianScreenState
           ref.read(pemberianProvider.notifier).fetchPemberian(widget.anakId),
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
-        itemCount: grouped.length +
-            (state.activeFilter == 'semua' || state.activeFilter == 'imunisasi'
-                ? 1
-                : 0),
+        itemCount: grouped.length,
         itemBuilder: (_, index) {
-          // Checklist imunisasi di bagian paling bawah
-          if (index == grouped.length &&
-              (state.activeFilter == 'semua' ||
-                  state.activeFilter == 'imunisasi')) {
-            return _buildChecklistImunisasi(state.riwayat);
-          }
-
           final entry = grouped.entries.elementAt(index);
           return _buildMonthGroup(entry.key, entry.value);
         },
@@ -348,120 +337,10 @@ class _RiwayatPemberianScreenState
     );
   }
 
-  // ── Checklist Imunisasi ───────────────────────
-
-  Widget _buildChecklistImunisasi(List<PemberianModel> riwayat) {
-    final status = ref.watch(imunisasiStatusProvider(riwayat));
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Checklist Imunisasi Dasar', style: AppTextStyles.heading3),
-        const SizedBox(height: 4),
-        Text(
-          'Berdasarkan jadwal imunisasi Kemenkes',
-          style: AppTextStyles.caption,
-        ),
-        const SizedBox(height: 12),
-        Container(
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.border),
-          ),
-          child: Column(
-            children: daftarImunisasiDasar.asMap().entries.map((entry) {
-              final index = entry.key;
-              final item = entry.value;
-              final isLast = index == daftarImunisasiDasar.length - 1;
-              final sudah = status[item.nama] ?? false;
-
-              return Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    child: Row(
-                      children: [
-                        // Checkbox icon
-                        Container(
-                          width: 24,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            color: sudah
-                                ? AppColors.statusNormalBg
-                                : AppColors.background,
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(
-                              color: sudah
-                                  ? AppColors.statusNormalText
-                                  : AppColors.border,
-                            ),
-                          ),
-                          child: sudah
-                              ? Icon(
-                                  Icons.check,
-                                  size: 14,
-                                  color: AppColors.statusNormalText,
-                                )
-                              : null,
-                        ),
-                        const SizedBox(width: 12),
-
-                        // Nama & jadwal
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                item.nama,
-                                style: AppTextStyles.body.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: sudah
-                                      ? AppColors.textPrimary
-                                      : AppColors.textPrimary,
-                                ),
-                              ),
-                              Text(
-                                'Jadwal: ${item.jadwal.join(', ')}',
-                                style: AppTextStyles.caption,
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // Status
-                        Text(
-                          sudah ? 'Sudah' : 'Belum',
-                          style: AppTextStyles.label.copyWith(
-                            color: sudah
-                                ? AppColors.statusNormalText
-                                : AppColors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (!isLast)
-                    const Divider(height: 1, color: AppColors.divider),
-                ],
-              );
-            }).toList(),
-          ),
-        ),
-        const SizedBox(height: 16),
-      ],
-    );
-  }
-
   // ── Helpers ───────────────────────────────────
 
   IconData _getJenisIcon(String jenis) {
     switch (jenis) {
-      case 'imunisasi':
-        return Icons.vaccines_outlined;
       case 'vitamin_a':
         return Icons.medication_outlined;
       case 'obat_cacing':
@@ -475,8 +354,6 @@ class _RiwayatPemberianScreenState
 
   Color _getJenisColor(String jenis) {
     switch (jenis) {
-      case 'imunisasi':
-        return AppColors.imunisasiText;
       case 'vitamin_a':
         return AppColors.vitaminAText;
       case 'obat_cacing':
@@ -490,8 +367,6 @@ class _RiwayatPemberianScreenState
 
   Color _getJenisBgColor(String jenis) {
     switch (jenis) {
-      case 'imunisasi':
-        return AppColors.imunisasiBg;
       case 'vitamin_a':
         return AppColors.vitaminABg;
       case 'obat_cacing':

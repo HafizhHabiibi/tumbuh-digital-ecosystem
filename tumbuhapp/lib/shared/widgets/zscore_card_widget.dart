@@ -24,7 +24,7 @@ class ZScoreCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.$2,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colors.$1.withOpacity(0.3)),
+        border: Border.all(color: colors.$1.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -52,7 +52,7 @@ class ZScoreCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
-              color: colors.$1.withOpacity(0.15),
+              color: colors.$1.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(

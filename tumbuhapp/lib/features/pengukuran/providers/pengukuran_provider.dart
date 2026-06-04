@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/pengukuran_service.dart';
 import '../../../shared/models/pengukuran_model.dart';
-import '../../../shared/models/anak_model.dart';
 import '../../../shared/models/insight_model.dart';
+import '../../../shared/models/pengukuran_response.dart';
 
 // ── Service Provider ──────────────────────────
 
@@ -13,7 +13,7 @@ final pengukuranServiceProvider = Provider<PengukuranService>((ref) {
 // ── Riwayat Pengukuran Provider ───────────────
 
 final riwayatPengukuranProvider =
-    FutureProvider.family<Map<String, dynamic>, String>((ref, anakId) async {
+    FutureProvider.family<PengukuranResponse, String>((ref, anakId) async {
   return ref.watch(pengukuranServiceProvider).getPengukuran(anakId);
 });
 
@@ -39,6 +39,5 @@ final pengukuranTerakhirProvider =
   final result =
       await ref.watch(pengukuranServiceProvider).getPengukuran(anakId);
 
-  final riwayat = result['riwayat'] as List<PengukuranModel>;
-  return riwayat.isNotEmpty ? riwayat.first : null;
+  return result.riwayat.isNotEmpty ? result.riwayat.first : null;
 });

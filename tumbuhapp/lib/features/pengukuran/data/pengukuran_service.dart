@@ -3,13 +3,14 @@ import '../../../core/constant/api_constants.dart';
 import '../../../shared/models/pengukuran_model.dart';
 import '../../../shared/models/anak_model.dart';
 import '../../../shared/models/insight_model.dart';
+import '../../../shared/models/pengukuran_response.dart';
 
 class PengukuranService {
   final _dio = DioClient.instance;
 
   // ── Riwayat Pengukuran ────────────────────────
 
-  Future<Map<String, dynamic>> getPengukuran(String anakId) async {
+  Future<PengukuranResponse> getPengukuran(String anakId) async {
     final response = await _dio.get(ApiConstants.pengukuranAnak(anakId));
     final data = response.data['data'];
 
@@ -18,10 +19,7 @@ class PengukuranService {
         .map((e) => PengukuranModel.fromJson(e))
         .toList();
 
-    return {
-      'anak': anak,
-      'riwayat': riwayat,
-    };
+    return PengukuranResponse(anak: anak, riwayat: riwayat);
   }
 
   // ── Insight Pengukuran ────────────────────────

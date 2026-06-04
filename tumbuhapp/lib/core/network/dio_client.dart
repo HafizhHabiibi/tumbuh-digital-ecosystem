@@ -65,8 +65,50 @@ class _AuthInterceptor extends Interceptor {
   ) async {
     final statusCode = err.response?.statusCode;
 
-    // Token expired / tidak valid → paksa logout
+    // Token expired / tidak valid → coba refresh token sebelum logout
     if (statusCode == 401) {
+      final refreshToken = await StorageUtils.getRefreshToken();
+      if (refreshToken != null) {
+        try {
+          // Buat instance Dio baru khusus untuk refresh agar tidak memicu interceptor auth
+          final dioRefresh = Dio(BaseOptions(
+            baseUrl: ApiConstants.baseUrl,
+            connectTimeout: const Duration(milliseconds: AppConstants.connectTimeout),
+            receiveTimeout: const Duration(milliseconds: AppConstants.receiveTimeout),
+          ));
+
+          final response = await dioRefresh.post(
+            ApiConstants.refresh,
+            data: {'refresh_token': refreshToken},
+          );
+
+          final data = response.data;
+          String? newToken;
+          if (data is Map) {
+            if (data['data'] != null && data['data']['token'] != null) {
+              newToken = data['data']['token'] as String;
+            } else if (data['token'] != null) {
+              newToken = data['token'] as String;
+            }
+          }
+
+          if (newToken != null && newToken.isNotEmpty) {
+            await StorageUtils.saveAccessToken(newToken);
+
+            // Update header request lama
+            final options = err.requestOptions;
+            options.headers['Authorization'] = 'Bearer $newToken';
+
+            // Retry request lama dengan instance Dio utama
+            final retryResponse = await DioClient.instance.fetch(options);
+            return handler.resolve(retryResponse);
+          }
+        } catch (_) {
+          // Jika refresh gagal, lanjut logout
+        }
+      }
+
+      // Jika refresh token null atau gagal, hapus semua data dan logout
       await StorageUtils.clearAll();
       // Navigasi ke login akan dihandle oleh go_router redirect
     }

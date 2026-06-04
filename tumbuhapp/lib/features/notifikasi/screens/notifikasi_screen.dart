@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../providers/notifikasi_provider.dart';
+import '../../../shared/models/notifikasi_model.dart';
 import '../../../shared/widgets/loading_widget.dart';
 import '../../../shared/widgets/empty_state_widget.dart';
 import '../../../core/constant/app_constants.dart';
@@ -51,7 +53,7 @@ class _NotifikasiScreenState extends ConsumerState<NotifikasiScreen> {
       elevation: 0,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
-        onPressed: () => Navigator.pop(context),
+        onPressed: () => context.pop(),
       ),
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -172,7 +174,7 @@ class _NotifikasiScreenState extends ConsumerState<NotifikasiScreen> {
 
   // ── Notifikasi Item ───────────────────────────
 
-  Widget _buildNotifikasiItem(notifikasi) {
+  Widget _buildNotifikasiItem(NotifikasiModel notifikasi) {
     final sudahDibaca = notifikasi.sudahDibaca;
 
     return Dismissible(
@@ -220,7 +222,7 @@ class _NotifikasiScreenState extends ConsumerState<NotifikasiScreen> {
                 ? []
                 : [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
+                      color: Colors.black.withValues(alpha: 0.04),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),

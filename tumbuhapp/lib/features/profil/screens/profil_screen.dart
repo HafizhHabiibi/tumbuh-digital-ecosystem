@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/profil_provider.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../../shared/models/user_model.dart';
 import '../../../shared/widgets/loading_widget.dart';
 import '../../../shared/widgets/empty_state_widget.dart';
 import '../../../core/constant/app_constants.dart';
+import '../../../core/utils/ui_helpers.dart';
 import '../../../router/app_router.dart';
 
 class ProfilScreen extends ConsumerWidget {
@@ -22,7 +24,7 @@ class ProfilScreen extends ConsumerWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
         ),
         title: Text('Profil', style: AppTextStyles.heading3),
       ),
@@ -105,7 +107,7 @@ class ProfilScreen extends ConsumerWidget {
 
   // ── Profil Card ───────────────────────────────
 
-  Widget _buildProfilCard(profil) {
+  Widget _buildProfilCard(UserModel profil) {
     final items = [
       _InfoItem(
         icon: Icons.person_outline,
@@ -258,7 +260,7 @@ class ProfilScreen extends ConsumerWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _UbahPasswordSheet(ref: ref),
+      builder: (_) => const _UbahPasswordSheet(),
     );
   }
 
@@ -278,7 +280,7 @@ class ProfilScreen extends ConsumerWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.pop(),
             child: Text(
               'Batal',
               style: AppTextStyles.body.copyWith(
@@ -288,7 +290,7 @@ class ProfilScreen extends ConsumerWidget {
           ),
           ElevatedButton(
             onPressed: () async {
-              Navigator.pop(context);
+              context.pop();
               await ref.read(authProvider.notifier).logout();
               if (context.mounted) {
                 context.go(AppRoutes.login);
@@ -314,9 +316,7 @@ class ProfilScreen extends ConsumerWidget {
 // ── Ubah Password Sheet ───────────────────────
 
 class _UbahPasswordSheet extends ConsumerStatefulWidget {
-  final WidgetRef ref;
-
-  const _UbahPasswordSheet({required this.ref});
+  const _UbahPasswordSheet();
 
   @override
   ConsumerState<_UbahPasswordSheet> createState() => _UbahPasswordSheetState();
@@ -348,7 +348,7 @@ class _UbahPasswordSheetState extends ConsumerState<_UbahPasswordSheet> {
         );
 
     if (berhasil && mounted) {
-      Navigator.pop(context);
+      context.pop();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Password berhasil diubah'),
@@ -498,7 +498,7 @@ class _UbahPasswordSheetState extends ConsumerState<_UbahPasswordSheet> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
-                    disabledBackgroundColor: AppColors.primary.withOpacity(0.6),
+                    disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.6),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -537,41 +537,17 @@ class _UbahPasswordSheetState extends ConsumerState<_UbahPasswordSheet> {
     return TextFormField(
       controller: controller,
       obscureText: obscure,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: const Icon(
-          Icons.lock_outline,
-          color: AppColors.textSecondary,
-        ),
+      decoration: UiHelpers.inputDecoration(
+        label: label,
+        hint: 'Masukkan ${label.toLowerCase()}',
+        icon: Icons.lock_outline,
+        fillColor: AppColors.background,
         suffixIcon: IconButton(
           icon: Icon(
             obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
             color: AppColors.textSecondary,
           ),
           onPressed: onToggle,
-        ),
-        filled: true,
-        fillColor: AppColors.background,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.primary, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.statusBurukText),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide:
-              const BorderSide(color: AppColors.statusBurukText, width: 2),
         ),
       ),
       validator: validator,

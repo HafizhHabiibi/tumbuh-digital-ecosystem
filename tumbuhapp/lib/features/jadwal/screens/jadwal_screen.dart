@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../providers/jadwal_provider.dart';
 import '../../../shared/models/jadwal_model.dart';
 import '../../../shared/widgets/loading_widget.dart';
@@ -34,7 +35,7 @@ class _JadwalScreenState extends ConsumerState<JadwalScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
         ),
         title: Text('Jadwal Posyandu', style: AppTextStyles.heading3),
       ),
@@ -93,7 +94,7 @@ class _JadwalScreenState extends ConsumerState<JadwalScreen> {
         boxShadow: isBulanIni
             ? [
                 BoxShadow(
-                  color: AppColors.primary.withOpacity(0.08),
+                  color: AppColors.primary.withValues(alpha: 0.08),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -152,7 +153,7 @@ class _JadwalScreenState extends ConsumerState<JadwalScreen> {
                 Text(
                   tanggal != null ? _getNamaBulanSingkat(tanggal.month) : '-',
                   style: AppTextStyles.caption.copyWith(
-                    color: Colors.white.withOpacity(0.8),
+                    color: Colors.white.withValues(alpha: 0.8),
                   ),
                 ),
               ],

@@ -45,7 +45,11 @@ final autoSelectAnakProvider = Provider<void>((ref) {
     if (daftarAnak.isNotEmpty) {
       final selected = ref.read(selectedAnakProvider);
       if (selected == null) {
-        ref.read(selectedAnakProvider.notifier).state = daftarAnak.first;
+        Future.microtask(() {
+          if (ref.read(selectedAnakProvider) == null) {
+            ref.read(selectedAnakProvider.notifier).state = daftarAnak.first;
+          }
+        });
       }
     }
   });

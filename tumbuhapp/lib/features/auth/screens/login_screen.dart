@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
 import '../../../core/constant/app_constants.dart';
+import '../../../core/utils/ui_helpers.dart';
 import '../../../router/app_router.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -105,7 +106,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
-                  decoration: _inputDecoration(
+                  decoration: UiHelpers.inputDecoration(
                     label: 'Email',
                     hint: 'contoh@email.com',
                     icon: Icons.email_outlined,
@@ -124,7 +125,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   obscureText: _obscurePassword,
                   textInputAction: TextInputAction.done,
                   onFieldSubmitted: (_) => _submit(),
-                  decoration: _inputDecoration(
+                  decoration: UiHelpers.inputDecoration(
                     label: 'Password',
                     hint: 'Masukkan password',
                     icon: Icons.lock_outline,
@@ -206,7 +207,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
                       disabledBackgroundColor:
-                          AppColors.primary.withOpacity(0.6),
+                          AppColors.primary.withValues(alpha: 0.6),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -232,45 +233,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  // ── Input Decoration Helper ───────────────────
-
-  InputDecoration _inputDecoration({
-    required String label,
-    required String hint,
-    required IconData icon,
-  }) {
-    return InputDecoration(
-      labelText: label,
-      hintText: hint,
-      prefixIcon: Icon(icon, color: AppColors.textSecondary),
-      labelStyle: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
-      hintStyle: AppTextStyles.bodySecondary,
-      filled: true,
-      fillColor: AppColors.surface,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.border),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.border),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.primary, width: 2),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.statusBurukText),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide:
-            const BorderSide(color: AppColors.statusBurukText, width: 2),
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../providers/pengukuran_provider.dart';
 import '../../../shared/models/pengukuran_model.dart';
@@ -47,7 +48,7 @@ class _GrafikPertumbuhanScreenState
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
         ),
         title: Text('Grafik Pertumbuhan', style: AppTextStyles.heading3),
         bottom: TabBar(
@@ -70,7 +71,7 @@ class _GrafikPertumbuhanScreenState
           onRetry: () => ref.refresh(riwayatPengukuranProvider(widget.anakId)),
         ),
         data: (data) {
-          final riwayat = data['riwayat'] as List<PengukuranModel>;
+          final riwayat = data.riwayat;
 
           if (riwayat.isEmpty) return const EmptyGrafik();
 
@@ -238,7 +239,7 @@ class _GrafikPertumbuhanScreenState
             ),
             belowBarData: BarAreaData(
               show: true,
-              color: AppColors.primary.withOpacity(0.05),
+              color: AppColors.primary.withValues(alpha: 0.05),
             ),
           ),
 
@@ -246,7 +247,7 @@ class _GrafikPertumbuhanScreenState
           LineChartBarData(
             spots: refPlus2,
             isCurved: false,
-            color: AppColors.statusKurangText.withOpacity(0.5),
+            color: AppColors.statusKurangText.withValues(alpha: 0.5),
             barWidth: 1.5,
             isStrokeCapRound: true,
             dotData: const FlDotData(show: false),
@@ -257,7 +258,7 @@ class _GrafikPertumbuhanScreenState
           LineChartBarData(
             spots: refNormal,
             isCurved: false,
-            color: AppColors.textSecondary.withOpacity(0.4),
+            color: AppColors.textSecondary.withValues(alpha: 0.4),
             barWidth: 1.5,
             isStrokeCapRound: true,
             dotData: const FlDotData(show: false),
@@ -268,7 +269,7 @@ class _GrafikPertumbuhanScreenState
           LineChartBarData(
             spots: refMinus2,
             isCurved: false,
-            color: AppColors.statusBurukText.withOpacity(0.5),
+            color: AppColors.statusBurukText.withValues(alpha: 0.5),
             barWidth: 1.5,
             isStrokeCapRound: true,
             dotData: const FlDotData(show: false),
@@ -311,17 +312,17 @@ class _GrafikPertumbuhanScreenState
           isDashed: false,
         ),
         _buildLegendItem(
-          color: AppColors.textSecondary.withOpacity(0.6),
+          color: AppColors.textSecondary.withValues(alpha: 0.6),
           label: 'Median (0 SD)',
           isDashed: true,
         ),
         _buildLegendItem(
-          color: AppColors.statusKurangText.withOpacity(0.6),
+          color: AppColors.statusKurangText.withValues(alpha: 0.6),
           label: '+2 SD',
           isDashed: true,
         ),
         _buildLegendItem(
-          color: AppColors.statusBurukText.withOpacity(0.6),
+          color: AppColors.statusBurukText.withValues(alpha: 0.6),
           label: '-2 SD',
           isDashed: true,
         ),

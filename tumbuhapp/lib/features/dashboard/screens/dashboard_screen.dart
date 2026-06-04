@@ -140,7 +140,8 @@ class DashboardScreen extends ConsumerWidget {
     return RefreshIndicator(
       color: AppColors.primary,
       onRefresh: () async {
-        ref.refresh(daftarAnakProvider);
+        ref.invalidate(daftarAnakProvider);
+        await ref.read(daftarAnakProvider.future);
       },
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -266,7 +267,7 @@ class DashboardScreen extends ConsumerWidget {
           gradient: LinearGradient(
             colors: [
               AppColors.primary,
-              AppColors.primary.withOpacity(0.8),
+              AppColors.primary.withValues(alpha: 0.8),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -274,7 +275,7 @@ class DashboardScreen extends ConsumerWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withOpacity(0.3),
+              color: AppColors.primary.withValues(alpha: 0.3),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -301,7 +302,7 @@ class DashboardScreen extends ConsumerWidget {
                       Text(
                         FormatUtils.hitungUsia(anak.tanggalLahir),
                         style: AppTextStyles.body.copyWith(
-                          color: Colors.white.withOpacity(0.8),
+                          color: Colors.white.withValues(alpha: 0.8),
                         ),
                       ),
                     ],
@@ -347,7 +348,12 @@ class DashboardScreen extends ConsumerWidget {
   }
 
   Widget _buildQuickMenu(BuildContext context, AnakModel? selectedAnak) {
-    final anakId = selectedAnak?.id ?? '';
+    final anakId = selectedAnak?.id;
+
+    void pushAnakRoute(String path) {
+      if (anakId == null) return;
+      context.push(path);
+    }
 
     final menus = [
       _MenuItem(
@@ -355,28 +361,28 @@ class DashboardScreen extends ConsumerWidget {
         label: 'Pengukuran',
         color: AppColors.primary,
         bgColor: AppColors.primarySurface,
-        onTap: () => context.push('/anak/$anakId/pengukuran'),
+        onTap: () => pushAnakRoute('/anak/$anakId/pengukuran'),
       ),
       _MenuItem(
         icon: Icons.show_chart,
         label: 'Grafik',
         color: const Color(0xFF1D4ED8),
         bgColor: const Color(0xFFDBEAFE),
-        onTap: () => context.push('/anak/$anakId/grafik'),
+        onTap: () => pushAnakRoute('/anak/$anakId/grafik'),
       ),
       _MenuItem(
         icon: Icons.vaccines_outlined,
         label: 'Pemberian',
         color: const Color(0xFF7C3AED),
         bgColor: const Color(0xFFEDE9FE),
-        onTap: () => context.push('/anak/$anakId/pemberian'),
+        onTap: () => pushAnakRoute('/anak/$anakId/pemberian'),
       ),
       _MenuItem(
         icon: Icons.local_hospital_outlined,
         label: 'Rujukan',
         color: const Color(0xFFD97706),
         bgColor: const Color(0xFFFEF3C7),
-        onTap: () => context.push('/anak/$anakId/rujukan'),
+        onTap: () => pushAnakRoute('/anak/$anakId/rujukan'),
       ),
       _MenuItem(
         icon: Icons.calendar_month_outlined,

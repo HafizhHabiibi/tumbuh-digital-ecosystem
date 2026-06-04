@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../providers/pengukuran_provider.dart';
-import '../../../shared/widgets/loading_widget.dart';
+import '../../../shared/models/pengukuran_model.dart';
 import '../../../shared/widgets/status_badge_widget.dart';
 import '../../../shared/widgets/zscore_card_widget.dart';
 import '../../../shared/widgets/insight_card_widget.dart';
@@ -27,7 +28,7 @@ class DetailPengukuranScreen extends ConsumerWidget {
           elevation: 0,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.pop(),
           ),
         ),
         body: const Center(
@@ -43,7 +44,7 @@ class DetailPengukuranScreen extends ConsumerWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -113,7 +114,7 @@ class DetailPengukuranScreen extends ConsumerWidget {
 
   // ── Ringkasan Card ────────────────────────────
 
-  Widget _buildRingkasanCard(pengukuran) {
+  Widget _buildRingkasanCard(PengukuranModel pengukuran) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -121,7 +122,7 @@ class DetailPengukuranScreen extends ConsumerWidget {
         gradient: LinearGradient(
           colors: [
             AppColors.primary,
-            AppColors.primary.withOpacity(0.8),
+            AppColors.primary.withValues(alpha: 0.8),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -195,7 +196,9 @@ class DetailPengukuranScreen extends ConsumerWidget {
       child: Column(
         children: [
           Text(
-            isCapitalized ? value[0].toUpperCase() + value.substring(1) : value,
+            isCapitalized && value.isNotEmpty
+                ? value[0].toUpperCase() + value.substring(1)
+                : value,
             style: AppTextStyles.heading3.copyWith(
               color: Colors.white,
             ),
@@ -216,7 +219,7 @@ class DetailPengukuranScreen extends ConsumerWidget {
 
   // ── Antropometri Card ─────────────────────────
 
-  Widget _buildAntropometriCard(pengukuran) {
+  Widget _buildAntropometriCard(PengukuranModel pengukuran) {
     final items = [
       _MetricItem(
         icon: Icons.monitor_weight_outlined,
@@ -238,7 +241,7 @@ class DetailPengukuranScreen extends ConsumerWidget {
         _MetricItem(
           icon: Icons.accessibility_outlined,
           label: 'Lingkar Lengan',
-          value: FormatUtils.formatTinggiBadan(pengukuran.lingkarLengan),
+          value: FormatUtils.formatTinggiBadan(pengukuran.lingkarLengan!),
         ),
     ];
 
@@ -295,7 +298,7 @@ class DetailPengukuranScreen extends ConsumerWidget {
 
   // ── SAW Card ──────────────────────────────────
 
-  Widget _buildSawCard(pengukuran) {
+  Widget _buildSawCard(PengukuranModel pengukuran) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(

@@ -25,7 +25,7 @@ class RiwayatPengukuranScreen extends ConsumerWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
         ),
         title: Text('Riwayat Pengukuran', style: AppTextStyles.heading3),
         actions: [
@@ -46,7 +46,7 @@ class RiwayatPengukuranScreen extends ConsumerWidget {
           onRetry: () => ref.refresh(riwayatPengukuranProvider(anakId)),
         ),
         data: (data) {
-          final riwayat = data['riwayat'] as List<PengukuranModel>;
+          final riwayat = data.riwayat;
 
           if (riwayat.isEmpty) return const EmptyPengukuran();
 

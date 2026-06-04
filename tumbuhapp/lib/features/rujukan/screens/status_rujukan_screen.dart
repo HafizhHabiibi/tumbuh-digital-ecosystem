@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../providers/rujukan_provider.dart';
 import '../../../shared/models/rujukan_model.dart';
 import '../../../shared/widgets/loading_widget.dart';
@@ -38,7 +39,7 @@ class _StatusRujukanScreenState extends ConsumerState<StatusRujukanScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
         ),
         title: Text('Status Rujukan', style: AppTextStyles.heading3),
       ),
@@ -96,7 +97,7 @@ class _StatusRujukanScreenState extends ConsumerState<StatusRujukanScreen> {
         boxShadow: isAktif
             ? [
                 BoxShadow(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -142,7 +143,7 @@ class _StatusRujukanScreenState extends ConsumerState<StatusRujukanScreen> {
                 decoration: BoxDecoration(
                   color: isAktif
                       ? AppColors.primary
-                      : AppColors.textSecondary.withOpacity(0.1),
+                      : AppColors.textSecondary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(

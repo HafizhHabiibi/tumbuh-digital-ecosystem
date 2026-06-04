@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../providers/pemberian_provider.dart';
 import '../../../shared/models/pemberian_model.dart';
 import '../../../shared/widgets/loading_widget.dart';
@@ -39,7 +40,7 @@ class _RiwayatPemberianScreenState
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
         ),
         title: Text('Riwayat Pemberian', style: AppTextStyles.heading3),
       ),

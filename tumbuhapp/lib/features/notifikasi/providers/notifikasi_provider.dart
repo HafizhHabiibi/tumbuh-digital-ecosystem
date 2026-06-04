@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/notifikasi_service.dart';
-import '../../../shared/models/notifikasi_model.dart.dart';
+import '../../../shared/models/notifikasi_model.dart';
 
 // ── Service Provider ──────────────────────────
 
@@ -73,13 +73,13 @@ class NotifikasiNotifier extends StateNotifier<NotifikasiState> {
 
     try {
       final result = await _service.getNotifikasi();
-      final list = result['notifikasi'] as List<NotifikasiModel>;
+      final list = result.notifikasi;
 
       state = state.copyWith(
         notifikasi: list,
         filtered: list,
-        total: result['total'] as int,
-        belumDibaca: result['belumDibaca'] as int,
+        total: result.total,
+        belumDibaca: result.belumDibaca,
         isLoading: false,
       );
     } catch (e) {
@@ -134,7 +134,7 @@ class NotifikasiNotifier extends StateNotifier<NotifikasiState> {
       );
 
       // Refresh badge di dashboard
-      _ref.refresh(belumDibacaProvider);
+      _ref.invalidate(belumDibacaProvider);
     } catch (e) {
       state = state.copyWith(
         errorMessage: e.toString().replaceAll('Exception: ', ''),
@@ -168,7 +168,7 @@ class NotifikasiNotifier extends StateNotifier<NotifikasiState> {
       );
 
       // Refresh badge di dashboard
-      _ref.refresh(belumDibacaProvider);
+      _ref.invalidate(belumDibacaProvider);
     } catch (e) {
       state = state.copyWith(
         errorMessage: e.toString().replaceAll('Exception: ', ''),

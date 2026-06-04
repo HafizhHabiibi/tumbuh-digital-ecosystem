@@ -21,29 +21,29 @@ class DetailAnakScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: detailAsync.when(
-        loading: () => const Scaffold(
-          backgroundColor: AppColors.background,
-          body: ShimmerDetail(),
-        ),
-        error: (err, _) => Scaffold(
-          backgroundColor: AppColors.background,
-          appBar: AppBar(
-            backgroundColor: AppColors.surface,
-            elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => Navigator.pop(context),
-            ),
+        loading: () => const SafeArea(child: ShimmerDetail()),
+        error: (err, _) => SafeArea(
+          child: Column(
+            children: [
+              AppBar(
+                backgroundColor: AppColors.surface,
+                elevation: 0,
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () => context.pop(),
+                ),
+              ),
+              Expanded(
+                child: ErrorStateWidget(
+                  message: err.toString(),
+                  onRetry: () => ref.refresh(detailAnakProvider(anakId)),
+                ),
+              ),
+            ],
           ),
-          body: ErrorStateWidget(
-            message: err.toString(),
-            onRetry: () => ref.refresh(detailAnakProvider(anakId)),
-          ),
         ),
-        data: (anak) => Scaffold(
-          backgroundColor: AppColors.background,
-          body: CustomScrollView(
-            slivers: [
+        data: (anak) => CustomScrollView(
+          slivers: [
               // ── App Bar ─────────────────────
               SliverAppBar(
                 expandedHeight: 200,
@@ -51,7 +51,7 @@ class DetailAnakScreen extends ConsumerWidget {
                 backgroundColor: AppColors.primary,
                 leading: IconButton(
                   icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => context.pop(),
                 ),
                 flexibleSpace: FlexibleSpaceBar(
                   background: Container(
@@ -59,7 +59,7 @@ class DetailAnakScreen extends ConsumerWidget {
                       gradient: LinearGradient(
                         colors: [
                           AppColors.primary,
-                          AppColors.primary.withOpacity(0.8),
+                          AppColors.primary.withValues(alpha: 0.8),
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
@@ -79,7 +79,7 @@ class DetailAnakScreen extends ConsumerWidget {
                                   width: 56,
                                   height: 56,
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.2),
+                                    color: Colors.white.withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(28),
                                   ),
                                   child: Center(
@@ -113,7 +113,7 @@ class DetailAnakScreen extends ConsumerWidget {
                                                 anak.tanggalLahir),
                                             style: AppTextStyles.body.copyWith(
                                               color:
-                                                  Colors.white.withOpacity(0.8),
+                                                  Colors.white.withValues(alpha: 0.8),
                                             ),
                                           ),
                                           const SizedBox(width: 8),
@@ -187,8 +187,7 @@ class DetailAnakScreen extends ConsumerWidget {
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 
   // ── Section Title ─────────────────────────────

@@ -23,7 +23,7 @@ class AppColors {
   // Primary App
   static const Color primary = Color(0xFF008F24);
   static const Color primaryDark = Color(0xFF006E1C);
-  static const Color primarySurface = Color(0xFFF5FBEF);
+  static const Color primarySurface = Color(0xFFE8F5E9); // Soft light green for accents
 
   // ── Status Gizi ──────────────────────────────
   static const Color statusNormalText = Color(0xFF15803D);
@@ -42,6 +42,7 @@ class AppColors {
   static const Color risikoRendahText = Color(0xFF15803D);
   static const Color risikoRendahBg = Color(0xFFDCFCE7);
 
+  // ...
   static const Color risikoSedangText = Color(0xFFD97706);
   static const Color risikoSedangBg = Color(0xFFFEF3C7);
 
@@ -85,13 +86,13 @@ class AppColors {
   static const Color pmtBg = Color(0xFFEDE9FE);
 
   // ── Neutral ───────────────────────────────────
-  static const Color background = Color(0xFFF5FBEF);
+  static const Color background = Color(0xFFFAFAFA); // White base background
   static const Color surface = Color(0xFFFFFFFF);
-  static const Color textPrimary = Color(0xFF171D16);
-  static const Color textSecondary = Color(0xFF3F4A3C);
-  static const Color textMuted = Color(0xFF6F7A6B);
-  static const Color border = Color(0xFFBECAB8);
-  static const Color divider = Color(0xFFEEEEEE);
+  static const Color textPrimary = Color(0xFF1E293B); // Dark slate
+  static const Color textSecondary = Color(0xFF475569); // Medium slate
+  static const Color textMuted = Color(0xFF94A3B8); // Light slate
+  static const Color border = Color(0xFFE2E8F0); // Very light slate/grey
+  static const Color divider = Color(0xFFF1F5F9); // Clean slate divider
 }
 
 class AppTextStyles {

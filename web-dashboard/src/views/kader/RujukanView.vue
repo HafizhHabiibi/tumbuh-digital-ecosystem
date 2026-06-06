@@ -333,6 +333,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
+import { useRoute } from "vue-router";
 import { Dialog } from "primevue";
 import { useRujukanStore, LABEL_STATUS } from "@/stores/rujukanStore";
 import { usePengukuranStore } from "@/stores/pengukuranStore";
@@ -340,6 +341,7 @@ import { useKaderStore } from "@/stores/kaderStore";
 import RujukanDetail from "@/components/cards/RujukanDetailCard.vue";
 import FormRujukan from "@/components/forms/FormRujukan.vue";
 
+const route = useRoute();
 const rujukanStore = useRujukanStore();
 const kaderStore = useKaderStore();
 const pengukuranStore = usePengukuranStore();
@@ -422,7 +424,17 @@ const handleSubmit = async (payload) => {
 };
 
 onMounted(() => {
-    if (kaderStore.anakList.length === 0) kaderStore.fetchAllAnak();
+    if (kaderStore.anakList.length === 0) {
+        kaderStore.fetchAllAnak().then(() => {
+            if (route.query.anakId) {
+                anakTerpilihId.value = route.query.anakId;
+                onAnakChange();
+            }
+        });
+    } else if (route.query.anakId) {
+        anakTerpilihId.value = route.query.anakId;
+        onAnakChange();
+    }
 });
 </script>
 

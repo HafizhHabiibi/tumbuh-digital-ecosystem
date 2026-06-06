@@ -90,29 +90,48 @@
 
             <!-- ══ TAB: Pengukuran ══════════════════════════════════ -->
             <div v-show="activeTab === 'pengukuran'" class="space-y-4">
-                <!-- Chart tren BB & TB -->
-                <div
-                    v-if="pengukuranStore.trenPertumbuhan.length > 1"
-                    class="card p-5 rounded-2xl"
-                >
-                    <h3
-                        class="text-sm font-semibold m-0 mb-4"
-                        style="color: var(--color-text-heading)"
-                    >
-                        <i
-                            class="pi pi-chart-line mr-1.5"
-                            style="color: var(--color-green-700)"
-                            aria-hidden="true"
+                <!-- Grid Chart: KMS & Tinggi Badan -->
+                <div v-if="pengukuranStore.trenPertumbuhan.length > 0" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <!-- Grafik KMS (Berat Badan menurut Umur) -->
+                    <div class="card p-5 rounded-2xl">
+                        <h3
+                            class="text-sm font-semibold m-0 mb-4"
+                            style="color: var(--color-text-heading)"
+                        >
+                            <i
+                                class="pi pi-chart-line mr-1.5"
+                                style="color: var(--color-green-700)"
+                                aria-hidden="true"
+                            />
+                            Grafik KMS (Berat Badan / Umur)
+                        </h3>
+                        <KMSChart
+                            :jenis-kelamin="kaderStore.anakDetail.jenis_kelamin"
+                            :tanggal-lahir="kaderStore.anakDetail.tanggal_lahir"
+                            :riwayat-pengukuran="pengukuranStore.riwayat.list"
                         />
-                        Tren Pertumbuhan
-                    </h3>
-                    <apexchart
-                        v-if="pengukuranStore.trenPertumbuhan.length > 0"
-                        type="line"
-                        height="220"
-                        :options="chartOptions"
-                        :series="chartSeries"
-                    />
+                    </div>
+
+                    <!-- Tren Tinggi Badan -->
+                    <div class="card p-5 rounded-2xl">
+                        <h3
+                            class="text-sm font-semibold m-0 mb-4"
+                            style="color: var(--color-text-heading)"
+                        >
+                            <i
+                                class="pi pi-chart-line mr-1.5"
+                                style="color: var(--color-green-700)"
+                                aria-hidden="true"
+                            />
+                            Tren Tinggi Badan
+                        </h3>
+                        <apexchart
+                            type="line"
+                            height="320"
+                            :options="heightChartOptions"
+                            :series="heightChartSeries"
+                        />
+                    </div>
                 </div>
 
                 <!-- Tabel riwayat pengukuran -->
@@ -526,6 +545,7 @@ import { useRujukanStore } from "@/stores/rujukanStore";
 import AnakCard from "@/components/cards/AnakCard.vue";
 import StatusBadge from "@/components/ui/StatusBadge.vue";
 import RujukanDetailCard from "@/components/cards/RujukanDetailCard.vue";
+import KMSChart from "@/components/charts/KMSChart.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -560,28 +580,40 @@ const tabs = computed(() => [
     },
 ]);
 
-/* ── Chart tren pertumbuhan ──────────────────────────────────────── */
-const chartSeries = computed(() => [
-    {
-        name: "Berat Badan (kg)",
-        data: pengukuranStore.trenPertumbuhan.map((p) => p.berat_badan),
-    },
+/* ── Chart tren tinggi badan ──────────────────────────────────────── */
+const heightChartSeries = computed(() => [
     {
         name: "Tinggi Badan (cm)",
         data: pengukuranStore.trenPertumbuhan.map((p) => p.tinggi_badan),
     },
 ]);
 
-const chartOptions = computed(() => ({
+const heightChartOptions = computed(() => ({
     chart: {
         type: "line",
         fontFamily: "Poppins, sans-serif",
-        toolbar: { show: false },
-        zoom: { enabled: false },
+        toolbar: {
+            show: true,
+            tools: {
+                download: true,
+                selection: false,
+                zoom: true,
+                zoomin: true,
+                zoomout: true,
+                pan: false,
+                reset: true,
+            },
+        },
+        zoom: { enabled: true },
     },
-    colors: ["#006e1c", "#0284c7"],
-    stroke: { curve: "smooth", width: 2.5 },
-    markers: { size: 4 },
+    colors: ["#0284c7"],
+    stroke: { curve: "smooth", width: 3 },
+    markers: {
+        size: 5,
+        colors: ["#ffffff"],
+        strokeColors: ["#0284c7"],
+        strokeWidth: 2,
+    },
     xaxis: {
         categories: pengukuranStore.trenPertumbuhan.map((p) =>
             new Date(p.tanggal).toLocaleDateString("id-ID", {
@@ -593,7 +625,7 @@ const chartOptions = computed(() => ({
             style: {
                 fontFamily: "Poppins, sans-serif",
                 fontSize: "11px",
-                colors: "#6f7a6b",
+                colors: "#64748b",
             },
         },
         axisBorder: { show: false },
@@ -601,24 +633,17 @@ const chartOptions = computed(() => ({
     },
     yaxis: {
         labels: {
+            formatter: (val) => `${val} cm`,
             style: {
                 fontFamily: "Poppins, sans-serif",
                 fontSize: "11px",
-                colors: "#6f7a6b",
+                colors: "#64748b",
             },
         },
     },
-    grid: { borderColor: "#f0f0f0", strokeDashArray: 4 },
-    legend: {
-        position: "top",
-        horizontalAlign: "right",
-        fontFamily: "Poppins, sans-serif",
-        fontSize: "12px",
-    },
+    grid: { borderColor: "#f1f5f9", strokeDashArray: 4 },
     tooltip: {
-        shared: true,
-        intersect: false,
-        style: { fontFamily: "Poppins, sans-serif" },
+        style: { fontFamily: "Poppins, sans-serif", fontSize: "12px" },
     },
 }));
 

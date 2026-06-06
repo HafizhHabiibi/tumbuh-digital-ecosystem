@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/jadwal_service.dart';
 import '../../../shared/models/jadwal_model.dart';
+import '../../../core/utils/error_utils.dart';
 
 // ── Service Provider ──────────────────────────
 
@@ -94,7 +95,7 @@ class JadwalNotifier extends StateNotifier<JadwalState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: e.toString().replaceAll('Exception: ', ''),
+        errorMessage: ErrorUtils.getCleanErrorMessage(e),
       );
     }
   }

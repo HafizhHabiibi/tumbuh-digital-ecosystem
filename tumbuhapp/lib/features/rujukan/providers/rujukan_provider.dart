@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/rujukan_service.dart';
 import '../../../shared/models/rujukan_model.dart';
 import '../../../shared/models/anak_model.dart';
+import '../../../core/utils/error_utils.dart';
 
 // ── Service Provider ──────────────────────────
 
@@ -73,7 +74,7 @@ class RujukanNotifier extends StateNotifier<RujukanState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: e.toString().replaceAll('Exception: ', ''),
+        errorMessage: ErrorUtils.getCleanErrorMessage(e),
       );
     }
   }

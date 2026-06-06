@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/notifikasi_service.dart';
 import '../../../shared/models/notifikasi_model.dart';
+import '../../../core/utils/error_utils.dart';
 
 // ── Service Provider ──────────────────────────
 
@@ -85,7 +86,7 @@ class NotifikasiNotifier extends StateNotifier<NotifikasiState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: e.toString().replaceAll('Exception: ', ''),
+        errorMessage: ErrorUtils.getCleanErrorMessage(e),
       );
     }
   }
@@ -137,7 +138,7 @@ class NotifikasiNotifier extends StateNotifier<NotifikasiState> {
       _ref.invalidate(belumDibacaProvider);
     } catch (e) {
       state = state.copyWith(
-        errorMessage: e.toString().replaceAll('Exception: ', ''),
+        errorMessage: ErrorUtils.getCleanErrorMessage(e),
       );
     }
   }
@@ -171,7 +172,7 @@ class NotifikasiNotifier extends StateNotifier<NotifikasiState> {
       _ref.invalidate(belumDibacaProvider);
     } catch (e) {
       state = state.copyWith(
-        errorMessage: e.toString().replaceAll('Exception: ', ''),
+        errorMessage: ErrorUtils.getCleanErrorMessage(e),
       );
     }
   }

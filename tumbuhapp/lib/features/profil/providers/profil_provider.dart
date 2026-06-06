@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/profil_service.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../../shared/models/user_model.dart';
+import '../../../core/utils/error_utils.dart';
 
 // ── Service Provider ──────────────────────────
 
@@ -66,7 +67,7 @@ class UbahPasswordNotifier extends StateNotifier<UbahPasswordState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: e.toString().replaceAll('Exception: ', ''),
+        errorMessage: ErrorUtils.getCleanErrorMessage(e),
       );
       return false;
     }

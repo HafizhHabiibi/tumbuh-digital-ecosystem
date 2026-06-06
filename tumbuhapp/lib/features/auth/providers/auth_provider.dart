@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/auth_service.dart';
 import '../../../shared/models/user_model.dart';
+import '../../../core/utils/error_utils.dart';
 // import '../../../core/utils/storage_utils.dart';
 
 // ── Service Provider ──────────────────────────
@@ -70,7 +71,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: e.toString().replaceAll('Exception: ', ''),
+        errorMessage: ErrorUtils.getCleanErrorMessage(e),
       );
       return false;
     }
@@ -88,7 +89,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: e.toString().replaceAll('Exception: ', ''),
+        errorMessage: ErrorUtils.getCleanErrorMessage(e),
       );
       return null;
     }
@@ -112,7 +113,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: e.toString().replaceAll('Exception: ', ''),
+        errorMessage: ErrorUtils.getCleanErrorMessage(e),
       );
       return false;
     }

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/pemberian_service.dart';
 import '../../../shared/models/pemberian_model.dart';
 import '../../../shared/models/anak_model.dart';
+import '../../../core/utils/error_utils.dart';
 
 // ── Service Provider ──────────────────────────
 
@@ -78,7 +79,7 @@ class PemberianNotifier extends StateNotifier<PemberianState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: e.toString().replaceAll('Exception: ', ''),
+        errorMessage: ErrorUtils.getCleanErrorMessage(e),
       );
     }
   }

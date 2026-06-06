@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'router/app_router.dart';
 
 void main() async {
@@ -28,7 +29,7 @@ class MyApp extends ConsumerWidget {
           seedColor: const Color(0xFF15803D),
         ),
         useMaterial3: true,
-        fontFamily: 'Inter',
+        fontFamily: GoogleFonts.poppins().fontFamily,
       ),
       routerConfig: router,
     );

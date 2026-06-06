@@ -40,9 +40,13 @@ export const findById = async (id) => {
 };
 
 export const findByUserId = async (user_id) => {
-    const [rows] = await db.query(`SELECT * FROM orang_tua WHERE user_id = ?`, [
-        user_id,
-    ]);
+    const [rows] = await db.query(
+        `SELECT ot.*, u.email 
+         FROM orang_tua ot
+         JOIN users u ON u.id = ot.user_id
+         WHERE ot.user_id = ?`,
+        [user_id],
+    );
     return rows[0] || null;
 };
 

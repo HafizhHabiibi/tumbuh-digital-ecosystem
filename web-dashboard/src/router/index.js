@@ -35,6 +35,11 @@ const routes = [
                 component: () => import("../views/kader/DashboardView.vue"),
             },
             {
+                path: "prioritas",
+                name: "KaderRanking",
+                component: () => import("../views/kader/RankingView.vue"),
+            },
+            {
                 path: "orang-tua",
                 name: "KaderOrangTua",
                 component: () => import("../views/kader/OrangTuaView.vue"),
@@ -95,6 +100,11 @@ const routes = [
                 path: "dashboard",
                 name: "PuskesmasDashboard",
                 component: () => import("../views/puskesmas/DashboardView.vue"),
+            },
+            {
+                path: "prioritas",
+                name: "PuskesmasRanking",
+                component: () => import("../views/puskesmas/RankingView.vue"),
             },
             {
                 path: "rujukan",

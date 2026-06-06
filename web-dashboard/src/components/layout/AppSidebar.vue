@@ -18,17 +18,23 @@
         aria-label="Navigasi utama"
     >
         <!-- Brand -->
-        <div class="flex flex-col px-3 pb-3">
-            <span
-                class="text-xl font-extrabold tracking-tight"
-                style="color: var(--color-green-700)"
-                >Tumbuh</span
-            >
-            <span
-                class="text-[0.65rem] uppercase tracking-widest"
-                style="color: var(--color-text-muted)"
-                >{{ roleLabel }}</span
-            >
+        <div class="flex items-center gap-2.5 px-3 pb-3">
+            <BrandingIllustration
+                image-class="w-8 h-auto illustration--green"
+                aria-label="Logo Tumbuh"
+            />
+            <div class="flex flex-col">
+                <span
+                    class="text-lg font-extrabold tracking-tight leading-none"
+                    style="color: var(--color-green-700)"
+                    >Tumbuh</span
+                >
+                <span
+                    class="text-[0.6rem] uppercase tracking-widest mt-1"
+                    style="color: var(--color-text-muted)"
+                    >{{ roleLabel }}</span
+                >
+            </div>
         </div>
 
         <div
@@ -105,6 +111,7 @@
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/authStore";
+import BrandingIllustration from "@/components/ui/BrandingIllustration.vue";
 
 defineProps({ open: { type: Boolean, default: false } });
 defineEmits(["close"]);
@@ -118,6 +125,7 @@ const roleLabel = computed(() =>
 
 const kaderMenu = [
     { name: "KaderDashboard", label: "Dashboard", icon: "pi-home" },
+    { name: "KaderRanking", label: "Prioritas SAW", icon: "pi-sort-amount-down-alt" },
     { name: "KaderAnak", label: "Data Anak", icon: "pi-heart" },
     { name: "KaderOrangTua", label: "Orang Tua", icon: "pi-users" },
     { name: "KaderPengukuran", label: "Pengukuran", icon: "pi-chart-line" },
@@ -127,6 +135,7 @@ const kaderMenu = [
 ];
 const puskesmasMenu = [
     { name: "PuskesmasDashboard", label: "Dashboard", icon: "pi-home" },
+    { name: "PuskesmasRanking", label: "Prioritas SAW", icon: "pi-sort-amount-down-alt" },
     { name: "PuskesmasRujukan", label: "Rujukan", icon: "pi-send" },
 ];
 
@@ -214,5 +223,10 @@ const handleLogout = () => {
 .fade-enter-from,
 .fade-leave-to {
     opacity: 0;
+}
+
+.illustration--green {
+    filter: invert(28%) sepia(64%) saturate(620%) hue-rotate(94deg)
+        brightness(85%) contrast(101%);
 }
 </style>

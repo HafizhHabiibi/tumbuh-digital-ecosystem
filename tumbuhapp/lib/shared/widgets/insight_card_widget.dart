@@ -187,8 +187,8 @@ class _InsightCardState extends State<InsightCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Preview — selalu tampil (section pertama, 2 baris)
-          if (sections.isNotEmpty) _buildPreview(sections.first),
+          // Preview — tampil hanya jika tidak expanded
+          if (sections.isNotEmpty && !_isExpanded) _buildPreview(sections.first),
 
           // Detail — tampil saat expanded
           if (_isExpanded) ...[
@@ -280,17 +280,18 @@ class _InsightCardState extends State<InsightCard> {
   // ── Parse Sections dari teks Gemini ───────────
 
   List<Map<String, String>> _parseSections(String teks) {
+    final cleanTeks = teks.replaceAll('\\', '');
     final sections = <Map<String, String>>[];
 
     // Split berdasarkan pola **1. Title**, **2. Title**, dst
     final regex = RegExp(r'\*\*\d+\.\s(.+?)\*\*\n([\s\S]+?)(?=\*\*\d+\.|$)');
-    final matches = regex.allMatches(teks);
+    final matches = regex.allMatches(cleanTeks);
 
     if (matches.isEmpty) {
       // Tidak ada format section → tampilkan sebagai satu blok
       sections.add({
         'title': 'Insight',
-        'content': teks.replaceAll(RegExp(r'\*\*(.+?)\*\*'), r'\1').trim(),
+        'content': cleanTeks.replaceAllMapped(RegExp(r'\*\*(.+?)\*\*'), (m) => m[1] ?? '').trim(),
       });
       return sections;
     }
@@ -298,12 +299,10 @@ class _InsightCardState extends State<InsightCard> {
     for (final match in matches) {
       sections.add({
         'title': match.group(1)?.trim() ?? '',
-        'content': match
-                .group(2)
-                ?.replaceAll(RegExp(r'\*\*(.+?)\*\*'), r'\1')
+        'content': (match.group(2) ?? '')
+                .replaceAllMapped(RegExp(r'\*\*(.+?)\*\*'), (m) => m[1] ?? '')
                 .replaceAll(RegExp(r'^\d+\.\s', multiLine: true), '• ')
-                .trim() ??
-            '',
+                .trim(),
       });
     }
 

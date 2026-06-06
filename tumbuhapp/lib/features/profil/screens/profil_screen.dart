@@ -117,7 +117,7 @@ class ProfilScreen extends ConsumerWidget {
       _InfoItem(
         icon: Icons.email_outlined,
         label: 'Email',
-        value: profil.userId,
+        value: profil.email,
       ),
       _InfoItem(
         icon: Icons.phone_outlined,

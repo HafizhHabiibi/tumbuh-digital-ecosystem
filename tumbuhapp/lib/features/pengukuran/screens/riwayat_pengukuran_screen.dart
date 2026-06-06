@@ -28,16 +28,6 @@ class RiwayatPengukuranScreen extends ConsumerWidget {
           onPressed: () => context.pop(),
         ),
         title: Text('Riwayat Pengukuran', style: AppTextStyles.heading3),
-        actions: [
-          // Tombol grafik
-          IconButton(
-            icon: const Icon(
-              Icons.show_chart,
-              color: AppColors.primary,
-            ),
-            onPressed: () => context.push('/anak/$anakId/grafik'),
-          ),
-        ],
       ),
       body: riwayatAsync.when(
         loading: () => const ShimmerList(itemCount: 5, itemHeight: 100),

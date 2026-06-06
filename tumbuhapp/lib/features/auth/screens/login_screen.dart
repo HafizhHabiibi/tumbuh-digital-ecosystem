@@ -61,17 +61,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 Center(
                   child: Column(
                     children: [
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: AppColors.primarySurface,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: const Icon(
-                          Icons.child_care,
-                          size: 48,
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Image.asset(
+                          'assets/icon/tumbuh.png',
+                          width: 80,
+                          height: 80,
                           color: AppColors.primary,
+                          colorBlendMode: BlendMode.srcIn,
+                          fit: BoxFit.cover,
                         ),
                       ),
                       const SizedBox(height: 16),

@@ -1,9 +1,12 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../providers/pengukuran_provider.dart';
+import '../providers/who_standards_provider.dart';
 import '../../../shared/models/pengukuran_model.dart';
+import '../../../shared/models/anak_model.dart';
 import '../../../shared/widgets/loading_widget.dart';
 import '../../../shared/widgets/empty_state_widget.dart';
 import '../../../core/constant/app_constants.dart';
@@ -37,9 +40,21 @@ class _GrafikPertumbuhanScreenState
     super.dispose();
   }
 
+  int _calculateAgeInMonths(String tanggalLahir, String tanggalUkur) {
+    try {
+      final lahir = DateTime.parse(tanggalLahir);
+      final ukur = DateTime.parse(tanggalUkur);
+      final age = (ukur.year - lahir.year) * 12 + (ukur.month - lahir.month);
+      return age < 0 ? 0 : age;
+    } catch (_) {
+      return 0;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final riwayatAsync = ref.watch(riwayatPengukuranProvider(widget.anakId));
+    final whoTablesAsync = ref.watch(whoTablesProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -50,7 +65,7 @@ class _GrafikPertumbuhanScreenState
           icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => context.pop(),
         ),
-        title: Text('Grafik Pertumbuhan', style: AppTextStyles.heading3),
+        title: Text('Grafik Pertumbuhan KMS', style: AppTextStyles.heading3),
         bottom: TabBar(
           controller: _tabController,
           labelColor: AppColors.primary,
@@ -58,30 +73,39 @@ class _GrafikPertumbuhanScreenState
           indicatorColor: AppColors.primary,
           labelStyle: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600),
           tabs: const [
-            Tab(text: 'BB/U'),
-            Tab(text: 'TB/U'),
-            Tab(text: 'BB/TB'),
+            Tab(text: 'BB/U (KMS)'),
+            Tab(text: 'TB/U (Stunting)'),
+            Tab(text: 'BB/TB (Ideal)'),
           ],
         ),
       ),
-      body: riwayatAsync.when(
+      body: whoTablesAsync.when(
         loading: () => const ShimmerList(itemCount: 3, itemHeight: 200),
         error: (err, _) => ErrorStateWidget(
-          message: err.toString(),
-          onRetry: () => ref.refresh(riwayatPengukuranProvider(widget.anakId)),
+          message: 'Gagal memuat standar WHO: ${err.toString()}',
+          onRetry: () => ref.refresh(whoTablesProvider),
         ),
-        data: (data) {
-          final riwayat = data.riwayat;
+        data: (tables) {
+          return riwayatAsync.when(
+            loading: () => const ShimmerList(itemCount: 3, itemHeight: 200),
+            error: (err, _) => ErrorStateWidget(
+              message: err.toString(),
+              onRetry: () => ref.refresh(riwayatPengukuranProvider(widget.anakId)),
+            ),
+            data: (data) {
+              final riwayat = data.riwayat;
 
-          if (riwayat.isEmpty) return const EmptyGrafik();
+              if (riwayat.isEmpty) return const EmptyGrafik();
 
-          return TabBarView(
-            controller: _tabController,
-            children: [
-              _buildGrafikTab(riwayat, 'bbu'),
-              _buildGrafikTab(riwayat, 'tbu'),
-              _buildGrafikTab(riwayat, 'bbtb'),
-            ],
+              return TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildGrafikTab(data.anak, riwayat, tables, 'bbu'),
+                  _buildGrafikTab(data.anak, riwayat, tables, 'tbu'),
+                  _buildGrafikTab(data.anak, riwayat, tables, 'bbtb'),
+                ],
+              );
+            },
           );
         },
       ),
@@ -90,7 +114,12 @@ class _GrafikPertumbuhanScreenState
 
   // ── Grafik Tab ────────────────────────────────
 
-  Widget _buildGrafikTab(List<PengukuranModel> riwayat, String type) {
+  Widget _buildGrafikTab(
+    AnakModel anak,
+    List<PengukuranModel> riwayat,
+    Map<String, dynamic> tables,
+    String type,
+  ) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -117,11 +146,60 @@ class _GrafikPertumbuhanScreenState
                   style: AppTextStyles.caption,
                 ),
                 const SizedBox(height: 16),
-                _buildLegend(),
-                const SizedBox(height: 16),
+                _buildLegend(type),
+                const SizedBox(height: 20),
+                // Indikator Unit Sumbu X & Y agar tidak bertumpuk di dalam grafik
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 4,
+                          height: 12,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Sumbu Y: ${type == 'tbu' ? 'Tinggi (cm)' : 'Berat (kg)'}',
+                          style: AppTextStyles.caption.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textSecondary,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Container(
+                          width: 4,
+                          height: 12,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Sumbu X: ${type == 'bbtb' ? 'Tinggi Badan (cm)' : 'Usia (Bulan)'}',
+                          style: AppTextStyles.caption.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textSecondary,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
                 SizedBox(
                   height: 280,
-                  child: _buildLineChart(riwayat, type),
+                  child: _buildLineChart(anak, riwayat, tables, type),
                 ),
               ],
             ),
@@ -139,65 +217,256 @@ class _GrafikPertumbuhanScreenState
 
   // ── Line Chart ────────────────────────────────
 
-  Widget _buildLineChart(List<PengukuranModel> riwayat, String type) {
-    // Urutkan dari terlama ke terbaru untuk grafik
+  Widget _buildLineChart(
+    AnakModel anak,
+    List<PengukuranModel> riwayat,
+    Map<String, dynamic> tables,
+    String type,
+  ) {
+    // Urutkan dari terlama ke terbaru
     final sorted = [...riwayat]
       ..sort((a, b) => a.tanggalUkur.compareTo(b.tanggalUkur));
 
-    final dataSpots = sorted.asMap().entries.map((entry) {
-      final index = entry.key.toDouble();
-      final p = entry.value;
-      final y = _getYValue(p, type);
-      return FlSpot(index, y);
+    // 1. Tentukan range X-axis dan Y-axis
+    int maxAgeInMonths = 24;
+    for (final p in sorted) {
+      final age = _calculateAgeInMonths(anak.tanggalLahir, p.tanggalUkur);
+      if (age > maxAgeInMonths) {
+        maxAgeInMonths = age;
+      }
+    }
+    // Batasi maksimum 60 bulan sesuai dengan dataset standar WHO
+    maxAgeInMonths = math.min(60, maxAgeInMonths + 3);
+
+    // X values & Y values child data
+    final dataSpots = sorted.map((p) {
+      final x = type == 'bbtb'
+          ? p.tinggiBadan
+          : _calculateAgeInMonths(anak.tanggalLahir, p.tanggalUkur).toDouble();
+      final y = type == 'tbu' ? p.tinggiBadan : p.beratBadan;
+      return FlSpot(x, y);
     }).toList();
 
-    // Garis referensi WHO
-    final refNormal =
-        sorted.asMap().entries.map((e) => FlSpot(e.key.toDouble(), 0)).toList();
-    final refPlus2 =
-        sorted.asMap().entries.map((e) => FlSpot(e.key.toDouble(), 2)).toList();
-    final refMinus2 = sorted
-        .asMap()
-        .entries
-        .map((e) => FlSpot(e.key.toDouble(), -2))
-        .toList();
+    // 2. Generate Curves dari WHO Tables
+    Map<double, List<FlSpot>> curves = {};
+    double minX = 0.0;
+    double maxX = maxAgeInMonths.toDouble();
+
+    if (type == 'bbtb') {
+      // Tentukan tabel BB/TB (wfl untuk < 2 tahun, wfh untuk >= 2 tahun)
+      final latestAge = riwayat.isNotEmpty
+          ? _calculateAgeInMonths(anak.tanggalLahir, sorted.last.tanggalUkur)
+          : _calculateAgeInMonths(anak.tanggalLahir, DateTime.now().toIso8601String().substring(0, 10));
+      final useWfl = latestAge < 24;
+
+      minX = useWfl ? 45.0 : 65.0;
+      maxX = useWfl ? 110.0 : 120.0;
+
+      if (sorted.isNotEmpty) {
+        final childMinH = sorted.map((p) => p.tinggiBadan).reduce(math.min);
+        final childMaxH = sorted.map((p) => p.tinggiBadan).reduce(math.max);
+        minX = math.max(useWfl ? 45.0 : 65.0, childMinH - 5.0);
+        maxX = math.min(useWfl ? 110.0 : 120.0, childMaxH + 5.0);
+      }
+
+      curves = WhoStandards.getBbtbCurves(
+        tables: tables,
+        jenisKelamin: anak.jenisKelamin,
+        minHeight: minX,
+        maxHeight: maxX,
+        useWfl: useWfl,
+      );
+    } else {
+      curves = WhoStandards.getBbuTbuCurves(
+        tables: tables,
+        type: type,
+        jenisKelamin: anak.jenisKelamin,
+        minMonth: 0,
+        maxMonth: maxAgeInMonths,
+      );
+    }
+
+    // Tentukan range Y
+    double minY = type == 'tbu' ? 40.0 : 0.0;
+    double maxY = type == 'tbu' ? 120.0 : 15.0;
+
+    // Filter kurva yang relevan dan hitung range Y
+    final List<double> activeZs = [];
+    if (type == 'bbu') {
+      activeZs.addAll([-3.0, -2.0, 0.0, 2.0]);
+    } else if (type == 'tbu') {
+      activeZs.addAll([-3.0, -2.0, 0.0]);
+    } else {
+      activeZs.addAll([-2.0, 0.0, 2.0]);
+    }
+
+    final List<FlSpot> allReferenceSpots = [];
+    for (final z in activeZs) {
+      if (curves[z] != null) {
+        allReferenceSpots.addAll(curves[z]!);
+      }
+    }
+
+    if (allReferenceSpots.isNotEmpty) {
+      minY = allReferenceSpots.map((s) => s.y).reduce(math.min) - (type == 'tbu' ? 3.0 : 1.0);
+      if (minY < 0) minY = 0.0;
+      if (type == 'tbu' && minY < 30.0) minY = 30.0;
+
+      maxY = allReferenceSpots.map((s) => s.y).reduce(math.max) + (type == 'tbu' ? 5.0 : 2.0);
+    }
+
+    if (dataSpots.isNotEmpty) {
+      final childMinY = dataSpots.map((s) => s.y).reduce(math.min) - (type == 'tbu' ? 3.0 : 1.0);
+      final childMaxY = dataSpots.map((s) => s.y).reduce(math.max) + (type == 'tbu' ? 5.0 : 2.0);
+      if (childMinY < minY && childMinY >= 0) minY = childMinY;
+      if (childMaxY > maxY) maxY = childMaxY;
+    }
+
+    // Set Axis Intervals
+    final double leftInterval = type == 'tbu' ? 10.0 : 2.0;
+    final double bottomInterval = type == 'bbtb' ? 5.0 : (maxAgeInMonths > 36 ? 6.0 : 3.0);
+
+    // Build line bars and trace indexes for betweenBarsData shading
+    final barDataList = <LineChartBarData>[];
+    final betweenBarsList = <BetweenBarsData>[];
+    
+    int? bbuLowIndex;
+    int? bbuHighIndex;
+    int? tbuLowIndex;
+    int? tbuHighIndex;
+    int? bbtbLowIndex;
+    int? bbtbHighIndex;
+
+    curves.forEach((z, spots) {
+      if (spots.isNotEmpty) {
+        if (!activeZs.contains(z)) return;
+
+        final color = _getCurveColor(z, type);
+        final currentIndex = barDataList.length;
+
+        if (type == 'bbu') {
+          if (z == -2.0) bbuLowIndex = currentIndex;
+          if (z == 2.0) bbuHighIndex = currentIndex;
+        } else if (type == 'tbu') {
+          if (z == -3.0) tbuLowIndex = currentIndex;
+          if (z == -2.0) tbuHighIndex = currentIndex;
+        } else if (type == 'bbtb') {
+          if (z == -2.0) bbtbLowIndex = currentIndex;
+          if (z == 2.0) bbtbHighIndex = currentIndex;
+        }
+
+        barDataList.add(
+          LineChartBarData(
+            spots: spots,
+            isCurved: true,
+            color: color.withValues(alpha: 0.5),
+            barWidth: z == 0.0 ? 2.0 : 1.2,
+            isStrokeCapRound: true,
+            dotData: const FlDotData(show: false),
+          ),
+        );
+      }
+    });
+
+    // Add Area Shading between curves
+    if (type == 'bbu' && bbuLowIndex != null && bbuHighIndex != null) {
+      betweenBarsList.add(
+        BetweenBarsData(
+          fromIndex: bbuLowIndex!,
+          toIndex: bbuHighIndex!,
+          color: const Color(0xFF15803D).withValues(alpha: 0.06), // Soft Green (Normal Zone)
+        ),
+      );
+    } else if (type == 'tbu' && tbuLowIndex != null && tbuHighIndex != null) {
+      betweenBarsList.add(
+        BetweenBarsData(
+          fromIndex: tbuLowIndex!,
+          toIndex: tbuHighIndex!,
+          color: const Color(0xFFDC2626).withValues(alpha: 0.05), // Soft Red (Stunting Risk Zone)
+        ),
+      );
+    } else if (type == 'bbtb' && bbtbLowIndex != null && bbtbHighIndex != null) {
+      betweenBarsList.add(
+        BetweenBarsData(
+          fromIndex: bbtbLowIndex!,
+          toIndex: bbtbHighIndex!,
+          color: const Color(0xFF0EA5E9).withValues(alpha: 0.06), // Soft Sky Blue (Ideal Zone)
+        ),
+      );
+    }
+
+    // Garis data anak (digambar paling terakhir agar paling atas)
+    barDataList.add(
+      LineChartBarData(
+        spots: dataSpots,
+        isCurved: true,
+        color: AppColors.primary,
+        barWidth: 3.5,
+        isStrokeCapRound: true,
+        dotData: FlDotData(
+          show: true,
+          getDotPainter: (spot, _, __, ___) => FlDotCirclePainter(
+            radius: 5,
+            color: AppColors.primary,
+            strokeWidth: 2,
+            strokeColor: Colors.white,
+          ),
+        ),
+        belowBarData: BarAreaData(
+          show: true,
+          color: AppColors.primary.withValues(alpha: 0.08),
+        ),
+      ),
+    );
 
     return LineChart(
       LineChartData(
         gridData: FlGridData(
           show: true,
-          drawVerticalLine: false,
-          horizontalInterval: 1,
+          drawVerticalLine: true,
+          drawHorizontalLine: true,
+          horizontalInterval: leftInterval,
+          verticalInterval: bottomInterval,
           getDrawingHorizontalLine: (value) => FlLine(
             color: AppColors.divider,
-            strokeWidth: 1,
+            strokeWidth: 0.5,
+          ),
+          getDrawingVerticalLine: (value) => FlLine(
+            color: AppColors.divider,
+            strokeWidth: 0.5,
           ),
         ),
+        betweenBarsData: betweenBarsList,
         titlesData: FlTitlesData(
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              interval: 1,
+              interval: leftInterval,
               reservedSize: 32,
-              getTitlesWidget: (value, meta) => Text(
-                value.toInt().toString(),
-                style: AppTextStyles.caption,
-              ),
+              getTitlesWidget: (value, meta) {
+                return SideTitleWidget(
+                  axisSide: meta.axisSide,
+                  space: 8,
+                  child: Text(
+                    value.toInt().toString(),
+                    style: AppTextStyles.caption.copyWith(fontSize: 9),
+                  ),
+                );
+              },
             ),
           ),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 32,
+              interval: bottomInterval,
+              reservedSize: 24,
               getTitlesWidget: (value, meta) {
-                final index = value.toInt();
-                if (index < 0 || index >= sorted.length) {
-                  return const SizedBox();
-                }
-                return Padding(
-                  padding: const EdgeInsets.only(top: 4),
+                if (value % 1 != 0) return const SizedBox();
+                return SideTitleWidget(
+                  axisSide: meta.axisSide,
+                  space: 6,
                   child: Text(
-                    _formatTanggalSingkat(sorted[index].tanggalUkur),
+                    value.toInt().toString(),
                     style: AppTextStyles.caption.copyWith(fontSize: 9),
                   ),
                 );
@@ -218,75 +487,40 @@ class _GrafikPertumbuhanScreenState
             left: BorderSide(color: AppColors.border),
           ),
         ),
-        minY: -4,
-        maxY: 4,
-        lineBarsData: [
-          // Garis data anak
-          LineChartBarData(
-            spots: dataSpots,
-            isCurved: true,
-            color: AppColors.primary,
-            barWidth: 3,
-            isStrokeCapRound: true,
-            dotData: FlDotData(
-              show: true,
-              getDotPainter: (spot, _, __, ___) => FlDotCirclePainter(
-                radius: 4,
-                color: AppColors.primary,
-                strokeWidth: 2,
-                strokeColor: Colors.white,
-              ),
-            ),
-            belowBarData: BarAreaData(
-              show: true,
-              color: AppColors.primary.withValues(alpha: 0.05),
-            ),
-          ),
-
-          // Garis referensi +2 SD
-          LineChartBarData(
-            spots: refPlus2,
-            isCurved: false,
-            color: AppColors.statusKurangText.withValues(alpha: 0.5),
-            barWidth: 1.5,
-            isStrokeCapRound: true,
-            dotData: const FlDotData(show: false),
-            dashArray: [6, 4],
-          ),
-
-          // Garis referensi 0 (median)
-          LineChartBarData(
-            spots: refNormal,
-            isCurved: false,
-            color: AppColors.textSecondary.withValues(alpha: 0.4),
-            barWidth: 1.5,
-            isStrokeCapRound: true,
-            dotData: const FlDotData(show: false),
-            dashArray: [6, 4],
-          ),
-
-          // Garis referensi -2 SD
-          LineChartBarData(
-            spots: refMinus2,
-            isCurved: false,
-            color: AppColors.statusBurukText.withValues(alpha: 0.5),
-            barWidth: 1.5,
-            isStrokeCapRound: true,
-            dotData: const FlDotData(show: false),
-            dashArray: [6, 4],
-          ),
-        ],
+        minX: minX,
+        maxX: maxX,
+        minY: minY,
+        maxY: maxY,
+        lineBarsData: barDataList,
         lineTouchData: LineTouchData(
           touchTooltipData: LineTouchTooltipData(
             getTooltipItems: (touchedSpots) {
               return touchedSpots.map((spot) {
-                if (spot.barIndex == 0) {
-                  final index = spot.x.toInt();
-                  if (index < sorted.length) {
+                // spot.barIndex == barDataList.length - 1 mewakili data anak
+                if (spot.barIndex == barDataList.length - 1) {
+                  final index = spot.spotIndex;
+                  if (index >= 0 && index < sorted.length) {
+                    final p = sorted[index];
+                    String valueStr = '';
+                    String zScoreStr = '';
+                    if (type == 'bbu') {
+                      valueStr = FormatUtils.formatBeratBadan(p.beratBadan);
+                      zScoreStr = FormatUtils.formatZScore(p.zscoreBbu);
+                    } else if (type == 'tbu') {
+                      valueStr = FormatUtils.formatTinggiBadan(p.tinggiBadan);
+                      zScoreStr = FormatUtils.formatZScore(p.zscoreTbu);
+                    } else {
+                      valueStr = FormatUtils.formatBeratBadan(p.beratBadan);
+                      zScoreStr = FormatUtils.formatZScore(p.zscoreBbtb);
+                    }
+
                     return LineTooltipItem(
-                      '${FormatUtils.formatZScore(spot.y)}\n'
-                      '${_formatTanggalSingkat(sorted[index].tanggalUkur)}',
-                      AppTextStyles.caption.copyWith(color: Colors.white),
+                      '$valueStr ($zScoreStr)\n'
+                      '${_formatTanggalSingkat(p.tanggalUkur)}',
+                      AppTextStyles.caption.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     );
                   }
                 }
@@ -301,59 +535,148 @@ class _GrafikPertumbuhanScreenState
 
   // ── Legend ────────────────────────────────────
 
-  Widget _buildLegend() {
-    return Wrap(
-      spacing: 16,
-      runSpacing: 8,
-      children: [
-        _buildLegendItem(
-          color: AppColors.primary,
-          label: 'Data Anak',
-          isDashed: false,
-        ),
-        _buildLegendItem(
-          color: AppColors.textSecondary.withValues(alpha: 0.6),
-          label: 'Median (0 SD)',
-          isDashed: true,
-        ),
-        _buildLegendItem(
-          color: AppColors.statusKurangText.withValues(alpha: 0.6),
-          label: '+2 SD',
-          isDashed: true,
-        ),
-        _buildLegendItem(
-          color: AppColors.statusBurukText.withValues(alpha: 0.6),
-          label: '-2 SD',
-          isDashed: true,
-        ),
-      ],
-    );
+  Widget _buildLegend(String type) {
+    if (type == 'bbu') {
+      return Wrap(
+        spacing: 12,
+        runSpacing: 8,
+        children: [
+          _buildLegendItem(
+            color: AppColors.primary,
+            label: 'Data Anak',
+            isDashed: false,
+            isThick: true,
+          ),
+          _buildLegendItem(
+            color: const Color(0xFF15803D),
+            label: 'Median (0 SD)',
+            isDashed: false,
+          ),
+          _buildLegendItem(
+            color: const Color(0xFFD97706),
+            label: 'Batas Normal (±2 SD)',
+            isDashed: false,
+          ),
+          _buildLegendItem(
+            color: const Color(0xFFDC2626),
+            label: 'Bawah Garis Merah (-3 SD)',
+            isDashed: false,
+          ),
+          _buildLegendItem(
+            color: const Color(0xFF15803D).withValues(alpha: 0.15),
+            label: 'Zona Normal (Pita Hijau)',
+            isShadedBox: true,
+          ),
+        ],
+      );
+    } else if (type == 'tbu') {
+      return Wrap(
+        spacing: 12,
+        runSpacing: 8,
+        children: [
+          _buildLegendItem(
+            color: AppColors.primary,
+            label: 'Data Anak',
+            isDashed: false,
+            isThick: true,
+          ),
+          _buildLegendItem(
+            color: const Color(0xFF15803D),
+            label: 'Tinggi Normal (0 SD)',
+            isDashed: false,
+          ),
+          _buildLegendItem(
+            color: const Color(0xFFD97706),
+            label: 'Batas Pendek (-2 SD)',
+            isDashed: false,
+          ),
+          _buildLegendItem(
+            color: const Color(0xFFDC2626),
+            label: 'Sangat Pendek (-3 SD)',
+            isDashed: false,
+          ),
+          _buildLegendItem(
+            color: const Color(0xFFDC2626).withValues(alpha: 0.15),
+            label: 'Zona Risiko Stunting',
+            isShadedBox: true,
+          ),
+        ],
+      );
+    } else {
+      // type == 'bbtb'
+      return Wrap(
+        spacing: 12,
+        runSpacing: 8,
+        children: [
+          _buildLegendItem(
+            color: AppColors.primary,
+            label: 'Data Anak',
+            isDashed: false,
+            isThick: true,
+          ),
+          _buildLegendItem(
+            color: const Color(0xFF0EA5E9),
+            label: 'Berat Ideal (0 SD)',
+            isDashed: false,
+          ),
+          _buildLegendItem(
+            color: const Color(0xFF6366F1),
+            label: 'Batas Gemuk (+2 SD)',
+            isDashed: false,
+          ),
+          _buildLegendItem(
+            color: const Color(0xFFD97706),
+            label: 'Batas Kurus (-2 SD)',
+            isDashed: false,
+          ),
+          _buildLegendItem(
+            color: const Color(0xFF0EA5E9).withValues(alpha: 0.15),
+            label: 'Zona Proporsi Ideal',
+            isShadedBox: true,
+          ),
+        ],
+      );
+    }
   }
 
   Widget _buildLegendItem({
     required Color color,
     required String label,
-    required bool isDashed,
+    bool isDashed = false,
+    bool isThick = false,
+    bool isShadedBox = false,
   }) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox(
           width: 24,
-          child: isDashed
-              ? Row(
-                  children: [
-                    Container(width: 8, height: 2, color: color),
-                    const SizedBox(width: 2),
-                    Container(width: 8, height: 2, color: color),
-                  ],
-                )
-              : Container(
-                  height: 3,
+          height: 12,
+          child: isShadedBox
+              ? Container(
                   decoration: BoxDecoration(
                     color: color,
+                    border: Border.all(color: color.withValues(alpha: 0.4)),
                     borderRadius: BorderRadius.circular(2),
                   ),
+                )
+              : Center(
+                  child: isDashed
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(width: 8, height: 1.5, color: color),
+                            const SizedBox(width: 2),
+                            Container(width: 8, height: 1.5, color: color),
+                          ],
+                        )
+                      : Container(
+                          height: isThick ? 3.5 : 2.0,
+                          decoration: BoxDecoration(
+                            color: color,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
                 ),
         ),
         const SizedBox(width: 6),
@@ -524,11 +847,11 @@ class _GrafikPertumbuhanScreenState
   String _getGrafikSubtitle(String type) {
     switch (type) {
       case 'bbu':
-        return 'Z-Score BB/U berdasarkan standar WHO';
+        return 'Grafik Berat Badan (kg) menurut Umur (Bulan) berdasarkan standar WHO';
       case 'tbu':
-        return 'Z-Score TB/U berdasarkan standar WHO';
+        return 'Grafik Tinggi Badan (cm) menurut Umur (Bulan) berdasarkan standar WHO';
       case 'bbtb':
-        return 'Z-Score BB/TB berdasarkan standar WHO';
+        return 'Grafik Berat Badan (kg) menurut Tinggi Badan (cm) berdasarkan standar WHO';
       default:
         return '';
     }
@@ -547,5 +870,23 @@ class _GrafikPertumbuhanScreenState
     if (zscore < -2 || zscore > 2) return AppColors.statusBurukText;
     if (zscore < -1 || zscore > 1) return AppColors.statusKurangText;
     return AppColors.statusNormalText;
+  }
+
+  Color _getCurveColor(double z, String type) {
+    if (type == 'bbu') {
+      if (z == -3.0) return const Color(0xFFDC2626); // Red (BGM)
+      if (z == -2.0) return const Color(0xFFD97706); // Orange
+      if (z == 0.0) return const Color(0xFF15803D);  // Green (Median)
+      if (z == 2.0) return const Color(0xFFD97706);  // Orange
+    } else if (type == 'tbu') {
+      if (z == -3.0) return const Color(0xFFDC2626); // Red (Sangat Pendek)
+      if (z == -2.0) return const Color(0xFFD97706); // Orange (Pendek)
+      if (z == 0.0) return const Color(0xFF15803D);  // Green (Normal)
+    } else if (type == 'bbtb') {
+      if (z == -2.0) return const Color(0xFFD97706); // Orange (Kurus)
+      if (z == 0.0) return const Color(0xFF0EA5E9);  // Sky Blue (Ideal)
+      if (z == 2.0) return const Color(0xFF6366F1);  // Indigo (Gemuk)
+    }
+    return const Color(0xFF94A3B8);
   }
 }

@@ -21,7 +21,7 @@
                 @click="openForm"
             >
                 <i class="pi pi-plus" aria-hidden="true" />
-                Buat Jadwal
+                Tambah Jadwal
             </button>
         </div>
 

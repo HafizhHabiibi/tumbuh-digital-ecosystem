@@ -278,7 +278,7 @@
                             class="text-sm font-semibold m-0"
                             style="color: var(--color-text-heading)"
                         >
-                            Riwayat Pemberian
+                            Pemberian
                         </h3>
                     </div>
 
@@ -306,7 +306,7 @@
                             class="text-sm m-0"
                             style="color: var(--color-text-muted)"
                         >
-                            Belum ada riwayat pemberian
+                            Belum ada pemberian
                         </p>
                     </div>
 

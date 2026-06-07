@@ -7,13 +7,13 @@
                     class="text-2xl font-bold m-0"
                     style="color: var(--color-text-heading)"
                 >
-                    Riwayat Pemberian
+                    Pemberian
                 </h1>
                 <p
                     class="text-sm mt-1 m-0"
                     style="color: var(--color-text-muted)"
                 >
-                    Catat dan pantau riwayat vitamin dan pemberian lainnya
+                    Catat dan pantau vitamin dan pemberian lainnya
                 </p>
             </div>
             <button
@@ -185,7 +185,7 @@
                         class="text-sm m-0"
                         style="color: var(--color-text-muted)"
                     >
-                        Belum ada riwayat
+                        Belum ada
                         {{
                             filterAktif !== "semua"
                                 ? LABEL_JENIS[filterAktif]
@@ -204,7 +204,7 @@
                 <div v-else class="overflow-x-auto">
                     <table
                         class="w-full text-sm"
-                        aria-label="Riwayat pemberian"
+                        aria-label="Pemberian"
                     >
                         <thead>
                             <tr
@@ -301,7 +301,7 @@
                 aria-hidden="true"
             />
             <p class="text-sm m-0" style="color: var(--color-text-muted)">
-                Pilih anak terlebih dahulu untuk melihat riwayat pemberian
+                Pilih anak terlebih dahulu untuk melihat pemberian
             </p>
         </div>
 

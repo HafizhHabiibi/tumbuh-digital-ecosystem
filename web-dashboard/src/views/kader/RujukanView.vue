@@ -22,7 +22,7 @@
                 @click="openForm"
             >
                 <i class="pi pi-plus" aria-hidden="true" />
-                Ajukan Rujukan
+                Rujukan Baru
             </button>
         </div>
 
@@ -168,7 +168,7 @@
                         :disabled="rujukanStore.punyaRujukanAktif"
                         @click="openForm"
                     >
-                        Ajukan Rujukan
+                        Rujukan Baru
                     </button>
                 </div>
 

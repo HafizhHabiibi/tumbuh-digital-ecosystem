@@ -69,7 +69,7 @@ const routes = [
                 path: "pemberian",
                 name: "KaderPemberian",
                 component: () =>
-                    import("../views/kader/RiwayatPemberianView.vue"),
+                    import("../views/kader/PemberianView.vue"),
             },
             {
                 path: "rujukan",

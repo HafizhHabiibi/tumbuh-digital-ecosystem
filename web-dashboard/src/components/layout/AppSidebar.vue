@@ -129,7 +129,7 @@ const kaderMenu = [
     { name: "KaderAnak", label: "Data Anak", icon: "pi-heart" },
     { name: "KaderOrangTua", label: "Orang Tua", icon: "pi-users" },
     { name: "KaderPengukuran", label: "Pengukuran", icon: "pi-chart-line" },
-    { name: "KaderPemberian", label: "Riwayat Pemberian", icon: "pi-list" },
+    { name: "KaderPemberian", label: "Pemberian", icon: "pi-list" },
     { name: "KaderRujukan", label: "Rujukan", icon: "pi-send" },
     { name: "KaderJadwal", label: "Jadwal", icon: "pi-calendar" },
 ];

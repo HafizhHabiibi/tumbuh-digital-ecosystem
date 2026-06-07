@@ -58,7 +58,7 @@ const routeTitleMap = {
     KaderAnak: "Data Anak",
     KaderOrangTua: "Orang Tua",
     KaderPengukuran: "Pengukuran",
-    KaderPemberian: "Riwayat Pemberian",
+    KaderPemberian: "Pemberian",
     KaderRujukan: "Rujukan",
     KaderJadwal: "Jadwal",
     KaderProfil: "Profil",

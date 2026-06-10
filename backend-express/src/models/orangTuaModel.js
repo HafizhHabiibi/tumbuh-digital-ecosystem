@@ -8,6 +8,7 @@ export const findAll = async () => {
             ot.nama_lengkap,
             ot.no_hp,
             ot.alamat,
+            ot.nik,
             ot.created_at,
             u.email,
             k.nama_lengkap AS dibuat_oleh

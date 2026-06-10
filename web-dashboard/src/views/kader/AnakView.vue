@@ -185,7 +185,7 @@
                             "
                         >
                             <th class="th-cell">Nama Anak</th>
-                            <th class="th-cell">JK</th>
+                            <th class="th-cell">JENIS KELAMIN</th>
                             <th class="th-cell hidden md:table-cell">
                                 Tanggal Lahir
                             </th>

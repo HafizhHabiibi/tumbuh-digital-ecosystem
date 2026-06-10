@@ -17,6 +17,7 @@ export const findAll = async () => {
             r.status,
             r.catatan_kader,
             r.catatan_puskesmas,
+            r.created_at,
             r.validated_at,
             a.nama AS nama_anak,
             a.tanggal_lahir,

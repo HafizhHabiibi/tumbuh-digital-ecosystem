@@ -250,27 +250,27 @@ const OT_LIST = [
  */
 const ANAK_LIST = [
     // ── OT 0: Aminah Kusuma (2 anak) ──────────────────────────────
-    { nama: "Rizki",  gender: "L", tglLahir: "2025-06-11", noKk: "3201011234560001", otIdx: 0, baseWeight: 8.1,  baseHeight: 68.5, wInc: 0.28, hInc: 1.25, scenario: "normal" }, // 7-12 bln
-    { nama: "Rafi",   gender: "L", tglLahir: "2023-10-11", noKk: "3201011234560002", otIdx: 0, baseWeight: 12.7, baseHeight: 89.5, wInc: 0.20, hInc: 0.68, scenario: "normal" }, // 27-32 bln
+    { nama: "Rizki",  gender: "L", tglLahir: "2025-06-11", noKk: "3201011234560001", otIdx: 0, baseWeight: 8.8,  baseHeight: 71.5, wInc: 0.28, hInc: 1.25, scenario: "normal" }, // 7-12 bln
+    { nama: "Rafi",   gender: "L", tglLahir: "2023-10-11", noKk: "3201011234560002", otIdx: 0, baseWeight: 14.2, baseHeight: 93.5, wInc: 0.20, hInc: 0.68, scenario: "normal" }, // 27-32 bln
     // ── OT 1: Dewi Susanti (1 anak) ──────────────────────────────
-    { nama: "Nayla",  gender: "P", tglLahir: "2025-10-11", noKk: "3201011234560003", otIdx: 1, baseWeight: 5.8,  baseHeight: 59.5, wInc: 0.40, hInc: 1.90, scenario: "normal" }, // 3-8 bln
+    { nama: "Nayla",  gender: "P", tglLahir: "2025-10-11", noKk: "3201011234560003", otIdx: 1, baseWeight: 6.6,  baseHeight: 62.5, wInc: 0.40, hInc: 1.90, scenario: "normal" }, // 3-8 bln
     // ── OT 2: Fatimah Rahman (2 anak) ────────────────────────────
     { nama: "Hasan",  gender: "L", tglLahir: "2024-06-11", noKk: "3201011234560004", otIdx: 2, baseWeight: 8.8,  baseHeight: 80.5, wInc: 0.22, hInc: 0.72, scenario: "kurang" }, // 19-24 bln
-    { nama: "Husein", gender: "L", tglLahir: "2025-12-11", noKk: "3201011234560005", otIdx: 2, baseWeight: 4.2,  baseHeight: 53.5, wInc: 0.72, hInc: 2.70, scenario: "normal" }, // 1-6 bln
+    { nama: "Husein", gender: "L", tglLahir: "2025-12-11", noKk: "3201011234560005", otIdx: 2, baseWeight: 5.2,  baseHeight: 57.5, wInc: 0.72, hInc: 2.70, scenario: "normal" }, // 1-6 bln
     // ── OT 3: Siti Rahayu (1 anak) ───────────────────────────────
     { nama: "Zahra",  gender: "P", tglLahir: "2024-12-11", noKk: "3201011234560006", otIdx: 3, baseWeight: 7.3,  baseHeight: 71.0, wInc: 0.18, hInc: 1.10, scenario: "kurang" }, // 13-18 bln
     // ── OT 4: Kartini Wulandari (2 anak) ─────────────────────────
     { nama: "Dani",   gender: "L", tglLahir: "2023-12-11", noKk: "3201011234560007", otIdx: 4, baseWeight: 9.3,  baseHeight: 82.5, wInc: 0.18, hInc: 0.90, scenario: "buruk"  }, // 25-30 bln
-    { nama: "Dina",   gender: "P", tglLahir: "2025-03-11", noKk: "3201011234560008", otIdx: 4, baseWeight: 8.3,  baseHeight: 71.0, wInc: 0.24, hInc: 1.20, scenario: "normal" }, // 10-15 bln
+    { nama: "Dina",   gender: "P", tglLahir: "2025-03-11", noKk: "3201011234560008", otIdx: 4, baseWeight: 9.3,  baseHeight: 74.0, wInc: 0.24, hInc: 1.20, scenario: "normal" }, // 10-15 bln
     // ── OT 5: Rahayu Lestari (1 anak) ────────────────────────────
     { nama: "Bagas",  gender: "L", tglLahir: "2024-10-11", noKk: "3201011234560009", otIdx: 5, baseWeight: 8.5,  baseHeight: 76.0, wInc: 0.19, hInc: 0.82, scenario: "kurang" }, // 15-20 bln
     // ── OT 6: Wulan Sari (1 anak) ────────────────────────────────
-    { nama: "Putri",  gender: "P", tglLahir: "2025-08-11", noKk: "3201011234560010", otIdx: 6, baseWeight: 6.8,  baseHeight: 63.5, wInc: 0.28, hInc: 1.50, scenario: "normal" }, // 5-10 bln
+    { nama: "Putri",  gender: "P", tglLahir: "2025-08-11", noKk: "3201011234560010", otIdx: 6, baseWeight: 7.6,  baseHeight: 66.5, wInc: 0.28, hInc: 1.50, scenario: "normal" }, // 5-10 bln
     // ── OT 7: Lestari Handayani (2 anak) ─────────────────────────
     { nama: "Adi",    gender: "L", tglLahir: "2023-06-11", noKk: "3201011234560011", otIdx: 7, baseWeight: 10.0, baseHeight: 84.5, wInc: 0.15, hInc: 0.80, scenario: "buruk"  }, // 31-36 bln
     { nama: "Ayu",    gender: "P", tglLahir: "2024-08-11", noKk: "3201011234560012", otIdx: 7, baseWeight: 8.4,  baseHeight: 77.0, wInc: 0.19, hInc: 1.00, scenario: "kurang" }, // 17-22 bln
     // ── OT 8: Nuraini Putri (1 anak) ─────────────────────────────
-    { nama: "Fauzi",  gender: "L", tglLahir: "2025-04-11", noKk: "3201011234560013", otIdx: 8, baseWeight: 8.9,  baseHeight: 71.0, wInc: 0.22, hInc: 1.35, scenario: "normal" }, // 9-14 bln
+    { nama: "Fauzi",  gender: "L", tglLahir: "2025-04-11", noKk: "3201011234560013", otIdx: 8, baseWeight: 9.8,  baseHeight: 75.0, wInc: 0.22, hInc: 1.35, scenario: "normal" }, // 9-14 bln
     // ── OT 9: Sumiati Wahyu (2 anak) ─────────────────────────────
     { nama: "Bella",  gender: "P", tglLahir: "2024-02-11", noKk: "3201011234560014", otIdx: 9, baseWeight: 9.5,  baseHeight: 83.0, wInc: 0.19, hInc: 0.60, scenario: "kurang" }, // 23-28 bln
     { nama: "Bimo",   gender: "L", tglLahir: "2025-09-11", noKk: "3201011234560015", otIdx: 9, baseWeight: 5.5,  baseHeight: 60.5, wInc: 0.22, hInc: 1.30, scenario: "buruk"  }, // 4-9 bln

@@ -71,11 +71,12 @@ export const sendNotification = async (
         );
         return { success: true };
     } catch (err) {
-        err;
-    }
-    {
         if (err.code === "messaging/registration-token-not-registered") {
-            console.warn("[FCM] Token tidak valid, perlu dihapus dari DB");
+            console.warn("[FCM] Token tidak valid, menghapus dari DB");
+            await db.query(
+                `UPDATE orang_tua SET fcm_token = NULL WHERE id = ?`,
+                [orang_tua_id],
+            );
             return { success: false, reason: "invalid_token" };
         }
         console.error(`[FCM ERROR] ${err.message}`);

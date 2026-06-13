@@ -9,11 +9,13 @@ import {
 } from "../controllers/orangTuaController.js";
 import { authenticate } from "../middlewares/auth.js";
 import { authorizeRole } from "../middlewares/role.js";
+import { requireOrangTua } from "../middlewares/requireOrangTua.js";
 
 const router = express.Router();
 
 router.use(authenticate);
 router.use(authorizeRole("orang_tua"));
+router.use(requireOrangTua); // inject req.orangTua ke semua route
 
 router.get("/profil", getProfil);
 router.get("/anak", getAnak);

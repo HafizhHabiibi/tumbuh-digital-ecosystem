@@ -1,6 +1,5 @@
 import * as RujukanModel from "../models/rujukanModel.js";
 import * as AnakModel from "../models/anakModel.js";
-import * as KaderModel from "../models/kaderModel.js";
 import * as PuskesmasModel from "../models/puskesmasModel.js";
 import * as sawService from "../services/sawService.js";
 import * as fcmService from "../services/fcmService.js";
@@ -45,12 +44,9 @@ export const createRujukan = async (req, res) => {
                 400,
             );
         }
-
-        const kader = await KaderModel.findByUserId(req.user.id);
-
         const id = await RujukanModel.create({
             anak_id,
-            kader_id: kader.id,
+            kader_id: req.kader.id,
             saw_result_id,
             catatan_kader,
         });
@@ -60,7 +56,7 @@ export const createRujukan = async (req, res) => {
                 anak.orang_tua_id,
                 "Anak Anda Dirujuk ke Puskesmas",
                 `${anak.nama} telah dirujuk ke puskesmas. ` +
-                    "Silahkan datang pada jam kerja untuk pemeriksaan lebih lanjut.",
+                "Silahkan datang pada jam kerja untuk pemeriksaan lebih lanjut.",
                 "rujukan",
                 id,
             )

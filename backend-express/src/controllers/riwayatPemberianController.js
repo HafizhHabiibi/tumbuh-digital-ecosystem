@@ -1,6 +1,5 @@
 import * as RiwayatModel from "../models/riwayatPemberianModel.js";
 import * as AnakModel from "../models/anakModel.js";
-import * as KaderModel from "../models/kaderModel.js";
 import { success, error } from "../utils/response.js";
 
 const PILIHAN = {
@@ -43,7 +42,7 @@ export const createRiwayat = async (req, res) => {
                 return error(
                     res,
                     `nama item tidak valid untuk jenis ${jenis}.` +
-                        `Pilihan: ${PILIHAN[jenis].join(", ")}`,
+                    `Pilihan: ${PILIHAN[jenis].join(", ")}`,
                     400,
                 );
             }
@@ -58,14 +57,9 @@ export const createRiwayat = async (req, res) => {
             return error(res, "Data anak tidak ditemukan", 404);
         }
 
-        const kader = await KaderModel.findByUserId(req.user.id);
-        if (!kader) {
-            return error(res, "Data kader tidak ditemukan", 404);
-        }
-
         const id = await RiwayatModel.create({
             anak_id,
-            kader_id: kader.id,
+            kader_id: req.kader.id,
             jenis,
             nama_item,
             dosis,

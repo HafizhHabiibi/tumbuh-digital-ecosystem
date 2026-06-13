@@ -9,6 +9,7 @@ import {
 } from "../controllers/pengukuranController.js";
 import { authenticate } from "../middlewares/auth.js";
 import { authorizeRole } from "../middlewares/role.js";
+import { requireKader } from "../middlewares/requireKader.js";
 
 const router = express.Router();
 
@@ -16,7 +17,8 @@ router.use(authenticate);
 
 router.get("/ranking", authorizeRole("kader", "puskesmas"), getRankingAnak);
 
-router.post("/", authorizeRole("kader"), createPengukuran);
+// requireKader dipakai per-route karena POST ini hanya untuk kader
+router.post("/", authorizeRole("kader"), requireKader, createPengukuran);
 
 router.get(
     "/anak/:anak_id",

@@ -8,7 +8,7 @@ import {
 } from "../controllers/rujukanController.js";
 import { authenticate } from "../middlewares/auth.js";
 import { authorizeRole } from "../middlewares/role.js";
-import { getDataConnect } from "firebase-admin/data-connect";
+import { requireKader } from "../middlewares/requireKader.js";
 
 const router = express.Router();
 
@@ -20,7 +20,8 @@ router.get(
     getRujukanByAnak,
 );
 
-router.post("/", authorizeRole("kader"), createRujukan);
+// requireKader per-route karena hanya POST yang butuh kader data
+router.post("/", authorizeRole("kader"), requireKader, createRujukan);
 
 router.get("/", authorizeRole("puskesmas"), getAllRujukan);
 

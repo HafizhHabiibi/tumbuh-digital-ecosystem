@@ -5,12 +5,14 @@ import {
 } from "../controllers/riwayatPemberianController.js";
 import { authenticate } from "../middlewares/auth.js";
 import { authorizeRole } from "../middlewares/role.js";
+import { requireKader } from "../middlewares/requireKader.js";
 
 const router = express.Router();
 
 router.use(authenticate);
 
-router.post("/", authorizeRole("kader"), createRiwayat);
+// requireKader per-route karena GET diakses multi-role
+router.post("/", authorizeRole("kader"), requireKader, createRiwayat);
 
 router.get(
     "/anak/:anak_id",

@@ -11,6 +11,7 @@ import {
 } from "../controllers/kaderController.js";
 import { authenticate } from "../middlewares/auth.js";
 import { authorizeRole } from "../middlewares/role.js";
+import { requireKader } from "../middlewares/requireKader.js";
 
 const router = express.Router();
 
@@ -21,6 +22,7 @@ router.use((req, res, next) => {
 
 router.use(authenticate);
 router.use(authorizeRole("kader"));
+router.use(requireKader); // inject req.kader ke semua route
 
 router.get("/profile", getProfile);
 router.post("/orang-tua", createOrangTua);

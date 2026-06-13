@@ -1,6 +1,5 @@
 import * as PengukuranModel from "../models/pengukuranModel.js";
 import * as AnakModel from "../models/anakModel.js";
-import * as KaderModel from "../models/kaderModel.js";
 import * as zscoreService from "../services/zscoreService.js";
 import * as sawService from "../services/sawService.js";
 import * as geminiService from "../services/geminiService.js";
@@ -62,11 +61,7 @@ export const createPengukuran = async (req, res) => {
             );
         }
 
-        const kader = await KaderModel.findByUserId(req.user.id);
-        if (!kader) {
-            return error(res, "Data kader tidak ditemukan", 404);
-        }
-
+        // req.kader diinjeksi oleh middleware requireKader
         const zscores = zscoreService.hitungSemuaZScore({
             berat_badan,
             tinggi_badan,
@@ -77,7 +72,7 @@ export const createPengukuran = async (req, res) => {
 
         const pengukuran_id = await PengukuranModel.createPengukuran({
             anak_id,
-            kader_id: kader.id,
+            kader_id: req.kader.id,
             tanggal_ukur,
             berat_badan,
             tinggi_badan,

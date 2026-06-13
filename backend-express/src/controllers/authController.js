@@ -3,6 +3,9 @@ import * as UserModel from "../models/userModel.js";
 import * as PasswordResetModel from "../models/passwordResetModel.js";
 import * as LoginAttemptModel from "../models/loginAttemptModel.js";
 import * as RefreshTokenModel from "../models/refreshTokenModel.js";
+import * as KaderModel from "../models/kaderModel.js";
+import * as PuskesmasModel from "../models/puskesmasModel.js";
+import * as OrangTuaModel from "../models/orangTuaModel.js";
 import * as mailerService from "../services/mailerService.js";
 import { generateToken, generateRefreshToken } from "../utils/jwt.js";
 import { verifyTurnstile } from "../utils/turnstile.js";
@@ -21,7 +24,6 @@ export const login = async (req, res) => {
             return error(res, "turnstileToken wajib disertakan", 400);
         }
 
-        // [1] Verifikasi Turnstile terlebih dahulu — bot tidak lolos ke sini
         try {
             const ts = await verifyTurnstile(turnstileToken, req.ip);
             if (!ts.success || (ts.action && ts.action !== "login")) {
@@ -31,25 +33,22 @@ export const login = async (req, res) => {
             return error(res, "Error saat verifikasi Turnstile", 500);
         }
 
-        // [2] Cek lockout akun sebelum menyentuh database user
         const lockout = await LoginAttemptModel.checkAccountLockout(email);
         if (lockout.locked) {
             return error(
                 res,
                 `Akun sementara dikunci karena ${lockout.attemptCount}x percobaan gagal. ` +
-                    `Coba lagi dalam ${lockout.remainingMinutes} menit atau reset password Anda.`,
+                `Coba lagi dalam ${lockout.remainingMinutes} menit atau reset password Anda.`,
                 429,
             );
         }
 
-        // [3] Cek user
         const user = await UserModel.findByEmail(email);
         if (!user) {
             await LoginAttemptModel.recordFailedAttempt(email);
             return error(res, "Email atau password salah", 400);
         }
 
-        // [4] Cek password
         const passwordMatch = await bcrypt.compare(
             password,
             user.password_hash,
@@ -82,17 +81,9 @@ export const login = async (req, res) => {
         let profil = null;
 
         if (user.role === "kader") {
-            const [rows] = await db.query(
-                `SELECT * FROM kader WHERE user_id = ?`,
-                [user.id],
-            );
-            profil = rows[0];
+            profil = await KaderModel.findByUserId(user.id);
         } else if (user.role === "puskesmas") {
-            const [rows] = await db.query(
-                `SELECT * FROM puskesmas_user WHERE user_id = ?`,
-                [user.id],
-            );
-            profil = rows[0];
+            profil = await PuskesmasModel.findByUserId(user.id);
         } else if (user.role === "orang_tua") {
             if (
                 fcm_token &&
@@ -104,11 +95,7 @@ export const login = async (req, res) => {
                     [fcm_token, user.id],
                 );
             }
-            const [rows] = await db.query(
-                `SELECT * FROM orang_tua WHERE user_id = ?`,
-                [user.id],
-            );
-            profil = rows[0];
+            profil = await OrangTuaModel.findByUserId(user.id);
 
             const refreshToken = generateRefreshToken({
                 id: user.id,
@@ -166,7 +153,7 @@ export const loginMobile = async (req, res) => {
             return error(
                 res,
                 `Akun sementara dikunci karena ${lockout.attemptCount}x percobaan gagal. ` +
-                    `Coba lagi dalam ${lockout.remainingMinutes} menit atau reset password Anda.`,
+                `Coba lagi dalam ${lockout.remainingMinutes} menit atau reset password Anda.`,
                 429,
             );
         }
@@ -231,12 +218,8 @@ export const loginMobile = async (req, res) => {
             );
         }
 
-        // [6] Ambil profil
-        const [rows] = await db.query(
-            `SELECT * FROM orang_tua WHERE user_id = ?`,
-            [user.id],
-        );
-        const profil = rows[0];
+        // [6] Ambil profil via model (konsisten dengan OrangTuaModel.findByUserId)
+        const profil = await OrangTuaModel.findByUserId(user.id);
 
         return success(
             res,

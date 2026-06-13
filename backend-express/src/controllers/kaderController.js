@@ -4,8 +4,6 @@ import * as OrangTuaModel from "../models/orangTuaModel.js";
 import * as AnakModel from "../models/anakModel.js";
 import { success, error } from "../utils/response.js";
 
-// req.kader sudah diinjeksi oleh middleware requireKader (untuk route yang membutuhkannya)
-
 export const getProfile = async (req, res) => {
     try {
         const profile = await KaderModel.findByUserId(req.user.id);
@@ -43,8 +41,6 @@ export const createOrangTua = async (req, res) => {
         if (nikExists) {
             return error(res, "Nik ini sudah terdaftar", 409);
         }
-
-        // Gunakan req.kader yang sudah diinjeksi oleh middleware requireKader
         const password_hash = await bcrypt.hash(password, 10);
 
         const orangTua = await OrangTuaModel.create(

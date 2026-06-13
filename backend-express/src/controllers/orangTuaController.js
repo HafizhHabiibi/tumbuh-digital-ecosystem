@@ -22,7 +22,6 @@ export const getAnak = async (req, res) => {
     }
 };
 
-// Helper: validasi anak milik orang tua yang sedang login
 const getAnakMilikOrangTua = async (res, anakId, orangTuaId) => {
     const anak = await AnakModel.findById(anakId);
     if (!anak) {

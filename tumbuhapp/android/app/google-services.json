@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "134319093982",
+    "project_id": "tumbuh-posyandu-notification",
+    "storage_bucket": "tumbuh-posyandu-notification.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:134319093982:android:b2ccd9c76281972a25aa4f",
+        "android_client_info": {
+          "package_name": "com.tumbuh.tumbuhapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC9-KS_KKJf62Y1zfXNYGWfXtoGreC6VzU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -88,7 +88,7 @@ export const login = async (req, res) => {
             if (
                 fcm_token &&
                 typeof fcm_token === "string" &&
-                fcm_token.length < 256
+                fcm_token.length < 4096
             ) {
                 await db.query(
                     `UPDATE orang_tua SET fcm_token = ? WHERE user_id = ?`,
@@ -210,7 +210,7 @@ export const loginMobile = async (req, res) => {
         if (
             fcm_token &&
             typeof fcm_token === "string" &&
-            fcm_token.length < 256
+            fcm_token.length < 4096
         ) {
             await db.query(
                 `UPDATE orang_tua SET fcm_token = ? WHERE user_id = ?`,

@@ -52,7 +52,7 @@ export const createRujukan = async (req, res) => {
         });
 
         fcmService
-            .kirimNotifikasi(
+            .sendNotification(
                 anak.orang_tua_id,
                 "Anak Anda Dirujuk ke Puskesmas",
                 `${anak.nama} telah dirujuk ke puskesmas. ` +
@@ -157,7 +157,7 @@ export const updateStatusRujukan = async (req, res) => {
         };
 
         fcmService
-            .kirimNotifikasi(
+            .sendNotification(
                 anak.orang_tua_id,
                 "Update Status Rujukan",
                 pesanStatus[status] || `Status rujukan diupdate: ${status}`,

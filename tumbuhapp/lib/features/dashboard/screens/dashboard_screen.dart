@@ -521,7 +521,7 @@ class DashboardScreen extends ConsumerWidget {
             crossAxisCount: 2,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
-            childAspectRatio: 1.45,
+            childAspectRatio: 1.35,
           ),
           itemCount: gridMenus.length,
           itemBuilder: (_, index) => _HoverableMenuItemCard(item: gridMenus[index]),
@@ -695,7 +695,7 @@ class _HoverableMenuItemCardState extends State<_HoverableMenuItemCard> {
           transform: _isHovered
               ? (Matrix4.identity()..translate(0, -6, 0))
               : Matrix4.identity(),
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(widget.isFullWidth ? 16 : 14),
           decoration: BoxDecoration(
             color: _isHovered ? Colors.white : AppColors.surface,
             borderRadius: BorderRadius.circular(16),
@@ -770,8 +770,8 @@ class _HoverableMenuItemCardState extends State<_HoverableMenuItemCard> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      width: 44,
-                      height: 44,
+                      width: 40,
+                      height: 40,
                       decoration: BoxDecoration(
                         color: item.bgColor,
                         borderRadius: BorderRadius.circular(10),
@@ -779,14 +779,14 @@ class _HoverableMenuItemCardState extends State<_HoverableMenuItemCard> {
                       child: Icon(
                         item.icon,
                         color: item.color,
-                        size: 22,
+                        size: 20,
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
                     Text(
                       item.label,
                       style: AppTextStyles.label.copyWith(
-                        fontSize: 13,
+                        fontSize: 12,
                         fontWeight: FontWeight.bold,
                       ),
                       maxLines: 1,

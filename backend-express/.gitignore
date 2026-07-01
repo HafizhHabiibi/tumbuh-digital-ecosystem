@@ -1,3 +1,4 @@
 node_modules/
 .env
 database/seeder/seeder.sql
+firebase-service-account.json

@@ -13,6 +13,7 @@ import '../features/rujukan/screens/status_rujukan_screen.dart';
 import '../features/notifikasi/screens/notifikasi_screen.dart';
 import '../features/jadwal/screens/jadwal_screen.dart';
 import '../features/profil/screens/profil_screen.dart';
+import '../core/services/fcm_service.dart';
 
 // ── Route Names ───────────────────────────────
 
@@ -39,6 +40,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);
 
   return GoRouter(
+    navigatorKey: FcmService.navigatorKey,
     initialLocation: AppRoutes.login,
     redirect: (context, state) {
       final isLoggedIn = authState.isLoggedIn;

@@ -35,7 +35,8 @@ export const useJadwalStore = defineStore("jadwal", {
          * Jadwal yang akan datang (tanggal >= hari ini)
          */
         jadwalMendatang: (state) => {
-            const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+            const now = new Date();
+            const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
             return state.jadwalList
                 .filter((j) => j.tanggal >= today)
                 .sort((a, b) => a.tanggal.localeCompare(b.tanggal));
@@ -45,7 +46,8 @@ export const useJadwalStore = defineStore("jadwal", {
          * Jadwal yang sudah lewat
          */
         jadwalLewat: (state) => {
-            const today = new Date().toISOString().split("T")[0];
+            const now = new Date();
+            const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
             return state.jadwalList
                 .filter((j) => j.tanggal < today)
                 .sort((a, b) => b.tanggal.localeCompare(a.tanggal)); // desc
@@ -55,7 +57,8 @@ export const useJadwalStore = defineStore("jadwal", {
          * Jadwal terdekat (paling pertama dari jadwal mendatang)
          */
         jadwalTerdekat: (state) => {
-            const today = new Date().toISOString().split("T")[0];
+            const now = new Date();
+            const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
             return (
                 state.jadwalList
                     .filter((j) => j.tanggal >= today)

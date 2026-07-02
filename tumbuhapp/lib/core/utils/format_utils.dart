@@ -9,7 +9,7 @@ class FormatUtils {
   static String formatTanggal(String? tanggal) {
     if (tanggal == null || tanggal.isEmpty) return '-';
     try {
-      final date = DateTime.parse(tanggal);
+      final date = DateTime.parse(tanggal).toLocal();
       return DateFormat('d MMMM yyyy', 'id').format(date);
     } catch (_) {
       return '-';
@@ -20,7 +20,7 @@ class FormatUtils {
   static String formatTanggalLengkap(String? tanggal) {
     if (tanggal == null || tanggal.isEmpty) return '-';
     try {
-      final date = DateTime.parse(tanggal);
+      final date = DateTime.parse(tanggal).toLocal();
       return DateFormat('EEEE, d MMMM yyyy', 'id').format(date);
     } catch (_) {
       return '-';
@@ -31,7 +31,7 @@ class FormatUtils {
   static String formatJam(String? tanggal) {
     if (tanggal == null || tanggal.isEmpty) return '-';
     try {
-      final date = DateTime.parse(tanggal);
+      final date = DateTime.parse(tanggal).toLocal();
       return DateFormat('HH:mm').format(date);
     } catch (_) {
       return '-';
@@ -42,7 +42,7 @@ class FormatUtils {
   static String formatTanggalJam(String? tanggal) {
     if (tanggal == null || tanggal.isEmpty) return '-';
     try {
-      final date = DateTime.parse(tanggal);
+      final date = DateTime.parse(tanggal).toLocal();
       return DateFormat('d MMMM yyyy, HH:mm', 'id').format(date);
     } catch (_) {
       return '-';
@@ -55,7 +55,7 @@ class FormatUtils {
   static String formatWaktuRelatif(String? tanggal) {
     if (tanggal == null || tanggal.isEmpty) return '-';
     try {
-      final date = DateTime.parse(tanggal);
+      final date = DateTime.parse(tanggal).toLocal();
       final now = DateTime.now();
       final diff = now.difference(date);
 
@@ -96,9 +96,10 @@ class FormatUtils {
     return '${nilai.toStringAsFixed(2).replaceAll('.', ',')} SD';
   }
 
-  // ── Usia ──────────────────────────────────────
+  // ── Usia ──────────────────────────────────────────────
 
-  // "2006-05-15" → "3 tahun 2 bulan"
+  // "2006-05-15" → "8 bulan" | "1 tahun 3 bulan" | "2 tahun"
+  // Ambang batas: < 12 bulan → "X bulan", >= 12 bulan → "X tahun Y bulan"
   static String hitungUsia(String? tanggalLahir) {
     if (tanggalLahir == null || tanggalLahir.isEmpty) return '-';
     try {
@@ -108,12 +109,18 @@ class FormatUtils {
       int tahun = now.year - lahir.year;
       int bulan = now.month - lahir.month;
 
+      // Koreksi hari: jika hari ini belum sampai hari lahir di bulan ini
+      if (now.day < lahir.day) {
+        bulan--;
+      }
+
       if (bulan < 0) {
         tahun--;
         bulan += 12;
       }
 
-      if (tahun == 0) return '$bulan bulan';
+      final totalBulan = tahun * 12 + bulan;
+      if (totalBulan < 12) return '$totalBulan bulan';
       if (bulan == 0) return '$tahun tahun';
       return '$tahun tahun $bulan bulan';
     } catch (_) {

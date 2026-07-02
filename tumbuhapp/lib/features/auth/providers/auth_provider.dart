@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/auth_service.dart';
 import '../../../shared/models/user_model.dart';
@@ -58,6 +59,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
     try {
       // Ambil FCM token untuk push notification
       final fcmToken = await FcmService.getToken();
+      debugPrint('════════════════════════════════════════');
+      debugPrint('FCM TOKEN: $fcmToken');
+      debugPrint('════════════════════════════════════════');
 
       final user = await _authService.login(
         email: email,

@@ -172,20 +172,20 @@ const getRiwayatItems = (usiaSaatIni) => {
         return [];
     } else if (usiaSaatIni < 12) {
         return [
-            { jenis: "vitamin_a", nama: "Vitamin A Biru 100.000 IU", dosis: "1 Kapsul Biru", tgl: "2026-02-11", kaderIdx: 0 },
-            { jenis: "pmt", nama: "Biskuit PMT Balita", dosis: "1 Kotak", tgl: "2026-05-11", kaderIdx: 1 },
+            { jenis: "vitamin_a", nama: "Vitamin A Biru 100.000 IU", dosis: "1 Kapsul Biru", tgl: "2026-02-03", kaderIdx: 0 },
+            { jenis: "pmt", nama: "Biskuit PMT Balita", dosis: "1 Kotak", tgl: "2026-05-03", kaderIdx: 1 },
         ];
     } else if (usiaSaatIni < 24) {
         return [
-            { jenis: "vitamin_a", nama: "Vitamin A Merah 200.000 IU", dosis: "1 Kapsul Merah", tgl: "2026-02-11", kaderIdx: 0 },
-            { jenis: "obat_cacing", nama: "Albendazole 400mg", dosis: "1 Tablet", tgl: "2026-03-11", kaderIdx: 1 },
-            { jenis: "pmt", nama: "Biskuit PMT Balita", dosis: "1 Kotak", tgl: "2026-05-11", kaderIdx: 2 },
+            { jenis: "vitamin_a", nama: "Vitamin A Merah 200.000 IU", dosis: "1 Kapsul Merah", tgl: "2026-02-03", kaderIdx: 0 },
+            { jenis: "obat_cacing", nama: "Albendazole 400mg", dosis: "1 Tablet", tgl: "2026-03-03", kaderIdx: 1 },
+            { jenis: "pmt", nama: "Biskuit PMT Balita", dosis: "1 Kotak", tgl: "2026-05-03", kaderIdx: 2 },
         ];
     } else {
         return [
-            { jenis: "vitamin_a", nama: "Vitamin A Merah 200.000 IU", dosis: "1 Kapsul Merah", tgl: "2026-01-11", kaderIdx: 0 },
-            { jenis: "obat_cacing", nama: "Albendazole 400mg", dosis: "1 Tablet", tgl: "2026-03-11", kaderIdx: 1 },
-            { jenis: "pmt", nama: "Biskuit PMT Balita", dosis: "2 Kotak", tgl: "2026-05-11", kaderIdx: 2 },
+            { jenis: "vitamin_a", nama: "Vitamin A Merah 200.000 IU", dosis: "1 Kapsul Merah", tgl: "2026-01-03", kaderIdx: 0 },
+            { jenis: "obat_cacing", nama: "Albendazole 400mg", dosis: "1 Tablet", tgl: "2026-03-03", kaderIdx: 1 },
+            { jenis: "pmt", nama: "Biskuit PMT Balita", dosis: "2 Kotak", tgl: "2026-05-03", kaderIdx: 2 },
         ];
     }
 };
@@ -205,14 +205,14 @@ const INSIGHT = {
 // SEED DATA DEFINITIONS
 // =============================================================================
 
-/** Tanggal pengukuran — 6 bulan ke belakang, interval bulanan */
+/** Tanggal pengukuran — 6 bulan ke belakang, interval bulanan, tepat tanggal 3 */
 const MEASUREMENT_DATES = [
-    "2026-01-11",
-    "2026-02-11",
-    "2026-03-11",
-    "2026-04-11",
-    "2026-05-11",
-    "2026-06-11",
+    "2026-01-03",
+    "2026-02-03",
+    "2026-03-03",
+    "2026-04-03",
+    "2026-05-03",
+    "2026-06-03",
 ];
 
 const KADER_LIST = [
@@ -245,47 +245,46 @@ const OT_LIST = [
  *  - kurang : z-score ~ -1.5 s/d -2.5 (berisiko)
  *  - buruk  : z-score < -2.5 (risiko stunting tinggi)
  *
- * baseWeight / baseHeight = nilai pada pengukuran pertama (2026-01-11)
+ * baseWeight / baseHeight = nilai pada pengukuran pertama (2026-01-03)
  * wInc / hInc = kenaikan per bulan (6 titik total)
  */
 const ANAK_LIST = [
     // ── OT 0: Aminah Kusuma (2 anak) ──────────────────────────────
-    { nama: "Rizki",  gender: "L", tglLahir: "2025-06-11", noKk: "3201011234560001", otIdx: 0, baseWeight: 8.8,  baseHeight: 71.5, wInc: 0.28, hInc: 1.25, scenario: "normal" }, // 7-12 bln
-    { nama: "Rafi",   gender: "L", tglLahir: "2023-10-11", noKk: "3201011234560002", otIdx: 0, baseWeight: 14.2, baseHeight: 93.5, wInc: 0.20, hInc: 0.68, scenario: "normal" }, // 27-32 bln
+    { nama: "Rizki",  gender: "L", tglLahir: "2025-06-17", noKk: "3201011234560001", otIdx: 0, baseWeight: 8.8,  baseHeight: 71.5, wInc: 0.28, hInc: 1.25, scenario: "normal" }, // ~6-11 bln
+    { nama: "Rafi",   gender: "L", tglLahir: "2023-10-15", noKk: "3201011234560002", otIdx: 0, baseWeight: 14.2, baseHeight: 93.5, wInc: 0.20, hInc: 0.68, scenario: "normal" }, // ~26-31 bln
     // ── OT 1: Dewi Susanti (1 anak) ──────────────────────────────
-    { nama: "Nayla",  gender: "P", tglLahir: "2025-10-11", noKk: "3201011234560003", otIdx: 1, baseWeight: 6.6,  baseHeight: 62.5, wInc: 0.40, hInc: 1.90, scenario: "normal" }, // 3-8 bln
+    { nama: "Nayla",  gender: "P", tglLahir: "2025-10-22", noKk: "3201011234560003", otIdx: 1, baseWeight: 6.6,  baseHeight: 62.5, wInc: 0.40, hInc: 1.90, scenario: "normal" }, // ~2-7 bln
     // ── OT 2: Fatimah Rahman (2 anak) ────────────────────────────
-    { nama: "Hasan",  gender: "L", tglLahir: "2024-06-11", noKk: "3201011234560004", otIdx: 2, baseWeight: 8.8,  baseHeight: 80.5, wInc: 0.22, hInc: 0.72, scenario: "kurang" }, // 19-24 bln
-    { nama: "Husein", gender: "L", tglLahir: "2025-12-11", noKk: "3201011234560005", otIdx: 2, baseWeight: 5.2,  baseHeight: 57.5, wInc: 0.72, hInc: 2.70, scenario: "normal" }, // 1-6 bln
+    { nama: "Hasan",  gender: "L", tglLahir: "2024-06-03", noKk: "3201011234560004", otIdx: 2, baseWeight: 8.8,  baseHeight: 80.5, wInc: 0.22, hInc: 0.72, scenario: "kurang" }, // 19-24 bln (tglLahir ≤ tgl ukur agar bracket tepat)
+    { nama: "Husein", gender: "L", tglLahir: "2025-12-03", noKk: "3201011234560005", otIdx: 2, baseWeight: 5.2,  baseHeight: 57.5, wInc: 0.72, hInc: 2.70, scenario: "normal" }, // 1-6 bln (tglLahir ≤ tgl ukur agar bracket tepat)
     // ── OT 3: Siti Rahayu (1 anak) ───────────────────────────────
-    { nama: "Zahra",  gender: "P", tglLahir: "2024-12-11", noKk: "3201011234560006", otIdx: 3, baseWeight: 7.3,  baseHeight: 71.0, wInc: 0.18, hInc: 1.10, scenario: "kurang" }, // 13-18 bln
+    { nama: "Zahra",  gender: "P", tglLahir: "2024-12-08", noKk: "3201011234560006", otIdx: 3, baseWeight: 7.3,  baseHeight: 71.0, wInc: 0.18, hInc: 1.10, scenario: "kurang" }, // ~12-17 bln
     // ── OT 4: Kartini Wulandari (2 anak) ─────────────────────────
-    { nama: "Dani",   gender: "L", tglLahir: "2023-12-11", noKk: "3201011234560007", otIdx: 4, baseWeight: 9.3,  baseHeight: 82.5, wInc: 0.18, hInc: 0.90, scenario: "buruk"  }, // 25-30 bln
-    { nama: "Dina",   gender: "P", tglLahir: "2025-03-11", noKk: "3201011234560008", otIdx: 4, baseWeight: 9.3,  baseHeight: 74.0, wInc: 0.24, hInc: 1.20, scenario: "normal" }, // 10-15 bln
+    { nama: "Dani",   gender: "L", tglLahir: "2023-12-19", noKk: "3201011234560007", otIdx: 4, baseWeight: 9.3,  baseHeight: 82.5, wInc: 0.18, hInc: 0.90, scenario: "buruk"  }, // ~24-29 bln
+    { nama: "Dina",   gender: "P", tglLahir: "2025-03-14", noKk: "3201011234560008", otIdx: 4, baseWeight: 9.3,  baseHeight: 74.0, wInc: 0.24, hInc: 1.20, scenario: "normal" }, // ~9-14 bln
     // ── OT 5: Rahayu Lestari (1 anak) ────────────────────────────
-    { nama: "Bagas",  gender: "L", tglLahir: "2024-10-11", noKk: "3201011234560009", otIdx: 5, baseWeight: 8.5,  baseHeight: 76.0, wInc: 0.19, hInc: 0.82, scenario: "kurang" }, // 15-20 bln
+    { nama: "Bagas",  gender: "L", tglLahir: "2024-10-25", noKk: "3201011234560009", otIdx: 5, baseWeight: 8.5,  baseHeight: 76.0, wInc: 0.19, hInc: 0.82, scenario: "kurang" }, // ~14-19 bln
     // ── OT 6: Wulan Sari (1 anak) ────────────────────────────────
-    { nama: "Putri",  gender: "P", tglLahir: "2025-08-11", noKk: "3201011234560010", otIdx: 6, baseWeight: 7.6,  baseHeight: 66.5, wInc: 0.28, hInc: 1.50, scenario: "normal" }, // 5-10 bln
+    { nama: "Putri",  gender: "P", tglLahir: "2025-08-07", noKk: "3201011234560010", otIdx: 6, baseWeight: 7.6,  baseHeight: 66.5, wInc: 0.28, hInc: 1.50, scenario: "normal" }, // ~4-9 bln
     // ── OT 7: Lestari Handayani (2 anak) ─────────────────────────
-    { nama: "Adi",    gender: "L", tglLahir: "2023-06-11", noKk: "3201011234560011", otIdx: 7, baseWeight: 10.0, baseHeight: 84.5, wInc: 0.15, hInc: 0.80, scenario: "buruk"  }, // 31-36 bln
-    { nama: "Ayu",    gender: "P", tglLahir: "2024-08-11", noKk: "3201011234560012", otIdx: 7, baseWeight: 8.4,  baseHeight: 77.0, wInc: 0.19, hInc: 1.00, scenario: "kurang" }, // 17-22 bln
+    { nama: "Adi",    gender: "L", tglLahir: "2023-06-20", noKk: "3201011234560011", otIdx: 7, baseWeight: 10.0, baseHeight: 84.5, wInc: 0.15, hInc: 0.80, scenario: "buruk"  }, // ~30-35 bln
+    { nama: "Ayu",    gender: "P", tglLahir: "2024-08-16", noKk: "3201011234560012", otIdx: 7, baseWeight: 8.4,  baseHeight: 77.0, wInc: 0.19, hInc: 1.00, scenario: "kurang" }, // ~16-21 bln
     // ── OT 8: Nuraini Putri (1 anak) ─────────────────────────────
-    { nama: "Fauzi",  gender: "L", tglLahir: "2025-04-11", noKk: "3201011234560013", otIdx: 8, baseWeight: 9.8,  baseHeight: 75.0, wInc: 0.22, hInc: 1.35, scenario: "normal" }, // 9-14 bln
+    { nama: "Fauzi",  gender: "L", tglLahir: "2025-04-09", noKk: "3201011234560013", otIdx: 8, baseWeight: 9.8,  baseHeight: 75.0, wInc: 0.22, hInc: 1.35, scenario: "normal" }, // ~8-13 bln
     // ── OT 9: Sumiati Wahyu (2 anak) ─────────────────────────────
-    { nama: "Bella",  gender: "P", tglLahir: "2024-02-11", noKk: "3201011234560014", otIdx: 9, baseWeight: 9.5,  baseHeight: 83.0, wInc: 0.19, hInc: 0.60, scenario: "kurang" }, // 23-28 bln
-    { nama: "Bimo",   gender: "L", tglLahir: "2025-09-11", noKk: "3201011234560015", otIdx: 9, baseWeight: 5.5,  baseHeight: 60.5, wInc: 0.22, hInc: 1.30, scenario: "buruk"  }, // 4-9 bln
+    { nama: "Bella",  gender: "P", tglLahir: "2024-02-13", noKk: "3201011234560014", otIdx: 9, baseWeight: 9.5,  baseHeight: 83.0, wInc: 0.19, hInc: 0.60, scenario: "kurang" }, // ~22-27 bln
+    { nama: "Bimo",   gender: "L", tglLahir: "2025-09-21", noKk: "3201011234560015", otIdx: 9, baseWeight: 5.5,  baseHeight: 60.5, wInc: 0.22, hInc: 1.30, scenario: "buruk"  }, // ~3-8 bln
 ];
 
-/** 8 jadwal posyandu: 5 lampau/current + 3 mendatang */
+/** 7 jadwal posyandu: 6 lampau + 1 mendatang (hari demo) */
 const JADWAL_LIST = [
-    { tanggal: "2026-01-19", mulai: "08:00", selesai: "11:00", lokasi: "Balai RW 05 Kelurahan Cempaka", ket: "Posyandu Rutin Januari 2026", kaderIdx: 0 },
-    { tanggal: "2026-02-16", mulai: "08:00", selesai: "11:00", lokasi: "Balai RW 05 Kelurahan Cempaka", ket: "Posyandu Rutin Februari 2026", kaderIdx: 0 },
-    { tanggal: "2026-03-15", mulai: "08:30", selesai: "11:30", lokasi: "Balai RW 05 Kelurahan Cempaka", ket: "Posyandu Rutin Maret 2026", kaderIdx: 1 },
-    { tanggal: "2026-04-20", mulai: "08:00", selesai: "12:00", lokasi: "Puskesmas Pembantu Cempaka", ket: "Posyandu + Pemberian Vitamin A Massal", kaderIdx: 1 },
-    { tanggal: "2026-05-18", mulai: "08:00", selesai: "11:00", lokasi: "Balai RW 05 Kelurahan Cempaka", ket: "Posyandu Rutin Mei 2026", kaderIdx: 2 },
-    { tanggal: "2026-06-15", mulai: "08:30", selesai: "12:00", lokasi: "Balai RW 05 Kelurahan Cempaka", ket: "Posyandu Rutin Juni 2026 - Pembagian PMT", kaderIdx: 0 },
-    { tanggal: "2026-07-20", mulai: "08:00", selesai: "11:00", lokasi: "Balai RW 05 Kelurahan Cempaka", ket: "Posyandu Rutin Juli 2026", kaderIdx: 1 },
-    { tanggal: "2026-08-17", mulai: "08:30", selesai: "11:30", lokasi: "Puskesmas Pembantu Cempaka", ket: "Posyandu + Bulan Imunisasi Nasional 2026", kaderIdx: 2 },
+    { tanggal: "2026-01-03", mulai: "08:00", selesai: "11:00", lokasi: "Balai RW 05 Kelurahan Cempaka", ket: "Posyandu Rutin Januari 2026", kaderIdx: 0 },
+    { tanggal: "2026-02-03", mulai: "08:00", selesai: "11:00", lokasi: "Balai RW 05 Kelurahan Cempaka", ket: "Posyandu Rutin Februari 2026", kaderIdx: 0 },
+    { tanggal: "2026-03-03", mulai: "08:30", selesai: "11:30", lokasi: "Balai RW 05 Kelurahan Cempaka", ket: "Posyandu Rutin Maret 2026", kaderIdx: 1 },
+    { tanggal: "2026-04-03", mulai: "08:00", selesai: "12:00", lokasi: "Puskesmas Pembantu Cempaka", ket: "Posyandu + Pemberian Vitamin A Massal", kaderIdx: 1 },
+    { tanggal: "2026-05-03", mulai: "08:00", selesai: "11:00", lokasi: "Balai RW 05 Kelurahan Cempaka", ket: "Posyandu Rutin Mei 2026", kaderIdx: 2 },
+    { tanggal: "2026-06-03", mulai: "08:30", selesai: "12:00", lokasi: "Balai RW 05 Kelurahan Cempaka", ket: "Posyandu Rutin Juni 2026 - Pembagian PMT", kaderIdx: 0 },
+    { tanggal: "2026-07-03", mulai: "08:00", selesai: "11:00", lokasi: "Balai RW 05 Kelurahan Cempaka", ket: "Posyandu Rutin Juli 2026", kaderIdx: 1 },
 ];
 
 // =============================================================================
@@ -484,7 +483,7 @@ async function generateSeeder() {
     for (let aIdx = 0; aIdx < ANAK_LIST.length; aIdx++) {
         const a = ANAK_LIST[aIdx];
         const anakId = anakIds[aIdx];
-        const usiaSaatIni = hitungUsiaBulan(a.tglLahir, "2026-06-11");
+        const usiaSaatIni = hitungUsiaBulan(a.tglLahir, "2026-06-03");
         const items = getRiwayatItems(usiaSaatIni);
 
         lines.push(`-- ${a.nama} (usia: ${usiaSaatIni} bulan)`);
@@ -605,16 +604,16 @@ async function generateSeeder() {
     // ══════════════════════════════════════════════════════════════════════════════
     lines.push("-- ==========================================================");
     lines.push("-- TIER 7: Notifikasi");
-    lines.push("-- Jadwal ID 6 = Posyandu Juni 2026 (jadwal mendatang pertama)");
+    lines.push("-- Jadwal ID 7 = Posyandu Juli 2026 (jadwal mendatang = hari demo)");
     lines.push("-- ==========================================================");
     lines.push("");
 
     // Notifikasi jadwal posyandu untuk semua orang tua
-    lines.push("-- Notifikasi jadwal posyandu Juni 2026");
+    lines.push("-- Notifikasi jadwal posyandu Juli 2026");
     for (let oi = 0; oi < OT_LIST.length; oi++) {
         const oId = otIds[oi].oId;
         lines.push(`INSERT INTO notifikasi (orang_tua_id, judul, pesan, tipe, sudah_dibaca, sent_at, jadwal_id, rujukan_id) VALUES`);
-        lines.push(`    (${sq(oId)}, 'Jadwal Posyandu Juni 2026', 'Posyandu rutin Juni 2026 akan dilaksanakan pada 15 Juni 2026 pukul 08.30 di Balai RW 05 Kelurahan Cempaka. Harap hadir tepat waktu dan membawa buku KMS.', 'jadwal', FALSE, '2026-06-08 08:00:00', 6, NULL);`);
+        lines.push(`    (${sq(oId)}, 'Jadwal Posyandu Juli 2026', 'Posyandu rutin Juli 2026 akan dilaksanakan pada 3 Juli 2026 pukul 08.00 di Balai RW 05 Kelurahan Cempaka. Harap hadir tepat waktu dan membawa buku KMS.', 'jadwal', FALSE, '2026-06-29 08:00:00', 7, NULL);`);
     }
     lines.push("");
 
@@ -660,7 +659,7 @@ async function generateSeeder() {
     console.log(`   Puskesmas User    : ${PUSKE_LIST.length}`);
     console.log(`   Orang Tua         : ${OT_LIST.length}`);
     console.log(`   Anak              : ${ANAK_LIST.length}`);
-    console.log(`   Jadwal Posyandu   : ${JADWAL_LIST.length} (5 lampau, 3 mendatang)`);
+    console.log(`   Jadwal Posyandu   : ${JADWAL_LIST.length} (6 lampau, 1 mendatang = hari demo)`);    
     console.log(`   Pengukuran        : ${pengCount} (6 titik/anak × ${ANAK_LIST.length} anak)`);
     console.log(`   Riwayat Pemberian : ${pemberianCount}`);
     console.log(`   SAW Result        : ${sawCount}`);

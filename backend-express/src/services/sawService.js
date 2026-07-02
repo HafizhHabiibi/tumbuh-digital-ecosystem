@@ -107,9 +107,10 @@ export const getRankingSAW = async () => {
         FROM anak a
         JOIN orang_tua ot ON ot.id = a.orang_tua_id
         JOIN saw_result sr ON sr.id = (
-            SELECT id FROM saw_result
-            WHERE anak_id = a.id
-            ORDER BY calculated_at DESC
+            SELECT sr2.id FROM saw_result sr2
+            JOIN pengukuran p2 ON p2.id = sr2.pengukuran_id
+            WHERE sr2.anak_id = a.id
+            ORDER BY p2.tanggal_ukur DESC
             LIMIT 1
         )
         JOIN pengukuran p ON p.id = sr.pengukuran_id

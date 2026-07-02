@@ -302,6 +302,7 @@ import { DatePicker } from "primevue";
 import { usePengukuranStore } from "@/stores/pengukuranStore";
 import { useKaderStore } from "@/stores/kaderStore";
 import PengukuranResultCard from "@/components/cards/PengukuranResultCard.vue";
+import { hitungUsia, toLocalDateStr } from "@/utils/format.js";
 
 const pengukuranStore = usePengukuranStore();
 const kaderStore = useKaderStore();
@@ -322,14 +323,6 @@ const anakTerpilih = computed(
     () => kaderStore.anakList.find((a) => a.id === form.anak_id) || null,
 );
 
-/* ── Hitung usia ─────────────────────────────────────────────────── */
-const hitungUsia = (tgl) => {
-    const bulan = Math.floor(
-        (new Date() - new Date(tgl)) / (1000 * 60 * 60 * 24 * 30.44),
-    );
-    if (bulan < 24) return `${bulan} bulan`;
-    return `${Math.floor(bulan / 12)} thn ${bulan % 12} bln`;
-};
 
 /* ── Validasi ────────────────────────────────────────────────────── */
 const fieldError = computed(() => {
@@ -363,9 +356,7 @@ const handleSubmit = async () => {
 
     const payload = {
         anak_id: form.anak_id,
-        tanggal_ukur: form.tanggal_ukur
-            ? form.tanggal_ukur.toISOString().split("T")[0]
-            : todayDate.toISOString().split("T")[0],
+        tanggal_ukur: toLocalDateStr(form.tanggal_ukur || todayDate),
         berat_badan: form.berat_badan,
         tinggi_badan: form.tinggi_badan,
     };

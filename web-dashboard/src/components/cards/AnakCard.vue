@@ -76,6 +76,7 @@
 
 <script setup>
 import StatusBadge from "@/components/ui/StatusBadge.vue";
+import { hitungUsia, formatTanggal as fmtTgl } from "@/utils/format.js";
 
 const props = defineProps({
     anak: { type: Object, required: true },
@@ -83,20 +84,7 @@ const props = defineProps({
     statusGiziTerakhir: { type: String, default: null },
 });
 
-const formatTanggal = (tgl) =>
-    new Date(tgl).toLocaleDateString("id-ID", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-    });
-
-const hitungUsia = (tgl) => {
-    const bulan = Math.floor(
-        (new Date() - new Date(tgl)) / (1000 * 60 * 60 * 24 * 30.44),
-    );
-    if (bulan < 24) return `${bulan} bulan`;
-    return `${Math.floor(bulan / 12)} thn ${bulan % 12} bln`;
-};
+const formatTanggal = (tgl) => fmtTgl(tgl);
 </script>
 
 <style scoped>

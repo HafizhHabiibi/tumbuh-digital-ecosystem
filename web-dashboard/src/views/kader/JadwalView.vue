@@ -359,16 +359,18 @@ const jadwalTampil = computed(() =>
         : jadwalStore.jadwalLewat,
 );
 
-/* ── Cek apakah tanggal sudah lewat ─────────────────────────────── */
-const today = new Date().toISOString().split("T")[0];
+/* ── Cek apakah tanggal sudah lewat ────────────────────────────── */
+const _now = new Date();
+const today = `${_now.getFullYear()}-${String(_now.getMonth() + 1).padStart(2, '0')}-${String(_now.getDate()).padStart(2, '0')}`;
 const isLewat = (tgl) => tgl < today;
 
-/* ── Sisa hari ───────────────────────────────────────────────────── */
+/* ── Sisa hari (perbandingan string tanggal, aman lintas timezone) ── */
 const sisaHari = (tgl) => {
-    const diff = Math.ceil(
-        (new Date(tgl) - new Date()) / (1000 * 60 * 60 * 24),
-    );
-    if (diff === 0) return "Hari ini!";
+    if (tgl === today) return "Hari ini!";
+    // Hitung selisih hari dengan membandingkan date-only string
+    const tglDate = new Date(tgl + "T00:00:00");
+    const todayDate = new Date(today + "T00:00:00");
+    const diff = Math.round((tglDate - todayDate) / (1000 * 60 * 60 * 24));
     if (diff === 1) return "Besok";
     return `${diff} hari lagi`;
 };

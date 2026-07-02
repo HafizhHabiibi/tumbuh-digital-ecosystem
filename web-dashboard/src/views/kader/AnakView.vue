@@ -326,6 +326,7 @@ import { useRouter } from "vue-router";
 import { useKaderStore } from "@/stores/kaderStore";
 import { Dialog } from "primevue";
 import FormAnak from "@/components/forms/FormAnak.vue";
+import { hitungUsia } from "@/utils/format.js";
 
 const router = useRouter();
 const kaderStore = useKaderStore();
@@ -363,16 +364,6 @@ const formatTanggal = (tgl) =>
         year: "numeric",
     });
 
-/* ── Hitung usia dalam bulan / tahun ────────────────────────────── */
-const hitungUsia = (tgl) => {
-    const lahir = new Date(tgl);
-    const now = new Date();
-    const bulan =
-        (now.getFullYear() - lahir.getFullYear()) * 12 +
-        (now.getMonth() - lahir.getMonth());
-    if (bulan < 24) return `${bulan} bln`;
-    return `${Math.floor(bulan / 12)} thn ${bulan % 12} bln`;
-};
 
 /* ── Dialog ──────────────────────────────────────────────────────── */
 const openForm = () => {

@@ -29,6 +29,7 @@ class ApiConstants {
   static const String notifikasiBelumDibaca = '/notifikasi/belum-dibaca';
   static String bacaNotifikasi(int id) => '/notifikasi/$id/baca';
   static const String bacaSemuaNotifikasi = '/notifikasi/baca-semua';
+  static const String updateFcmToken = '/notifikasi/update-token';
 
   // Jadwal
   static const String jadwal = '/jadwal';

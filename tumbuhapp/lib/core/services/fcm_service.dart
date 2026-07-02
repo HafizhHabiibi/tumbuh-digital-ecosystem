@@ -24,6 +24,10 @@ class FcmService {
   static final GlobalKey<NavigatorState> navigatorKey =
       GlobalKey<NavigatorState>();
 
+  /// Callback dipanggil setiap kali notifikasi FCM baru masuk (foreground).
+  /// Assign dari dashboard untuk refresh badge count.
+  static VoidCallback? onNewMessage;
+
   // Android notification channel
   static const AndroidNotificationChannel _channel = AndroidNotificationChannel(
     'tumbuh_notifikasi', // id
@@ -152,6 +156,9 @@ class FcmService {
       ),
       payload: payload,
     );
+
+    // Refresh badge count di dashboard
+    onNewMessage?.call();
   }
 
   // ── Handle Notification Tap ───────────────────

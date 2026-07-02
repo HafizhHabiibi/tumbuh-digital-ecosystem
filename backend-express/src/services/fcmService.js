@@ -1,6 +1,10 @@
 import admin from "firebase-admin";
 import { readFileSync } from "fs";
+import { resolve } from "path";
+import { fileURLToPath } from "url";
 import db from "../database/connection.js";
+
+const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
 let initialized = false;
 
@@ -9,7 +13,7 @@ const initFirebase = () => {
 
     try {
         const serviceAccount = JSON.parse(
-            readFileSync("./firebase-service-account.json", "utf-8"),
+            readFileSync(resolve(__dirname, "../../firebase-service-account.json"), "utf-8"),
         );
         admin.initializeApp({
             credential: admin.credential.cert(serviceAccount),

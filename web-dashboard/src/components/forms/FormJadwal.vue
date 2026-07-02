@@ -166,6 +166,7 @@
 <script setup>
 import { reactive, computed } from "vue";
 import { DatePicker } from "primevue";
+import { toLocalDateStr } from "@/utils/format.js";
 
 const props = defineProps({
     loading: { type: Boolean, default: false },
@@ -174,7 +175,7 @@ const props = defineProps({
 const emit = defineEmits(["submit", "cancel"]);
 
 const todayDate = new Date();
-const todayStr = todayDate.toISOString().split("T")[0];
+const todayStr = toLocalDateStr(todayDate);
 
 const form = reactive({
     tanggal: "",
@@ -187,9 +188,7 @@ const form = reactive({
 /* ── Validasi ────────────────────────────────────────────────────── */
 const fieldError = computed(() => {
     const e = {};
-    const tanggalStr = form.tanggal
-        ? form.tanggal.toISOString().split("T")[0]
-        : "";
+    const tanggalStr = toLocalDateStr(form.tanggal);
     if (tanggalStr && tanggalStr < todayStr)
         e.tanggal = "Tanggal tidak boleh di masa lalu";
     if (
@@ -216,9 +215,7 @@ const isValid = computed(
 const handleSubmit = () => {
     if (!isValid.value || props.loading) return;
     const payload = {
-        tanggal: form.tanggal
-            ? form.tanggal.toISOString().split("T")[0]
-            : "",
+        tanggal: toLocalDateStr(form.tanggal) || "",
         waktu_mulai: form.waktu_mulai,
         waktu_selesai: form.waktu_selesai,
         lokasi: form.lokasi.trim(),

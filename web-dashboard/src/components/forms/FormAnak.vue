@@ -203,6 +203,7 @@
 <script setup>
 import { ref, computed, reactive } from "vue";
 import { DatePicker } from "primevue";
+import { hitungUsia, toLocalDateStr } from "@/utils/format.js";
 
 const props = defineProps({
     loading: { type: Boolean, default: false },
@@ -241,17 +242,11 @@ const jkOptions = [
 /* ── Hari ini sebagai max date ───────────────────────────────────── */
 const todayDate = new Date();
 
-/* ── Preview usia ────────────────────────────────────────────────── */
+/* ── Preview usia ────────────────────────────────────────────────────── */
 const previewUsia = computed(() => {
     if (!form.tanggal_lahir) return "";
-    const lahir = new Date(form.tanggal_lahir);
-    const now = new Date();
-    const bulan =
-        (now.getFullYear() - lahir.getFullYear()) * 12 +
-        (now.getMonth() - lahir.getMonth());
-    if (bulan < 0) return "";
-    if (bulan < 24) return `${bulan} bulan`;
-    return `${Math.floor(bulan / 12)} tahun ${bulan % 12} bulan`;
+    const hasil = hitungUsia(form.tanggal_lahir);
+    return hasil === "-" ? "" : hasil;
 });
 
 /* ── Validasi per field ──────────────────────────────────────────── */
@@ -289,9 +284,7 @@ const handleSubmit = () => {
         orang_tua_id: form.orang_tua_id,
         nama: form.nama.trim(),
         jenis_kelamin: form.jenis_kelamin,
-        tanggal_lahir: form.tanggal_lahir
-            ? form.tanggal_lahir.toISOString().split("T")[0]
-            : "",
+        tanggal_lahir: toLocalDateStr(form.tanggal_lahir) || "",
         no_kk: form.no_kk,
     });
 };

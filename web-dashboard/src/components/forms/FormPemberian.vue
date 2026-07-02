@@ -237,6 +237,7 @@
 import { reactive, computed, watch } from "vue";
 import { DatePicker } from "primevue";
 import { JENIS_VALID, LABEL_JENIS, PILIHAN } from "@/stores/pemberianStore";
+import { toLocalDateStr } from "@/utils/format.js";
 
 const props = defineProps({
     loading: { type: Boolean, default: false },
@@ -248,7 +249,7 @@ const props = defineProps({
 const emit = defineEmits(["submit", "cancel"]);
 
 const todayDate = new Date();
-const todayStr = todayDate.toISOString().split("T")[0];
+const todayStr = toLocalDateStr(todayDate);
 
 const form = reactive({
     anak_id: props.anakId || "",
@@ -316,9 +317,7 @@ const handleSubmit = () => {
         anak_id: props.anakId || form.anak_id,
         jenis: form.jenis,
         nama_item: form.nama_item,
-        tanggal_pemberian: form.tanggal_pemberian
-            ? form.tanggal_pemberian.toISOString().split("T")[0]
-            : todayStr,
+        tanggal_pemberian: toLocalDateStr(form.tanggal_pemberian) || todayStr,
     };
     if (form.dosis.trim()) payload.dosis = form.dosis.trim();
     if (form.keterangan.trim()) payload.keterangan = form.keterangan.trim();

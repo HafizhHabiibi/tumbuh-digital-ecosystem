@@ -130,9 +130,10 @@ export const getDistribusiRisiko = async (req, res) => {
                 COUNT(*) AS jumlah
             FROM saw_result sr
             WHERE sr.id = (
-                SELECT id FROM saw_result
-                WHERE anak_id = sr.anak_id
-                ORDER BY calculated_at DESC
+                SELECT sr2.id FROM saw_result sr2
+                JOIN pengukuran p2 ON p2.id = sr2.pengukuran_id
+                WHERE sr2.anak_id = sr.anak_id
+                ORDER BY p2.tanggal_ukur DESC
                 LIMIT 1
             )
             GROUP BY sr.kategori_risiko`,

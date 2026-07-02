@@ -58,14 +58,14 @@ export const createJadwal = async (req, res) => {
 
         const pesanNotifikasi =
             `Posyandu akan dilaksanakan pada ${tanggal} ` +
-            `puku ${waktu_mulai} - ${waktu_selesai} ` +
+            `pukul ${waktu_mulai} - ${waktu_selesai} ` +
             `di ${lokasi}. Harap hadir tepat waktu.`;
 
         Promise.all(
             semuaOrangTua.map((ot) =>
                 fcmService.sendNotification(
                     ot.id,
-                    "jadwal Posyandu Baru",
+                    "Jadwal Posyandu Baru",
                     pesanNotifikasi,
                     "jadwal",
                     id,

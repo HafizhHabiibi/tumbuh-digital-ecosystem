@@ -295,9 +295,12 @@ class _RiwayatPemberianScreenState
                         color: AppColors.textSecondary,
                       ),
                       const SizedBox(width: 4),
-                      Text(
-                        item.dosis!,
-                        style: AppTextStyles.caption,
+                      Flexible(
+                        child: Text(
+                          item.dosis!,
+                          style: AppTextStyles.caption,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                       const SizedBox(width: 12),
                     ],
@@ -307,9 +310,12 @@ class _RiwayatPemberianScreenState
                       color: AppColors.textSecondary,
                     ),
                     const SizedBox(width: 4),
-                    Text(
-                      FormatUtils.formatTanggal(item.tanggalPemberian),
-                      style: AppTextStyles.caption,
+                    Flexible(
+                      child: Text(
+                        FormatUtils.formatTanggal(item.tanggalPemberian),
+                        style: AppTextStyles.caption,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ],
                 ),
@@ -324,9 +330,12 @@ class _RiwayatPemberianScreenState
                       color: AppColors.textSecondary,
                     ),
                     const SizedBox(width: 4),
-                    Text(
-                      'Dicatat oleh ${item.dicatatOleh}',
-                      style: AppTextStyles.caption,
+                    Flexible(
+                      child: Text(
+                        'Dicatat oleh ${item.dicatatOleh}',
+                        style: AppTextStyles.caption,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ],
                 ),

@@ -13,6 +13,7 @@ import '../../../shared/widgets/status_badge_widget.dart';
 import '../../../shared/widgets/insight_card_widget.dart';
 import '../../../core/constant/app_constants.dart';
 import '../../../core/utils/format_utils.dart';
+import '../../../core/services/fcm_service.dart';
 import '../../../router/app_router.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -64,6 +65,9 @@ class DashboardScreen extends ConsumerWidget {
       orElse: () => 0,
     );
 
+    // Assign callback FCM agar badge naik otomatis saat notif foreground masuk
+    FcmService.onNewMessage = () => ref.invalidate(belumDibacaProvider);
+
     return AppBar(
       backgroundColor: AppColors.surface,
       elevation: 0,
@@ -98,7 +102,11 @@ class DashboardScreen extends ConsumerWidget {
                 Icons.notifications_outlined,
                 color: AppColors.textPrimary,
               ),
-              onPressed: () => context.push(AppRoutes.notifikasi),
+              onPressed: () async {
+                await context.push(AppRoutes.notifikasi);
+                // Refresh badge setelah kembali dari halaman notifikasi
+                ref.invalidate(belumDibacaProvider);
+              },
             ),
             if (badgeCount > 0)
               Positioned(

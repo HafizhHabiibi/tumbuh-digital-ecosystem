@@ -168,37 +168,20 @@ class _JadwalScreenState extends ConsumerState<JadwalScreen> {
               children: [
                 Row(
                   children: [
-                    Text(
-                      tanggal != null
-                          ? FormatUtils.formatTanggalLengkap(jadwal.tanggal)
-                          : '-',
-                      style: AppTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: isBulanIni
-                            ? AppColors.primary
-                            : AppColors.textPrimary,
+                    Flexible(
+                      child: Text(
+                        tanggal != null
+                            ? FormatUtils.formatTanggalLengkap(jadwal.tanggal)
+                            : '-',
+                        style: AppTextStyles.body.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: isBulanIni
+                              ? AppColors.primary
+                              : AppColors.textPrimary,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    if (isHariIni) ...[
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          'Hari Ini',
-                          style: AppTextStyles.caption.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
                   ],
                 ),
                 const SizedBox(height: 4),
@@ -220,25 +203,51 @@ class _JadwalScreenState extends ConsumerState<JadwalScreen> {
             ),
           ),
 
-          // Badge bulan ini
-          if (isBulanIni)
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 8,
-                vertical: 4,
-              ),
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                'Bulan Ini',
-                style: AppTextStyles.caption.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
+          // Badges kanan (Hari Ini & Bulan Ini)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (isHariIni)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    'Hari Ini',
+                    style: AppTextStyles.caption.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
-              ),
-            ),
+              if (isHariIni && isBulanIni) const SizedBox(height: 4),
+              if (isBulanIni)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.primarySurface,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: AppColors.primary, width: 1),
+                  ),
+                  child: Text(
+                    'Bulan Ini',
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ],
       ),
     );

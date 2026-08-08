@@ -28,3 +28,12 @@ export const updatePassword = async (id, password_hash) => {
         [password_hash, id],
     );
 };
+
+export const findByIdWithResetCheck = async (id) => {
+    const [rows] = await db.query(
+        `SELECT id, email, role, reset_password_at FROM users WHERE id = ? AND is_active = TRUE`,
+        [id],
+    );
+    return rows[0] || null;
+};
+

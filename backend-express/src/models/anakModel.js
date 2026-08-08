@@ -8,7 +8,7 @@ export const findAll = async () => {
             a.nama,
             a.jenis_kelamin,
             a.tanggal_lahir,
-            a.no_kk,
+            a.nik,
             a.created_at,
             ot.nama_lengkap AS nama_orang_tua,
             ot.no_hp AS no_hp_orang_tua
@@ -26,7 +26,7 @@ export const findById = async (id) => {
             a.nama,
             a.jenis_kelamin,
             a.tanggal_lahir,
-            a.no_kk,
+            a.nik,
             a.created_at,
             a.orang_tua_id,
             ot.nama_lengkap AS nama_orang_tua,
@@ -47,8 +47,8 @@ export const findByOrangTua = async (orang_tua_id) => {
             a.nama,
             a.jenis_kelamin,
             a.tanggal_lahir,
-            a.no_kk,
-            a.created_at\
+            a.nik,
+            a.created_at
             FROM anak a
             WHERE a.orang_tua_id = ?
             ORDER BY a.created_at DESC`,
@@ -72,7 +72,7 @@ export const create = async (data) => {
     const id = uuidv7();
     await db.query(
         `INSERT INTO anak
-        (id, orang_tua_id, nama, jenis_kelamin, tanggal_lahir, no_kk)
+        (id, orang_tua_id, nama, jenis_kelamin, tanggal_lahir, nik)
         VALUES (?, ?, ?, ?, ?, ?)`,
         [
             id,
@@ -80,7 +80,7 @@ export const create = async (data) => {
             data.nama,
             data.jenis_kelamin,
             data.tanggal_lahir,
-            data.no_kk,
+            data.nik,
         ],
     );
     return { id, ...data };

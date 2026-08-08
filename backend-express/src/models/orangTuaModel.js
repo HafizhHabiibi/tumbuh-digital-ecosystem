@@ -14,7 +14,7 @@ export const findAll = async () => {
             k.nama_lengkap AS dibuat_oleh
         FROM orang_tua ot
         JOIN users u ON u.id = ot.user_id
-        JOIN kader k ON k.id = ot.dibuat_oleh_kader_id
+        LEFT JOIN kader k ON k.id = ot.dibuat_oleh_kader_id
         ORDER BY ot.created_at DESC`,
     );
     return rows;
@@ -33,7 +33,7 @@ export const findById = async (id) => {
             k.nama_lengkap AS dibuat_oleh
         FROM orang_tua ot
         JOIN users u ON u.id = ot.user_id
-        JOIN kader k ON k.id = ot.dibuat_oleh_kader_id
+        LEFT JOIN kader k ON k.id = ot.dibuat_oleh_kader_id
         WHERE ot.id = ?`,
         [id],
     );
@@ -70,24 +70,43 @@ export const create = async (data, kader_id) => {
     const userId = uuidv7();
     const orangTuaId = uuidv7();
 
-    await db.query(
-        `INSERT INTO users (id, email, password_hash, role, is_active)
-        VALUES (?, ?, ?, 'orang_tua', TRUE)`,
-        [userId, data.email, data.password_hash],
-    );
+    const conn = await db.getConnection();
+    try {
+        await conn.beginTransaction();
 
+        await conn.query(
+            `INSERT INTO users (id, email, password_hash, role, is_active)
+            VALUES (?, ?, ?, 'orang_tua', TRUE)`,
+            [userId, data.email, data.password_hash],
+        );
+
+        await conn.query(
+            `INSERT INTO orang_tua (id, user_id, dibuat_oleh_kader_id, nama_lengkap, no_hp, alamat, nik)
+            VALUES (?,?,?,?,?,?,?)`,
+            [
+                orangTuaId,
+                userId,
+                kader_id,
+                data.nama_lengkap,
+                data.no_hp,
+                data.alamat,
+                data.nik,
+            ],
+        );
+
+        await conn.commit();
+        return { id: orangTuaId, userId: userId };
+    } catch (err) {
+        await conn.rollback();
+        throw err;
+    } finally {
+        conn.release();
+    }
+};
+
+export const updateFcmToken = async (user_id, fcm_token) => {
     await db.query(
-        `INSERT INTO orang_tua (id, user_id, dibuat_oleh_kader_id, nama_lengkap, no_hp, alamat, nik)
-        VALUES (?,?,?,?,?,?,?)`,
-        [
-            orangTuaId,
-            userId,
-            kader_id,
-            data.nama_lengkap,
-            data.no_hp,
-            data.alamat,
-            data.nik,
-        ],
+        `UPDATE orang_tua SET fcm_token = ? WHERE user_id = ?`,
+        [fcm_token, user_id],
     );
-    return { id: orangTuaId, userId: userId };
 };

@@ -47,10 +47,10 @@ export const findByAnak = async (anak_id) => {
             p.zscore_bbtb,
             p.status_gizi,
             p.created_at,
-            sr.skor_akhir,
-            sr.kategori_risiko
+            p.tren_bb,
+            p.skor_saw,
+            p.kategori_risiko
         FROM pengukuran p
-        LEFT JOIN saw_result sr ON sr.pengukuran_id = p.id
         WHERE p.anak_id = ?
         ORDER BY p.tanggal_ukur DESC`,
         [anak_id],
@@ -61,23 +61,38 @@ export const findByAnak = async (anak_id) => {
 export const findById = async (id) => {
     const [rows] = await db.query(
         `SELECT
-            p.*,
+            p.id,
+            p.anak_id,
+            p.kader_id,
+            p.tanggal_ukur,
+            p.berat_badan,
+            p.tinggi_badan,
+            p.lingkar_kepala,
+            p.lingkar_lengan,
+            p.zscore_bbu,
+            p.zscore_tbu,
+            p.zscore_bbtb,
+            p.status_gizi,
+            p.tren_bb,
+            p.skor_saw,
+            p.kategori_risiko,
+            p.created_at,
             a.nama AS nama_anak,
             a.jenis_kelamin,
             a.tanggal_lahir,
-            ot.nama_lengkap AS nama_orang_tua,
-            sr.id AS saw_result_id,
-            sr.skor_akhir,
-            sr.kategori_risiko,
-            ai.insight_teks,
-            ai.created_at AS insight_dibuat_pada
+            ot.nama_lengkap AS nama_orang_tua
         FROM pengukuran p
         JOIN anak a ON a.id = p.anak_id
         JOIN orang_tua ot ON ot.id = a.orang_tua_id
-        LEFT JOIN saw_result sr ON sr.pengukuran_id = p.id
-        LEFT JOIN ai_insight ai ON ai.pengukuran_id = p.id
         WHERE p.id = ?`,
         [id],
     );
     return rows[0] || null;
+};
+
+export const updateInsight = async (pengukuran_id, insight_teks) => {
+    await db.query(
+        `UPDATE pengukuran SET insight_teks = ? WHERE id = ?`,
+        [insight_teks, pengukuran_id],
+    );
 };

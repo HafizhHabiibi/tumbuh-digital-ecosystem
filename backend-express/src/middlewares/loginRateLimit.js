@@ -1,4 +1,4 @@
-import rateLimit, { ipKeyGenerator } from "express-rate-limit";
+import rateLimit from "express-rate-limit";
 import { error } from "../utils/response.js";
 
 export const ipRateLimit = rateLimit({
@@ -7,11 +7,8 @@ export const ipRateLimit = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
     skipSuccessfulRequests: true,
-
-    keyGenerator: (req) => {
-        const forwarded = req.headers["x-forwarded-for"]?.split(",")[0]?.trim();
-        return forwarded ? ipKeyGenerator(forwarded) : ipKeyGenerator(req.ip);
-    },
+    // req.ip sudah terpercaya karena trust proxy dikonfigurasi di app.js
+    keyGenerator: (req) => req.ip,
 
     handler: (req, res) => {
         const retryAfter = Math.ceil(
@@ -31,10 +28,10 @@ export const emailRateLimit = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
     skipSuccessfulRequests: true,
-
+    // Key berdasarkan email — fallback ke IP jika email tidak ada di body
     keyGenerator: (req) => {
         const email = req.body?.email?.toLowerCase()?.trim();
-        return email ? `email:${email}` : ipKeyGenerator(req.ip);
+        return email ? `email:${email}` : req.ip;
     },
 
     handler: (req, res) => {

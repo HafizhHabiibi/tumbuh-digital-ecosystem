@@ -1,7 +1,8 @@
 import * as AnakModel from "../models/anakModel.js";
 import * as PengukuranModel from "../models/pengukuranModel.js";
-import * as RiwayatModel from "../models/riwayatPemberianModel.js";
+import * as PemberianModel from "../models/pemberianModel.js";
 import * as RujukanModel from "../models/rujukanModel.js";
+import * as OrangTuaModel from "../models/orangTuaModel.js";
 import { success, error } from "../utils/response.js";
 
 
@@ -80,15 +81,15 @@ export const getPemberianAnak = async (req, res) => {
         if (!anak) return;
 
         const { jenis } = req.query;
-        const riwayat = await RiwayatModel.findByAnak(
+        const pemberian = await PemberianModel.findByAnak(
             req.params.id,
             jenis || null,
         );
 
         return success(
             res,
-            { anak, filter: jenis || "semua", riwayat },
-            "Riwayat pemberian berhasil diambil",
+            { anak, filter: jenis || "semua", pemberian },
+            "Data pemberian berhasil diambil",
         );
     } catch (err) {
         return error(res, err.message);
@@ -114,3 +115,17 @@ export const getRujukanAnak = async (req, res) => {
         return error(res, err.message);
     }
 };
+
+export const updateFcmToken = async (req, res) => {
+    try {
+        const { fcm_token } = req.body;
+        if (!fcm_token || typeof fcm_token !== "string") {
+            return error(res, "fcm_token wajib diisi", 400);
+        }
+        await OrangTuaModel.updateFcmToken(req.orangTua.user_id, fcm_token);
+        return success(res, null, "FCM token berhasil diperbarui");
+    } catch (err) {
+        return error(res, err.message);
+    }
+};
+

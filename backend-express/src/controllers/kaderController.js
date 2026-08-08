@@ -91,7 +91,7 @@ export const getOrangTuaById = async (req, res) => {
 
 export const createAnak = async (req, res) => {
     try {
-        const { orang_tua_id, nama, jenis_kelamin, tanggal_lahir, no_kk } =
+        const { orang_tua_id, nama, jenis_kelamin, tanggal_lahir, nik } =
             req.body;
 
         if (
@@ -99,7 +99,7 @@ export const createAnak = async (req, res) => {
             !nama ||
             !jenis_kelamin ||
             !tanggal_lahir ||
-            !no_kk
+            !nik
         ) {
             return error(res, "Semua field wajib diisi", 400);
         }
@@ -108,8 +108,8 @@ export const createAnak = async (req, res) => {
             return error(res, "Jenis kelamin harus L atau P", 400);
         }
 
-        if (!/^\d{16}$/.test(no_kk)) {
-            return error(res, "No KK harus terdiri dari 16 digit angka", 400);
+        if (!/^\d{16}$/.test(nik)) {
+            return error(res, "NIK harus terdiri dari 16 digit angka", 400);
         }
 
         if (!/^\d{4}-\d{2}-\d{2}$/.test(tanggal_lahir)) {
@@ -139,7 +139,7 @@ export const createAnak = async (req, res) => {
             nama,
             jenis_kelamin,
             tanggal_lahir,
-            no_kk,
+            nik,
         });
 
         return success(res, anak, "Data anak berhasil ditambahkan", 201);

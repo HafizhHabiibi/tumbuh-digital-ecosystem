@@ -54,13 +54,10 @@ export const refreshAccessToken = async (req, res) => {
 
 export const revokeRefreshToken = async (req, res) => {
     try {
-        const { refresh_token } = req.body;
-
-        if (!refresh_token) {
-            return error(res, "Refresh token wajib disertakan", 400);
-        }
-
-        await RefreshTokenModel.revoke(refresh_token);
+        // Revoke berdasarkan user_id dari JWT (sudah diverifikasi middleware)
+        // Tidak bergantung pada nilai refresh_token di body —
+        // mencegah bypass dengan mengirim token palsu
+        await RefreshTokenModel.revokeAllByUser(req.user.id);
 
         return success(res, null, "Logout berhasil");
     } catch (err) {

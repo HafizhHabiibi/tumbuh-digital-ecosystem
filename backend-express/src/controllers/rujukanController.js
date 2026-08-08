@@ -1,20 +1,20 @@
 import * as RujukanModel from "../models/rujukanModel.js";
 import * as AnakModel from "../models/anakModel.js";
 import * as PuskesmasModel from "../models/puskesmasModel.js";
-import * as sawService from "../services/sawService.js";
+import * as PengukuranModel from "../models/pengukuranModel.js";
 import * as fcmService from "../services/fcmService.js";
 import { success, error } from "../utils/response.js";
 
-const STATUS_VALID = ["diterima", "dalam_penanganan", "selesai", "ditolak"];
+const STATUS_VALID = ["ditangani", "selesai"];
 
 export const createRujukan = async (req, res) => {
     try {
-        const { anak_id, saw_result_id, catatan_kader } = req.body;
+        const { anak_id, pengukuran_id, catatan_kader } = req.body;
 
-        if (!anak_id || !saw_result_id || !catatan_kader) {
+        if (!anak_id || !pengukuran_id || !catatan_kader) {
             return error(
                 res,
-                "anak_id, saw_result_id, catatan_kader wajib diisi",
+                "anak_id, pengukuran_id, catatan_kader wajib diisi",
                 400,
             );
         }
@@ -32,12 +32,12 @@ export const createRujukan = async (req, res) => {
             );
         }
 
-        const sawDetail = await sawService.getDetailSAW(saw_result_id);
-        if (!sawDetail) {
-            return error(res, "Data SAW tidak ditemukan", 404);
+        const pengukuran = await PengukuranModel.findById(pengukuran_id);
+        if (!pengukuran) {
+            return error(res, "Data pengukuran tidak ditemukan", 404);
         }
 
-        if (sawDetail.kategori_risiko === "rendah") {
+        if (pengukuran.kategori_risiko === "rendah") {
             return error(
                 res,
                 "Rujukan hanya bisa diajukan untuk anak dengan risiko sedang atau tinggi",
@@ -47,7 +47,7 @@ export const createRujukan = async (req, res) => {
         const id = await RujukanModel.create({
             anak_id,
             kader_id: req.kader.id,
-            saw_result_id,
+            pengukuran_id,
             catatan_kader,
         });
 
@@ -67,10 +67,10 @@ export const createRujukan = async (req, res) => {
             {
                 id,
                 anak_id,
-                saw_result_id,
+                pengukuran_id,
                 status: "diajukan",
                 catatan_kader,
-                kategori_risiko: sawDetail.kategori_risiko,
+                kategori_risiko: pengukuran.kategori_risiko,
             },
             "Rujukan berhasil diajukan",
             201,
@@ -126,34 +126,27 @@ export const updateStatusRujukan = async (req, res) => {
             return error(res, "Rujukan tidak ditemukan", 404);
         }
 
-        if (rujukan.status === "selesai" || rujukan.status === "ditolak") {
+        if (rujukan.status === "selesai") {
             return error(
                 res,
-                "Rujukan yang sudah selesai atau ditolak tidak bisa diupdate",
+                "Rujukan yang sudah selesai tidak bisa diupdate",
                 400,
             );
         }
 
         const puskesmas = await PuskesmasModel.findByUserId(req.user.id);
-        // console.log("[DEBUG] req.user.id:", req.user.id);
-        // console.log("[DEBUG] puskesmas:", puskesmas);
-        const puskesmas_user_id = puskesmas?.id;
+        const puskesmas_id = puskesmas?.id;
 
         await RujukanModel.updateStatus(id, {
             status,
             catatan_puskesmas,
-            puskesmas_user_id,
+            puskesmas_id,
         });
 
         const anak = await AnakModel.findById(rujukan.anak_id);
         const pesanStatus = {
-            diterima: "Rujukan anak Anda telah diterima oleh puskesmas.",
-            dalam_penanganan:
-                "Rujukan anak Anda sedang dalam penanganan di puskesmas.",
-            selesai:
-                "Rujukan anak Anda telah selesai. Silahkan cek hasil pemeriksaan di puskesmas.",
-            ditolak:
-                "Rujukan anak Anda tidak dapat diproses oleh puskesmas. Silahkan konsultasi kembali dengan kader untuk langkah selanjutnya.",
+            ditangani: "Rujukan anak Anda sedang ditangani oleh puskesmas. Silakan datang untuk pemeriksaan.",
+            selesai: "Penanganan rujukan anak Anda telah selesai. Silahkan cek hasil di puskesmas.",
         };
 
         fcmService

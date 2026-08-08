@@ -88,6 +88,7 @@ export const createPengukuran = async (req, res) => {
             anak_id,
             pengukuran_id,
             zscores,
+            { berat_badan, tanggal_ukur },
         );
 
         geminiService

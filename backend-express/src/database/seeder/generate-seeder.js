@@ -18,13 +18,13 @@ const SALT_ROUNDS = 10;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SAW BOBOT KRITERIA
-// ⚠️  Pastikan nilai ini sesuai dengan data di tabel saw_kriteria di database!
+// ⚠️  Pastikan nilai ini sesuai dengan implementasi di sawService.js!
 // ─────────────────────────────────────────────────────────────────────────────
 const SAW_BOBOT = {
-    zscore_bbu: 0.30,
-    zscore_tbu: 0.40,
+    zscore_tbu:  0.40,
+    zscore_bbu:  0.25,
     zscore_bbtb: 0.20,
-    frekuensi_hadir: 0.10,
+    tren_bb:     0.15,
 };
 
 // =============================================================================
@@ -126,13 +126,27 @@ const normZ = (z) => {
     return 1 - (clipped - -3) / (2 - -3);
 };
 
-const hitungSAW = (zbbu, ztbu, zbbtb, totalUkurSetahun) => {
-    const kehadiran = 1 - Math.min(totalUkurSetahun / 12, 1.0);
+/**
+ * Normalisasi tren BB — identik dengan sawService.normalisasiTrenBB
+ * delta_kg: selisih BB dalam kg (null = pengukuran pertama)
+ */
+const normTrenBB = (delta_kg) => {
+    if (delta_kg === null || delta_kg === undefined) return 0.5;
+    const delta_gram = delta_kg * 1000;
+    const THRESHOLD = 200;
+    const MAX_TURUN = 500;
+    if (delta_gram >= THRESHOLD) return 0.0;
+    if (delta_gram > 0) return 0.5 * (1 - delta_gram / THRESHOLD);
+    if (delta_gram === 0) return 0.7;
+    return Math.min(1.0, 0.7 + 0.3 * (Math.abs(delta_gram) / MAX_TURUN));
+};
+
+const hitungSAW = (zbbu, ztbu, zbbtb, tren_bb_kg) => {
     const nilai = {
-        zscore_bbu: normZ(zbbu),
-        zscore_tbu: normZ(ztbu),
+        zscore_tbu:  normZ(ztbu),
+        zscore_bbu:  normZ(zbbu),
         zscore_bbtb: normZ(zbbtb),
-        frekuensi_hadir: kehadiran,
+        tren_bb:     normTrenBB(tren_bb_kg),
     };
     let skor = 0;
     for (const [k, b] of Object.entries(SAW_BOBOT)) skor += b * nilai[k];
@@ -172,20 +186,20 @@ const getRiwayatItems = (usiaSaatIni) => {
         return [];
     } else if (usiaSaatIni < 12) {
         return [
-            { jenis: "vitamin_a", nama: "Vitamin A Biru 100.000 IU", dosis: "1 Kapsul Biru", tgl: "2026-02-03", kaderIdx: 0 },
-            { jenis: "pmt", nama: "Biskuit PMT Balita", dosis: "1 Kotak", tgl: "2026-05-03", kaderIdx: 1 },
+            { jenis: "vitamin_a_biru", dosis: "1 Kapsul Biru", tgl: "2026-02-03", kaderIdx: 0 },
+            { jenis: "pmt_biskuit", dosis: "1 Kotak", tgl: "2026-05-03", kaderIdx: 1 },
         ];
     } else if (usiaSaatIni < 24) {
         return [
-            { jenis: "vitamin_a", nama: "Vitamin A Merah 200.000 IU", dosis: "1 Kapsul Merah", tgl: "2026-02-03", kaderIdx: 0 },
-            { jenis: "obat_cacing", nama: "Albendazole 400mg", dosis: "1 Tablet", tgl: "2026-03-03", kaderIdx: 1 },
-            { jenis: "pmt", nama: "Biskuit PMT Balita", dosis: "1 Kotak", tgl: "2026-05-03", kaderIdx: 2 },
+            { jenis: "vitamin_a_merah", dosis: "1 Kapsul Merah", tgl: "2026-02-03", kaderIdx: 0 },
+            { jenis: "obat_cacing", dosis: "1 Tablet", tgl: "2026-03-03", kaderIdx: 1 },
+            { jenis: "pmt_biskuit", dosis: "1 Kotak", tgl: "2026-05-03", kaderIdx: 2 },
         ];
     } else {
         return [
-            { jenis: "vitamin_a", nama: "Vitamin A Merah 200.000 IU", dosis: "1 Kapsul Merah", tgl: "2026-01-03", kaderIdx: 0 },
-            { jenis: "obat_cacing", nama: "Albendazole 400mg", dosis: "1 Tablet", tgl: "2026-03-03", kaderIdx: 1 },
-            { jenis: "pmt", nama: "Biskuit PMT Balita", dosis: "2 Kotak", tgl: "2026-05-03", kaderIdx: 2 },
+            { jenis: "vitamin_a_merah", dosis: "1 Kapsul Merah", tgl: "2026-01-03", kaderIdx: 0 },
+            { jenis: "obat_cacing", dosis: "1 Tablet", tgl: "2026-03-03", kaderIdx: 1 },
+            { jenis: "pmt_biskuit", dosis: "2 Kotak", tgl: "2026-05-03", kaderIdx: 2 },
         ];
     }
 };
@@ -294,7 +308,7 @@ async function generateSeeder() {
     console.log("🌱 Generating comprehensive seeder...\n");
     const lines = [];
 
-    lines.push("USE posyandu_pui;");
+    lines.push("USE tumbuh_pp;");
     lines.push("");
 
     // ── Full Reset ──────────────────────────────────────────────────────────────
@@ -303,27 +317,16 @@ async function generateSeeder() {
     lines.push("-- ==========================================================");
     lines.push("SET FOREIGN_KEY_CHECKS = 0;");
     for (const t of [
-        "notifikasi", "ai_insight", "rujukan",
-        "saw_result_detail", "saw_result",
-        "riwayat_pemberian", "pengukuran",
+        "notifikasi", "rujukan",
+        "pemberian", "pengukuran",
         "anak", "jadwal_posyandu",
-        "orang_tua", "kader", "puskesmas_user",
-        "refresh_tokens", "login_attempts", "password_reset_token",
-        "users", "saw_kriteria"
+        "orang_tua", "kader", "puskesmas",
+        "refresh_tokens",
+        "users"
     ]) {
         lines.push(`TRUNCATE TABLE ${t};`);
     }
     lines.push("SET FOREIGN_KEY_CHECKS = 1;");
-    lines.push("");
-
-    lines.push("-- ==========================================================");
-    lines.push("-- SAW KRITERIA SETUP");
-    lines.push("-- ==========================================================");
-    lines.push("INSERT INTO saw_kriteria (nama_kriteria, bobot, keterangan) VALUES");
-    lines.push("    ('zscore_tbu',      0.4000, 'Tinggi Badan per Umur'),");
-    lines.push("    ('zscore_bbu',      0.3000, 'Berat Badan per Umur'),");
-    lines.push("    ('zscore_bbtb',     0.2000, 'Berat Badan per Tinggi Badan'),");
-    lines.push("    ('frekuensi_hadir', 0.1000, 'Kehadiran rutin ke posyandu');");
     lines.push("");
 
     // ── Generate UUIDs ──────────────────────────────────────────────────────────
@@ -370,7 +373,7 @@ async function generateSeeder() {
         console.log(`[Puskesmas ${i + 1}] ${p.nama} | ${p.email} | password: ${p.password}`);
         lines.push(`INSERT INTO users (id, email, password_hash, role, is_active) VALUES`);
         lines.push(`    (${sq(ids.uId)}, ${sq(p.email)}, ${sq(puskeHashes[i])}, 'puskesmas', TRUE);`);
-        lines.push(`INSERT INTO puskesmas_user (id, user_id, nama_lengkap, jabatan, no_hp) VALUES`);
+        lines.push(`INSERT INTO puskesmas (id, user_id, nama_lengkap, jabatan, no_hp) VALUES`);
         lines.push(`    (${sq(ids.pId)}, ${sq(ids.uId)}, ${sq(p.nama)}, ${sq(p.jabatan)}, ${sq(p.no_hp)});`);
         lines.push("");
     }
@@ -422,7 +425,7 @@ async function generateSeeder() {
         const a = ANAK_LIST[i];
         const oId = otIds[a.otIdx].oId;
         console.log(`[Anak ${i + 1}] ${a.nama} | ${a.gender} | ${a.tglLahir} | scenario: ${a.scenario}`);
-        lines.push(`INSERT INTO anak (id, orang_tua_id, nama, jenis_kelamin, tanggal_lahir, no_kk) VALUES`);
+        lines.push(`INSERT INTO anak (id, orang_tua_id, nama, jenis_kelamin, tanggal_lahir, nik) VALUES`);
         lines.push(`    (${sq(anakIds[i])}, ${sq(oId)}, ${sq(a.nama)}, ${sq(a.gender)}, ${sq(a.tglLahir)}, ${sq(a.noKk)});`);
     }
     lines.push("");
@@ -465,17 +468,24 @@ async function generateSeeder() {
                 pengId: pengCount, date,
             });
 
-            lines.push(`INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan, zscore_bbu, zscore_tbu, zscore_bbtb, status_gizi) VALUES`);
-            lines.push(`    (${sq(anakId)}, ${sq(kId)}, ${sq(date)}, ${w}, ${h}, ${lk ?? "NULL"}, ${ll ?? "NULL"}, ${zbbu}, ${ztbu}, ${zbbtb}, ${sq(sg)});`);
+            // tren_bb: null untuk pengukuran pertama (dIdx=0), selisih BB untuk selanjutnya
+            const tren_bb_kg = dIdx === 0 ? null : parseFloat(a.wInc.toFixed(3));
+            const saw = hitungSAW(zbbu, ztbu, zbbtb, tren_bb_kg);
+            pengMeta[pengMeta.length - 1].skor = saw.skor;
+            pengMeta[pengMeta.length - 1].kategori = saw.kategori;
+            pengMeta[pengMeta.length - 1].tren_bb_kg = tren_bb_kg;
+
+            lines.push(`INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan, zscore_bbu, zscore_tbu, zscore_bbtb, status_gizi, tren_bb, skor_saw, kategori_risiko) VALUES`);
+            lines.push(`    (${sq(anakId)}, ${sq(kId)}, ${sq(date)}, ${w}, ${h}, ${lk ?? "NULL"}, ${ll ?? "NULL"}, ${zbbu}, ${ztbu}, ${zbbtb}, ${sq(sg)}, ${tren_bb_kg ?? "NULL"}, ${saw.skor}, ${sq(saw.kategori)});`);
         }
         lines.push("");
     }
 
     // ══════════════════════════════════════════════════════════════════════════════
-    // TIER 4 — riwayat_pemberian
+    // TIER 4 — pemberian
     // ══════════════════════════════════════════════════════════════════════════════
     lines.push("-- ==========================================================");
-    lines.push("-- TIER 4: Riwayat Pemberian Vitamin A, Obat Cacing & PMT");
+    lines.push("-- TIER 4: Pemberian Vitamin A, Obat Cacing & PMT");
     lines.push("-- ==========================================================");
     lines.push("");
 
@@ -489,44 +499,15 @@ async function generateSeeder() {
         lines.push(`-- ${a.nama} (usia: ${usiaSaatIni} bulan)`);
         for (const item of items) {
             const kId = kaderIds[item.kaderIdx % KADER_LIST.length].kId;
-            lines.push(`INSERT INTO riwayat_pemberian (anak_id, kader_id, jenis, nama_item, dosis, tanggal_pemberian, keterangan) VALUES`);
-            lines.push(`    (${sq(anakId)}, ${sq(kId)}, ${sq(item.jenis)}, ${sq(item.nama)}, ${sq(item.dosis)}, ${sq(item.tgl)}, NULL);`);
+            lines.push(`INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES`);
+            lines.push(`    (${sq(anakId)}, ${sq(kId)}, ${sq(item.jenis)}, ${sq(item.dosis)}, ${sq(item.tgl)}, NULL);`);
             pemberianCount++;
         }
         lines.push("");
     }
 
-    // ══════════════════════════════════════════════════════════════════════════════
-    // TIER 5 — saw_result + saw_result_detail
-    // ══════════════════════════════════════════════════════════════════════════════
-    lines.push("-- ==========================================================");
-    lines.push("-- TIER 5: SAW Result + Detail (1 per pengukuran = 90 total)");
-    lines.push("-- ==========================================================");
-    lines.push("");
-
-    let sawCount = 0;
-    const sawMeta = [];
-
-    for (const m of pengMeta) {
-        const saw = hitungSAW(m.zbbu, m.ztbu, m.zbbtb, MEASUREMENT_DATES.length);
-        sawCount++;
-        sawMeta.push({ ...m, sawId: sawCount, skor: saw.skor, kategori: saw.kategori, nilai: saw.nilai });
-
-        lines.push(`INSERT INTO saw_result (anak_id, pengukuran_id, skor_akhir, kategori_risiko) VALUES`);
-        lines.push(`    (${sq(m.anakId)}, ${m.pengId}, ${saw.skor}, ${sq(saw.kategori)});`);
-
-        const kriteriaKeys = ["zscore_bbu", "zscore_tbu", "zscore_bbtb", "frekuensi_hadir"];
-        const nilaiArr = [saw.nilai.zscore_bbu, saw.nilai.zscore_tbu, saw.nilai.zscore_bbtb, saw.nilai.frekuensi_hadir];
-
-        for (let ki = 0; ki < kriteriaKeys.length; ki++) {
-            const bobot = SAW_BOBOT[kriteriaKeys[ki]];
-            const nilai = parseFloat(nilaiArr[ki].toFixed(4));
-            const skor = parseFloat((bobot * nilai).toFixed(4));
-            lines.push(`INSERT INTO saw_result_detail (saw_result_id, nama_kriteria, bobot, nilai, skor) VALUES`);
-            lines.push(`    (${sawCount}, ${sq(kriteriaKeys[ki])}, ${bobot}, ${nilai}, ${skor});`);
-        }
-        lines.push("");
-    }
+    // SAW data is now embedded in pengukuran rows (skor_saw, kategori_risiko)
+    // No separate saw_result / saw_result_detail tables needed
 
     // ══════════════════════════════════════════════════════════════════════════════
     // TIER 6 — rujukan (untuk anak dengan kategori_risiko 'tinggi')
@@ -537,11 +518,11 @@ async function generateSeeder() {
     lines.push("");
 
     // Ambil pengukuran terakhir (dIdx=5) dengan kategori 'tinggi', max 6 rujukan
-    const candidatesForRujukan = sawMeta.filter(
+    const candidatesForRujukan = pengMeta.filter(
         (r) => r.dIdx === 5 && r.kategori === "tinggi",
     );
     const rujukanTargets = candidatesForRujukan.slice(0, 6);
-    const rujukanStatuses = ["selesai", "diterima", "diajukan", "diajukan", "ditolak", "selesai"];
+    const rujukanStatuses = ["selesai", "ditangani", "diajukan", "diajukan", "selesai", "diajukan"];
 
     let rujukanCount = 0;
     const rujukanMeta = [];
@@ -553,10 +534,8 @@ async function generateSeeder() {
         const puskesId = status !== "diajukan" ? puskeIds[0].pId : null;
         const catatanKader = `Anak memerlukan penanganan lebih lanjut. Hasil penilaian SAW menunjukkan kategori risiko ${target.kategori} dengan skor ${target.skor}.`;
         const catatanPusk =
-            ["selesai", "diterima"].includes(status)
+            ["selesai", "ditangani"].includes(status)
                 ? "Pasien telah diperiksa. Diberikan edukasi gizi intensif dan program PMT selama 3 bulan ke depan."
-                : status === "ditolak"
-                ? "Kondisi anak tidak memenuhi kriteria rujukan saat ini. Disarankan kontrol rutin di posyandu setiap bulan."
                 : null;
         const validatedAt =
             status !== "diajukan"
@@ -571,31 +550,28 @@ async function generateSeeder() {
         });
 
         lines.push(`-- Rujukan untuk: ${ANAK_LIST[target.aIdx].nama} | Status: ${status}`);
-        lines.push(`INSERT INTO rujukan (anak_id, kader_id, puskesmas_user_id, saw_result_id, status, catatan_kader, catatan_puskesmas, validated_at) VALUES`);
-        lines.push(`    (${sq(target.anakId)}, ${sq(kId)}, ${puskesId ? sq(puskesId) : "NULL"}, ${target.sawId}, ${sq(status)}, ${sq(catatanKader)}, ${catatanPusk ? sq(catatanPusk) : "NULL"}, ${validatedAt});`);
+        lines.push(`INSERT INTO rujukan (anak_id, kader_id, puskesmas_id, pengukuran_id, status, catatan_kader, catatan_puskesmas, validated_at) VALUES`);
+        lines.push(`    (${sq(target.anakId)}, ${sq(kId)}, ${puskesId ? sq(puskesId) : "NULL"}, ${target.pengId}, ${sq(status)}, ${sq(catatanKader)}, ${catatanPusk ? sq(catatanPusk) : "NULL"}, ${validatedAt});`);
         lines.push("");
     }
 
     // ══════════════════════════════════════════════════════════════════════════════
-    // TIER 6 — ai_insight (1 per anak, untuk pengukuran terakhir)
+    // TIER 6 — AI Insight (UPDATE pengukuran.insight_teks for last measurement)
     // ══════════════════════════════════════════════════════════════════════════════
     lines.push("-- ==========================================================");
-    lines.push("-- TIER 6: AI Insight — teks statis (1 per anak)");
+    lines.push("-- TIER 6: AI Insight — UPDATE pengukuran.insight_teks (1 per anak)");
     lines.push("-- ==========================================================");
     lines.push("");
 
     for (let aIdx = 0; aIdx < ANAK_LIST.length; aIdx++) {
         const a = ANAK_LIST[aIdx];
-        const anakId = anakIds[aIdx];
-        const lastSaw = sawMeta.find((s) => s.aIdx === aIdx && s.dIdx === 5);
-        if (!lastSaw) continue;
+        const lastPeng = pengMeta.find((m) => m.aIdx === aIdx && m.dIdx === 5);
+        if (!lastPeng) continue;
 
         const teks = INSIGHT[a.scenario] || INSIGHT.normal;
-        const prompt = `[Seeder] Anak: ${a.nama}, JK: ${a.gender}, Scenario: ${a.scenario}, Status Gizi: ${lastSaw.sg}`;
 
         lines.push(`-- ${a.nama} (${a.scenario})`);
-        lines.push(`INSERT INTO ai_insight (anak_id, pengukuran_id, prompt_konteks, insight_teks) VALUES`);
-        lines.push(`    (${sq(anakId)}, ${lastSaw.pengId}, ${sq(prompt)}, ${sq(teks)});`);
+        lines.push(`UPDATE pengukuran SET insight_teks = ${sq(teks)} WHERE id = ${lastPeng.pengId};`);
         lines.push("");
     }
 
@@ -627,9 +603,9 @@ async function generateSeeder() {
                 judul = "Rujukan Baru Telah Diajukan";
                 pesan = "Kader telah mengajukan rujukan untuk anak Anda ke puskesmas. Harap segera datang ke puskesmas terdekat untuk pemeriksaan dan penanganan lebih lanjut.";
                 break;
-            case "diterima":
-                judul = "Rujukan Diterima Puskesmas";
-                pesan = "Rujukan anak Anda telah diterima oleh puskesmas. Silakan datang untuk menjalani pemeriksaan dan program intervensi gizi yang telah disiapkan.";
+            case "ditangani":
+                judul = "Rujukan Sedang Ditangani";
+                pesan = "Rujukan anak Anda sedang ditangani oleh puskesmas. Silakan datang untuk pemeriksaan.";
                 break;
             case "selesai":
                 judul = "Rujukan Selesai Ditangani";
@@ -656,16 +632,13 @@ async function generateSeeder() {
     console.log("\n✅ seeder.sql berhasil dibuat!");
     console.log("\n📊 Ringkasan data yang di-seed:");
     console.log(`   Kader             : ${KADER_LIST.length}`);
-    console.log(`   Puskesmas User    : ${PUSKE_LIST.length}`);
+    console.log(`   Puskesmas         : ${PUSKE_LIST.length}`);
     console.log(`   Orang Tua         : ${OT_LIST.length}`);
     console.log(`   Anak              : ${ANAK_LIST.length}`);
     console.log(`   Jadwal Posyandu   : ${JADWAL_LIST.length} (6 lampau, 1 mendatang = hari demo)`);    
-    console.log(`   Pengukuran        : ${pengCount} (6 titik/anak × ${ANAK_LIST.length} anak)`);
+    console.log(`   Pengukuran        : ${pengCount} (6 titik/anak × ${ANAK_LIST.length} anak, SAW+insight embedded)`);
     console.log(`   Riwayat Pemberian : ${pemberianCount}`);
-    console.log(`   SAW Result        : ${sawCount}`);
-    console.log(`   SAW Detail        : ${sawCount * 4} (4 kriteria/result)`);
     console.log(`   Rujukan           : ${rujukanCount}`);
-    console.log(`   AI Insight        : ${ANAK_LIST.length} (1 per anak)`);
     console.log(`   Notifikasi        : ${totalNotif} (${OT_LIST.length} jadwal + ${rujukanCount} rujukan)`);
     console.log("\n🚀 Cara menjalankan seeder:");
     console.log("   npm run seed:run");

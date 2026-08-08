@@ -22,7 +22,7 @@ export const getStatistik = async (req, res) => {
         const [totalRujukanAktif] = await db.query(
             `SELECT COUNT(*) AS total
             FROM rujukan
-            WHERE status NOT IN ('selesai', 'ditolak')`,
+            WHERE status != 'selesai'`,
         );
 
         const [totalPengukuranBulanIni] = await db.query(
@@ -126,17 +126,17 @@ export const getDistribusiRisiko = async (req, res) => {
     try {
         const [rows] = await db.query(
             `SELECT
-                sr.kategori_risiko,
+                p.kategori_risiko,
                 COUNT(*) AS jumlah
-            FROM saw_result sr
-            WHERE sr.id = (
-                SELECT sr2.id FROM saw_result sr2
-                JOIN pengukuran p2 ON p2.id = sr2.pengukuran_id
-                WHERE sr2.anak_id = sr.anak_id
+            FROM pengukuran p
+            WHERE p.id = (
+                SELECT p2.id FROM pengukuran p2
+                WHERE p2.anak_id = p.anak_id
                 ORDER BY p2.tanggal_ukur DESC
                 LIMIT 1
             )
-            GROUP BY sr.kategori_risiko`,
+            AND p.kategori_risiko IS NOT NULL
+            GROUP BY p.kategori_risiko`,
         );
 
         const distribusi = {

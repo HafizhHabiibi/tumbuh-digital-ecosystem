@@ -15,11 +15,6 @@ import { requireKader } from "../middlewares/requireKader.js";
 
 const router = express.Router();
 
-router.use((req, res, next) => {
-    console.log(`[KADER ROUTE] ${req.method} ${req.path}`);
-    next();
-});
-
 router.use(authenticate);
 router.use(authorizeRole("kader"));
 router.use(requireKader); // inject req.kader ke semua route

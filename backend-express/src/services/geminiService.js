@@ -104,10 +104,10 @@ const callGeminiWithRetry = async (prompt, maxRetry = 3) => {
 export const generateInsight = async (anak_id, pengukuran_id, data) => {
     try {
         const [existing] = await db.query(
-            `SELECT id FROM ai_insight WHERE pengukuran_id = ?`,
+            `SELECT insight_teks FROM pengukuran WHERE id = ?`,
             [pengukuran_id],
         );
-        if (existing.length > 0) {
+        if (existing[0]?.insight_teks) {
             console.log(
                 `[GEMINI] Insight pengukuran ${pengukuran_id} sudah ada, skip`,
             );
@@ -122,10 +122,8 @@ export const generateInsight = async (anak_id, pengukuran_id, data) => {
             throw new Error("Response Gemini tidak mengandung teks");
         }
         await db.query(
-            `INSERT INTO ai_insight
-            (anak_id, pengukuran_id, prompt_konteks, insight_teks)
-            VALUES (?, ?, ?, ?)`,
-            [anak_id, pengukuran_id, prompt, insight_teks],
+            `UPDATE pengukuran SET insight_teks = ? WHERE id = ?`,
+            [insight_teks, pengukuran_id],
         );
 
         console.log(
@@ -144,9 +142,14 @@ export const generateInsight = async (anak_id, pengukuran_id, data) => {
 export const getInsight = async (pengukuran_id) => {
     const [rows] = await db.query(
         `SELECT insight_teks, created_at
-        FROM ai_insight
-        WHERE pengukuran_id = ?`,
+        FROM pengukuran
+        WHERE id = ?`,
         [pengukuran_id],
     );
-    return rows[0] || null;
+
+    if (!rows[0]) return null;              // pengukuran tidak ditemukan
+    if (!rows[0].insight_teks) return null; // insight belum selesai diproses
+
+    return rows[0];
 };
+

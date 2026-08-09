@@ -20,6 +20,13 @@ export const createJadwal = async (req, res) => {
             return error(res, "Format tanggal harus YYYY-MM-DD", 400);
         }
 
+        const tglJadwal = new Date(tanggal);
+        const hariIni = new Date();
+        hariIni.setHours(0, 0, 0, 0);
+        if (tglJadwal < hariIni) {
+            return error(res, "Tanggal jadwal tidak boleh di masa lampau", 400);
+        }
+
         if (
             !/^\d{2}:\d{2}$/.test(waktu_mulai) ||
             !/^\d{2}:\d{2}$/.test(waktu_selesai)

@@ -1,13 +1,14 @@
 import db from "../database/connection.js";
 
 export const save = async (userId, token, expiresAt) => {
+    // INSERT biasa — setiap login menghasilkan row baru (multi-device support)
     await db.query(
         `INSERT INTO refresh_tokens (user_id, token, expires_at)
-         VALUES (?, ?, ?)
-         ON DUPLICATE KEY UPDATE token = VALUES(token), expires_at = VALUES(expires_at), revoked = 0`,
+         VALUES (?, ?, ?)`,
         [userId, token, expiresAt],
     );
 };
+
 
 export const findValid = async (userId, token) => {
     const [rows] = await db.query(

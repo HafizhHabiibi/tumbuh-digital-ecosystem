@@ -509,7 +509,8 @@ Kabar baik! Tumbuh kembang si kecil saat ini berjalan dengan sangat baik. Berat 
 3. Tetap rutin bawa ke posyandu setiap bulan agar tumbuh kembang terus terpantau dengan baik dan intervensi dapat dilakukan sedini mungkin jika diperlukan.
 
 **Kapan Perlu ke Dokter**
-Segera konsultasikan ke tenaga kesehatan jika berat badan tidak naik sama sekali dalam 2 bulan berturut-turut, atau jika si kecil tampak lesu, tidak aktif seperti biasanya, atau nafsu makan menurun drastis dan tidak membaik dalam beberapa hari.' WHERE id = 6;
+Segera konsultasikan ke tenaga kesehatan jika berat badan tidak naik sama sekali dalam 2 bulan berturut-turut, atau jika si kecil tampak lesu, tidak aktif seperti biasanya, atau nafsu makan menurun drastis dan tidak membaik dalam beberapa hari.'
+WHERE anak_id = '019fe204-d233-737e-ae03-e0e2fe936b9e' AND tanggal_ukur = '2026-06-03';
 
 -- Rafi (normal)
 UPDATE pengukuran SET insight_teks = '**Kondisi Saat Ini**
@@ -521,7 +522,8 @@ Kabar baik! Tumbuh kembang si kecil saat ini berjalan dengan sangat baik. Berat 
 3. Tetap rutin bawa ke posyandu setiap bulan agar tumbuh kembang terus terpantau dengan baik dan intervensi dapat dilakukan sedini mungkin jika diperlukan.
 
 **Kapan Perlu ke Dokter**
-Segera konsultasikan ke tenaga kesehatan jika berat badan tidak naik sama sekali dalam 2 bulan berturut-turut, atau jika si kecil tampak lesu, tidak aktif seperti biasanya, atau nafsu makan menurun drastis dan tidak membaik dalam beberapa hari.' WHERE id = 12;
+Segera konsultasikan ke tenaga kesehatan jika berat badan tidak naik sama sekali dalam 2 bulan berturut-turut, atau jika si kecil tampak lesu, tidak aktif seperti biasanya, atau nafsu makan menurun drastis dan tidak membaik dalam beberapa hari.'
+WHERE anak_id = '019fe204-d233-737e-ae03-e0e3d665b56f' AND tanggal_ukur = '2026-06-03';
 
 -- Nayla (normal)
 UPDATE pengukuran SET insight_teks = '**Kondisi Saat Ini**
@@ -533,7 +535,8 @@ Kabar baik! Tumbuh kembang si kecil saat ini berjalan dengan sangat baik. Berat 
 3. Tetap rutin bawa ke posyandu setiap bulan agar tumbuh kembang terus terpantau dengan baik dan intervensi dapat dilakukan sedini mungkin jika diperlukan.
 
 **Kapan Perlu ke Dokter**
-Segera konsultasikan ke tenaga kesehatan jika berat badan tidak naik sama sekali dalam 2 bulan berturut-turut, atau jika si kecil tampak lesu, tidak aktif seperti biasanya, atau nafsu makan menurun drastis dan tidak membaik dalam beberapa hari.' WHERE id = 18;
+Segera konsultasikan ke tenaga kesehatan jika berat badan tidak naik sama sekali dalam 2 bulan berturut-turut, atau jika si kecil tampak lesu, tidak aktif seperti biasanya, atau nafsu makan menurun drastis dan tidak membaik dalam beberapa hari.'
+WHERE anak_id = '019fe204-d233-737e-ae03-e0e44db6b946' AND tanggal_ukur = '2026-06-03';
 
 -- Hasan (kurang)
 UPDATE pengukuran SET insight_teks = '**Kondisi Saat Ini**
@@ -545,7 +548,8 @@ Berat badan dan tinggi badan si kecil saat ini sedikit di bawah rata-rata anak s
 3. Jika si kecil sulit makan, coba variasikan tampilan, tekstur, dan rasa makanan agar lebih menarik dan nafsu makan meningkat secara perlahan.
 
 **Kapan Perlu ke Dokter**
-Segera bawa ke puskesmas jika berat badan tidak bertambah dalam sebulan penuh, atau jika si kecil sering sakit berulang, rewel terus-menerus, tampak sangat lemas, atau ada tanda-tanda anemia seperti wajah pucat dan mudah lelah.' WHERE id = 24;
+Segera bawa ke puskesmas jika berat badan tidak bertambah dalam sebulan penuh, atau jika si kecil sering sakit berulang, rewel terus-menerus, tampak sangat lemas, atau ada tanda-tanda anemia seperti wajah pucat dan mudah lelah.'
+WHERE anak_id = '019fe204-d233-737e-ae03-e0e57d2112d2' AND tanggal_ukur = '2026-06-03';
 
 -- Husein (normal)
 UPDATE pengukuran SET insight_teks = '**Kondisi Saat Ini**
@@ -557,7 +561,8 @@ Kabar baik! Tumbuh kembang si kecil saat ini berjalan dengan sangat baik. Berat 
 3. Tetap rutin bawa ke posyandu setiap bulan agar tumbuh kembang terus terpantau dengan baik dan intervensi dapat dilakukan sedini mungkin jika diperlukan.
 
 **Kapan Perlu ke Dokter**
-Segera konsultasikan ke tenaga kesehatan jika berat badan tidak naik sama sekali dalam 2 bulan berturut-turut, atau jika si kecil tampak lesu, tidak aktif seperti biasanya, atau nafsu makan menurun drastis dan tidak membaik dalam beberapa hari.' WHERE id = 30;
+Segera konsultasikan ke tenaga kesehatan jika berat badan tidak naik sama sekali dalam 2 bulan berturut-turut, atau jika si kecil tampak lesu, tidak aktif seperti biasanya, atau nafsu makan menurun drastis dan tidak membaik dalam beberapa hari.'
+WHERE anak_id = '019fe204-d233-737e-ae03-e0e60c5d8161' AND tanggal_ukur = '2026-06-03';
 
 -- Zahra (kurang)
 UPDATE pengukuran SET insight_teks = '**Kondisi Saat Ini**
@@ -569,7 +574,8 @@ Berat badan dan tinggi badan si kecil saat ini sedikit di bawah rata-rata anak s
 3. Jika si kecil sulit makan, coba variasikan tampilan, tekstur, dan rasa makanan agar lebih menarik dan nafsu makan meningkat secara perlahan.
 
 **Kapan Perlu ke Dokter**
-Segera bawa ke puskesmas jika berat badan tidak bertambah dalam sebulan penuh, atau jika si kecil sering sakit berulang, rewel terus-menerus, tampak sangat lemas, atau ada tanda-tanda anemia seperti wajah pucat dan mudah lelah.' WHERE id = 36;
+Segera bawa ke puskesmas jika berat badan tidak bertambah dalam sebulan penuh, atau jika si kecil sering sakit berulang, rewel terus-menerus, tampak sangat lemas, atau ada tanda-tanda anemia seperti wajah pucat dan mudah lelah.'
+WHERE anak_id = '019fe204-d233-737e-ae03-e0e7afdf4d31' AND tanggal_ukur = '2026-06-03';
 
 -- Dani (buruk)
 UPDATE pengukuran SET insight_teks = '**Kondisi Saat Ini**
@@ -581,7 +587,8 @@ Berdasarkan hasil pengukuran terbaru, berat badan dan tinggi badan si kecil bera
 3. Pastikan si kecil tidak melewatkan satu pun waktu makan dan selalu tawarkan makanan tambahan di antara waktu makan utama untuk mendukung proses kejar tumbuh.
 
 **Kapan Perlu ke Dokter**
-Si kecil sangat disarankan untuk segera dirujuk ke dokter spesialis anak. Jangan tunda kunjungan jika si kecil mengalami penurunan berat badan, menolak makan sama sekali selama lebih dari 2 hari, tampak sangat lemas dan tidak responsif, atau terdapat pembengkakan pada kaki dan tangan yang bisa menjadi tanda kekurangan protein berat.' WHERE id = 42;
+Si kecil sangat disarankan untuk segera dirujuk ke dokter spesialis anak. Jangan tunda kunjungan jika si kecil mengalami penurunan berat badan, menolak makan sama sekali selama lebih dari 2 hari, tampak sangat lemas dan tidak responsif, atau terdapat pembengkakan pada kaki dan tangan yang bisa menjadi tanda kekurangan protein berat.'
+WHERE anak_id = '019fe204-d233-737e-ae03-e0e854420f94' AND tanggal_ukur = '2026-06-03';
 
 -- Dina (normal)
 UPDATE pengukuran SET insight_teks = '**Kondisi Saat Ini**
@@ -593,7 +600,8 @@ Kabar baik! Tumbuh kembang si kecil saat ini berjalan dengan sangat baik. Berat 
 3. Tetap rutin bawa ke posyandu setiap bulan agar tumbuh kembang terus terpantau dengan baik dan intervensi dapat dilakukan sedini mungkin jika diperlukan.
 
 **Kapan Perlu ke Dokter**
-Segera konsultasikan ke tenaga kesehatan jika berat badan tidak naik sama sekali dalam 2 bulan berturut-turut, atau jika si kecil tampak lesu, tidak aktif seperti biasanya, atau nafsu makan menurun drastis dan tidak membaik dalam beberapa hari.' WHERE id = 48;
+Segera konsultasikan ke tenaga kesehatan jika berat badan tidak naik sama sekali dalam 2 bulan berturut-turut, atau jika si kecil tampak lesu, tidak aktif seperti biasanya, atau nafsu makan menurun drastis dan tidak membaik dalam beberapa hari.'
+WHERE anak_id = '019fe204-d233-737e-ae03-e0e9f7e6c67c' AND tanggal_ukur = '2026-06-03';
 
 -- Bagas (kurang)
 UPDATE pengukuran SET insight_teks = '**Kondisi Saat Ini**
@@ -605,7 +613,8 @@ Berat badan dan tinggi badan si kecil saat ini sedikit di bawah rata-rata anak s
 3. Jika si kecil sulit makan, coba variasikan tampilan, tekstur, dan rasa makanan agar lebih menarik dan nafsu makan meningkat secara perlahan.
 
 **Kapan Perlu ke Dokter**
-Segera bawa ke puskesmas jika berat badan tidak bertambah dalam sebulan penuh, atau jika si kecil sering sakit berulang, rewel terus-menerus, tampak sangat lemas, atau ada tanda-tanda anemia seperti wajah pucat dan mudah lelah.' WHERE id = 54;
+Segera bawa ke puskesmas jika berat badan tidak bertambah dalam sebulan penuh, atau jika si kecil sering sakit berulang, rewel terus-menerus, tampak sangat lemas, atau ada tanda-tanda anemia seperti wajah pucat dan mudah lelah.'
+WHERE anak_id = '019fe204-d233-737e-ae03-e0ea56be573c' AND tanggal_ukur = '2026-06-03';
 
 -- Putri (normal)
 UPDATE pengukuran SET insight_teks = '**Kondisi Saat Ini**
@@ -617,7 +626,8 @@ Kabar baik! Tumbuh kembang si kecil saat ini berjalan dengan sangat baik. Berat 
 3. Tetap rutin bawa ke posyandu setiap bulan agar tumbuh kembang terus terpantau dengan baik dan intervensi dapat dilakukan sedini mungkin jika diperlukan.
 
 **Kapan Perlu ke Dokter**
-Segera konsultasikan ke tenaga kesehatan jika berat badan tidak naik sama sekali dalam 2 bulan berturut-turut, atau jika si kecil tampak lesu, tidak aktif seperti biasanya, atau nafsu makan menurun drastis dan tidak membaik dalam beberapa hari.' WHERE id = 60;
+Segera konsultasikan ke tenaga kesehatan jika berat badan tidak naik sama sekali dalam 2 bulan berturut-turut, atau jika si kecil tampak lesu, tidak aktif seperti biasanya, atau nafsu makan menurun drastis dan tidak membaik dalam beberapa hari.'
+WHERE anak_id = '019fe204-d233-737e-ae03-e0eb49643930' AND tanggal_ukur = '2026-06-03';
 
 -- Adi (buruk)
 UPDATE pengukuran SET insight_teks = '**Kondisi Saat Ini**
@@ -629,7 +639,8 @@ Berdasarkan hasil pengukuran terbaru, berat badan dan tinggi badan si kecil bera
 3. Pastikan si kecil tidak melewatkan satu pun waktu makan dan selalu tawarkan makanan tambahan di antara waktu makan utama untuk mendukung proses kejar tumbuh.
 
 **Kapan Perlu ke Dokter**
-Si kecil sangat disarankan untuk segera dirujuk ke dokter spesialis anak. Jangan tunda kunjungan jika si kecil mengalami penurunan berat badan, menolak makan sama sekali selama lebih dari 2 hari, tampak sangat lemas dan tidak responsif, atau terdapat pembengkakan pada kaki dan tangan yang bisa menjadi tanda kekurangan protein berat.' WHERE id = 66;
+Si kecil sangat disarankan untuk segera dirujuk ke dokter spesialis anak. Jangan tunda kunjungan jika si kecil mengalami penurunan berat badan, menolak makan sama sekali selama lebih dari 2 hari, tampak sangat lemas dan tidak responsif, atau terdapat pembengkakan pada kaki dan tangan yang bisa menjadi tanda kekurangan protein berat.'
+WHERE anak_id = '019fe204-d233-737e-ae03-e0ec994c311b' AND tanggal_ukur = '2026-06-03';
 
 -- Ayu (kurang)
 UPDATE pengukuran SET insight_teks = '**Kondisi Saat Ini**
@@ -641,7 +652,8 @@ Berat badan dan tinggi badan si kecil saat ini sedikit di bawah rata-rata anak s
 3. Jika si kecil sulit makan, coba variasikan tampilan, tekstur, dan rasa makanan agar lebih menarik dan nafsu makan meningkat secara perlahan.
 
 **Kapan Perlu ke Dokter**
-Segera bawa ke puskesmas jika berat badan tidak bertambah dalam sebulan penuh, atau jika si kecil sering sakit berulang, rewel terus-menerus, tampak sangat lemas, atau ada tanda-tanda anemia seperti wajah pucat dan mudah lelah.' WHERE id = 72;
+Segera bawa ke puskesmas jika berat badan tidak bertambah dalam sebulan penuh, atau jika si kecil sering sakit berulang, rewel terus-menerus, tampak sangat lemas, atau ada tanda-tanda anemia seperti wajah pucat dan mudah lelah.'
+WHERE anak_id = '019fe204-d233-737e-ae03-e0ed24ad7bfd' AND tanggal_ukur = '2026-06-03';
 
 -- Fauzi (normal)
 UPDATE pengukuran SET insight_teks = '**Kondisi Saat Ini**
@@ -653,7 +665,8 @@ Kabar baik! Tumbuh kembang si kecil saat ini berjalan dengan sangat baik. Berat 
 3. Tetap rutin bawa ke posyandu setiap bulan agar tumbuh kembang terus terpantau dengan baik dan intervensi dapat dilakukan sedini mungkin jika diperlukan.
 
 **Kapan Perlu ke Dokter**
-Segera konsultasikan ke tenaga kesehatan jika berat badan tidak naik sama sekali dalam 2 bulan berturut-turut, atau jika si kecil tampak lesu, tidak aktif seperti biasanya, atau nafsu makan menurun drastis dan tidak membaik dalam beberapa hari.' WHERE id = 78;
+Segera konsultasikan ke tenaga kesehatan jika berat badan tidak naik sama sekali dalam 2 bulan berturut-turut, atau jika si kecil tampak lesu, tidak aktif seperti biasanya, atau nafsu makan menurun drastis dan tidak membaik dalam beberapa hari.'
+WHERE anak_id = '019fe204-d233-737e-ae03-e0eeb36a46fd' AND tanggal_ukur = '2026-06-03';
 
 -- Bella (kurang)
 UPDATE pengukuran SET insight_teks = '**Kondisi Saat Ini**
@@ -665,7 +678,8 @@ Berat badan dan tinggi badan si kecil saat ini sedikit di bawah rata-rata anak s
 3. Jika si kecil sulit makan, coba variasikan tampilan, tekstur, dan rasa makanan agar lebih menarik dan nafsu makan meningkat secara perlahan.
 
 **Kapan Perlu ke Dokter**
-Segera bawa ke puskesmas jika berat badan tidak bertambah dalam sebulan penuh, atau jika si kecil sering sakit berulang, rewel terus-menerus, tampak sangat lemas, atau ada tanda-tanda anemia seperti wajah pucat dan mudah lelah.' WHERE id = 84;
+Segera bawa ke puskesmas jika berat badan tidak bertambah dalam sebulan penuh, atau jika si kecil sering sakit berulang, rewel terus-menerus, tampak sangat lemas, atau ada tanda-tanda anemia seperti wajah pucat dan mudah lelah.'
+WHERE anak_id = '019fe204-d233-737e-ae03-e0efb6a31b03' AND tanggal_ukur = '2026-06-03';
 
 -- Bimo (buruk)
 UPDATE pengukuran SET insight_teks = '**Kondisi Saat Ini**
@@ -677,7 +691,8 @@ Berdasarkan hasil pengukuran terbaru, berat badan dan tinggi badan si kecil bera
 3. Pastikan si kecil tidak melewatkan satu pun waktu makan dan selalu tawarkan makanan tambahan di antara waktu makan utama untuk mendukung proses kejar tumbuh.
 
 **Kapan Perlu ke Dokter**
-Si kecil sangat disarankan untuk segera dirujuk ke dokter spesialis anak. Jangan tunda kunjungan jika si kecil mengalami penurunan berat badan, menolak makan sama sekali selama lebih dari 2 hari, tampak sangat lemas dan tidak responsif, atau terdapat pembengkakan pada kaki dan tangan yang bisa menjadi tanda kekurangan protein berat.' WHERE id = 90;
+Si kecil sangat disarankan untuk segera dirujuk ke dokter spesialis anak. Jangan tunda kunjungan jika si kecil mengalami penurunan berat badan, menolak makan sama sekali selama lebih dari 2 hari, tampak sangat lemas dan tidak responsif, atau terdapat pembengkakan pada kaki dan tangan yang bisa menjadi tanda kekurangan protein berat.'
+WHERE anak_id = '019fe204-d233-737e-ae03-e0f00c66a86d' AND tanggal_ukur = '2026-06-03';
 
 -- ==========================================================
 -- TIER 7: Notifikasi

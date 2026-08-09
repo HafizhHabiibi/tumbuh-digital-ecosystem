@@ -58,7 +58,7 @@ export const createOrangTua = async (req, res) => {
                 nik,
             },
             "Akun orang tua berhasil dibuat",
-            200,
+            201,
         );
     } catch (err) {
         return error(res, err.message);
@@ -114,6 +114,11 @@ export const createAnak = async (req, res) => {
 
         if (!/^\d{4}-\d{2}-\d{2}$/.test(tanggal_lahir)) {
             return error(res, "Format tanggal lahir harus YYYY-MM-DD", 400);
+        }
+
+        const tglLahir = new Date(tanggal_lahir);
+        if (isNaN(tglLahir.getTime()) || tglLahir > new Date()) {
+            return error(res, "Tanggal lahir tidak valid atau tidak boleh di masa depan", 400);
         }
 
         const orangTua = await OrangTuaModel.findById(orang_tua_id);

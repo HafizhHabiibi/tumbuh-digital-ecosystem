@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS anak (
     nama VARCHAR(100) NOT NULL,
     jenis_kelamin ENUM('L', 'P') NOT NULL,
     tanggal_lahir DATE NOT NULL,
-    nik VARCHAR(16),
+    nik VARCHAR(16) UNIQUE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (orang_tua_id) REFERENCES orang_tua(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -1,4 +1,4 @@
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import { error } from "../utils/response.js";
 
 export const ipRateLimit = rateLimit({
@@ -7,8 +7,8 @@ export const ipRateLimit = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
     skipSuccessfulRequests: true,
-    // req.ip sudah terpercaya karena trust proxy dikonfigurasi di app.js
-    keyGenerator: (req) => req.ip,
+    // Gunakan ipKeyGenerator untuk normalisasi IPv6 agar user tidak bisa bypass limit
+    keyGenerator: (req) => ipKeyGenerator(req),
 
     handler: (req, res) => {
         const retryAfter = Math.ceil(
@@ -28,10 +28,10 @@ export const emailRateLimit = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
     skipSuccessfulRequests: true,
-    // Key berdasarkan email — fallback ke IP jika email tidak ada di body
+    // Key berdasarkan email — fallback ke IP (dengan normalisasi IPv6) jika email tidak ada di body
     keyGenerator: (req) => {
         const email = req.body?.email?.toLowerCase()?.trim();
-        return email ? `email:${email}` : req.ip;
+        return email ? `email:${email}` : ipKeyGenerator(req);
     },
 
     handler: (req, res) => {

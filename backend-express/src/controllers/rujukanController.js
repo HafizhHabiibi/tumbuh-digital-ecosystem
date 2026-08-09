@@ -37,6 +37,10 @@ export const createRujukan = async (req, res) => {
             return error(res, "Data pengukuran tidak ditemukan", 404);
         }
 
+        if (pengukuran.anak_id !== anak_id) {
+            return error(res, "Pengukuran tidak sesuai dengan data anak yang dirujuk", 400);
+        }
+
         if (pengukuran.kategori_risiko === "rendah") {
             return error(
                 res,

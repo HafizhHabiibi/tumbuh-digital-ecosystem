@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS orang_tua (
     no_hp VARCHAR(20),
     alamat TEXT,
     nik VARCHAR(16) UNIQUE,
-    fcm_token TEXT DEFAULT NULL,
+    fcm_token VARCHAR(512) DEFAULT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (dibuat_oleh_kader_id) REFERENCES kader(id) ON DELETE SET NULL
@@ -102,7 +102,10 @@ CREATE TABLE IF NOT EXISTS pengukuran (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (anak_id) REFERENCES anak(id) ON DELETE CASCADE,
     FOREIGN KEY (kader_id) REFERENCES kader(id) ON DELETE CASCADE,
-    UNIQUE KEY unique_anak_tanggal (anak_id, tanggal_ukur)
+    UNIQUE KEY unique_anak_tanggal (anak_id, tanggal_ukur),
+    -- Secondary indexes untuk query performa dashboard & laporan
+    INDEX idx_pengukuran_risiko (kategori_risiko),
+    INDEX idx_pengukuran_tanggal (tanggal_ukur)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ==========================================================
@@ -129,7 +132,10 @@ CREATE TABLE IF NOT EXISTS pemberian (
     keterangan TEXT DEFAULT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (anak_id) REFERENCES anak(id) ON DELETE CASCADE,
-    FOREIGN KEY (kader_id) REFERENCES kader(id) ON DELETE CASCADE
+    FOREIGN KEY (kader_id) REFERENCES kader(id) ON DELETE CASCADE,
+    -- Mencegah duplikasi: kader tidak bisa input jenis yang sama 2x pada hari yang sama
+    UNIQUE KEY unique_pemberian (anak_id, jenis, tanggal_pemberian),
+    INDEX idx_pemberian_anak (anak_id, tanggal_pemberian)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ==========================================================
@@ -152,7 +158,9 @@ CREATE TABLE IF NOT EXISTS rujukan (
     FOREIGN KEY (anak_id) REFERENCES anak(id) ON DELETE CASCADE,
     FOREIGN KEY (kader_id) REFERENCES kader(id) ON DELETE CASCADE,
     FOREIGN KEY (puskesmas_id) REFERENCES puskesmas(id) ON DELETE SET NULL,
-    FOREIGN KEY (pengukuran_id) REFERENCES pengukuran(id) ON DELETE CASCADE
+    FOREIGN KEY (pengukuran_id) REFERENCES pengukuran(id) ON DELETE CASCADE,
+    INDEX idx_rujukan_anak_status (anak_id, status),
+    INDEX idx_rujukan_puskesmas (puskesmas_id, status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ==========================================================
@@ -167,7 +175,8 @@ CREATE TABLE IF NOT EXISTS jadwal_posyandu (
     lokasi VARCHAR(255) NOT NULL,
     keterangan TEXT DEFAULT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (kader_id) REFERENCES kader(id) ON DELETE CASCADE
+    FOREIGN KEY (kader_id) REFERENCES kader(id) ON DELETE CASCADE,
+    INDEX idx_jadwal_tanggal (tanggal)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ==========================================================
@@ -185,18 +194,26 @@ CREATE TABLE IF NOT EXISTS notifikasi (
     rujukan_id INT DEFAULT NULL,
     FOREIGN KEY (orang_tua_id) REFERENCES orang_tua(id) ON DELETE CASCADE,
     FOREIGN KEY (jadwal_id) REFERENCES jadwal_posyandu(id) ON DELETE SET NULL,
-    FOREIGN KEY (rujukan_id) REFERENCES rujukan(id) ON DELETE SET NULL
+    FOREIGN KEY (rujukan_id) REFERENCES rujukan(id) ON DELETE SET NULL,
+    -- Mempercepat query inbox & badge count per orang tua
+    INDEX idx_notifikasi_inbox (orang_tua_id, sudah_dibaca)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ==========================================================
 -- 11. REFRESH TOKENS
+-- NOTE: user_id TIDAK UNIQUE — satu user bisa punya banyak refresh token
+--       aktif secara bersamaan (multi-device login).
+--       Yang UNIQUE adalah token itu sendiri.
+--       Cleanup token expired dapat dilakukan via scheduled job:
+--         DELETE FROM refresh_tokens WHERE expires_at < NOW();
 -- ==========================================================
 CREATE TABLE IF NOT EXISTS refresh_tokens (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id CHAR(36) NOT NULL UNIQUE,
-    token TEXT NOT NULL,
+    user_id CHAR(36) NOT NULL,
+    token VARCHAR(512) NOT NULL UNIQUE,
     expires_at DATETIME NOT NULL,
     revoked TINYINT(1) NOT NULL DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_refresh_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

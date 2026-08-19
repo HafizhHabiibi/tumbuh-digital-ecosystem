@@ -110,3 +110,20 @@ export const updateFcmToken = async (user_id, fcm_token) => {
         [fcm_token, user_id],
     );
 };
+
+export const update = async (id, data) => {
+    await db.query(
+        `UPDATE orang_tua
+        SET nama_lengkap = ?, no_hp = ?, alamat = ?, nik = ?
+        WHERE id = ?`,
+        [data.nama_lengkap, data.no_hp, data.alamat, data.nik, id],
+    );
+};
+
+export const findByNikExcluding = async (nik, excludeId) => {
+    const [rows] = await db.query(
+        `SELECT id FROM orang_tua WHERE nik = ? AND id != ?`,
+        [nik, excludeId],
+    );
+    return rows[0] || null;
+};

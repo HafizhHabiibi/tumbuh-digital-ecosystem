@@ -85,3 +85,12 @@ export const create = async (data) => {
     );
     return { id, ...data };
 };
+
+export const update = async (id, data) => {
+    await db.query(
+        `UPDATE anak
+        SET nama = ?, jenis_kelamin = ?, tanggal_lahir = ?, nik = ?
+        WHERE id = ?`,
+        [data.nama, data.jenis_kelamin, data.tanggal_lahir, data.nik, id],
+    );
+};

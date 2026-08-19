@@ -199,3 +199,99 @@ export const getAnakByOrangTua = async (req, res) => {
         return error(res, err.message);
     }
 };
+
+export const updateOrangTua = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nama_lengkap, no_hp, alamat, nik } = req.body;
+
+        if (!nama_lengkap || !no_hp || !alamat || !nik) {
+            return error(
+                res,
+                "nama_lengkap, no_hp, alamat, dan nik wajib diisi",
+                400,
+            );
+        }
+
+        if (!/^\d{16}$/.test(nik)) {
+            return error(res, "NIK harus terdiri dari 16 digit angka", 400);
+        }
+
+        const orangTua = await OrangTuaModel.findById(id);
+        if (!orangTua) {
+            return error(res, "Orang tua tidak ditemukan", 404);
+        }
+
+        // Cek NIK unik (exclude orang tua ini sendiri)
+        const nikExists = await OrangTuaModel.findByNikExcluding(nik, id);
+        if (nikExists) {
+            return error(res, "NIK ini sudah digunakan oleh orang tua lain", 409);
+        }
+
+        await OrangTuaModel.update(id, { nama_lengkap, no_hp, alamat, nik });
+
+        return success(
+            res,
+            { id, nama_lengkap, no_hp, alamat, nik },
+            "Data orang tua berhasil diperbarui",
+        );
+    } catch (err) {
+        return error(res, err.message);
+    }
+};
+
+export const updateAnak = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nama, jenis_kelamin, tanggal_lahir, nik } = req.body;
+
+        if (!nama || !jenis_kelamin || !tanggal_lahir) {
+            return error(
+                res,
+                "nama, jenis_kelamin, dan tanggal_lahir wajib diisi",
+                400,
+            );
+        }
+
+        if (!["L", "P"].includes(jenis_kelamin)) {
+            return error(res, "Jenis kelamin harus L atau P", 400);
+        }
+
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(tanggal_lahir)) {
+            return error(res, "Format tanggal lahir harus YYYY-MM-DD", 400);
+        }
+
+        const tglLahir = new Date(tanggal_lahir);
+        if (isNaN(tglLahir.getTime()) || tglLahir > new Date()) {
+            return error(
+                res,
+                "Tanggal lahir tidak valid atau tidak boleh di masa depan",
+                400,
+            );
+        }
+
+        if (nik && !/^\d{16}$/.test(nik)) {
+            return error(res, "NIK harus terdiri dari 16 digit angka", 400);
+        }
+
+        const anak = await AnakModel.findById(id);
+        if (!anak) {
+            return error(res, "Data anak tidak ditemukan", 404);
+        }
+
+        await AnakModel.update(id, {
+            nama,
+            jenis_kelamin,
+            tanggal_lahir,
+            nik: nik || null,
+        });
+
+        return success(
+            res,
+            { id, nama, jenis_kelamin, tanggal_lahir, nik: nik || null },
+            "Data anak berhasil diperbarui",
+        );
+    } catch (err) {
+        return error(res, err.message);
+    }
+};

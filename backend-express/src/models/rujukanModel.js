@@ -3,9 +3,9 @@ import db from "../database/connection.js";
 export const create = async (data) => {
     const [result] = await db.query(
         `INSERT INTO rujukan
-        (anak_id, kader_id, puskesmas_id, pengukuran_id, status, catatan_kader)
-        VALUES (?, ?, NULL, ?, 'diajukan', ?)`,
-        [data.anak_id, data.kader_id, data.pengukuran_id, data.catatan_kader],
+        (kader_id, puskesmas_id, pengukuran_id, status, catatan_kader)
+        VALUES (?, NULL, ?, 'diajukan', ?)`,
+        [data.kader_id, data.pengukuran_id, data.catatan_kader],
     );
     return result.insertId;
 };
@@ -25,14 +25,15 @@ export const findAll = async () => {
             ot.nama_lengkap AS nama_orang_tua,
             ot.no_hp AS no_hp_orang_tua,
             k.nama_lengkap AS nama_kader,
-            p.skor_saw AS skor_akhir,
-            p.kategori_risiko,
+            p.berat_badan,
+            p.tinggi_badan,
+            DATE_FORMAT(p.tanggal_ukur, '%Y-%m-%d') AS tanggal_ukur,
             pu.nama_lengkap AS ditangani_oleh
         FROM rujukan r
-        JOIN anak a ON a.id = r.anak_id
+        JOIN pengukuran p ON p.id = r.pengukuran_id
+        JOIN anak a ON a.id = p.anak_id
         JOIN orang_tua ot ON ot.id = a.orang_tua_id
         JOIN kader k ON k.id = r.kader_id
-        JOIN pengukuran p ON p.id = r.pengukuran_id
         LEFT JOIN puskesmas pu ON pu.id = r.puskesmas_id
         ORDER BY r.created_at DESC`,
     );
@@ -49,21 +50,16 @@ export const findById = async (id) => {
             ot.nama_lengkap AS nama_orang_tua,
             ot.no_hp        AS no_hp_orang_tua,
             k.nama_lengkap  AS nama_kader,
-            CAST(p.skor_saw AS DECIMAL(5,4))         AS skor_akhir,
-            p.kategori_risiko,
             DATE_FORMAT(p.tanggal_ukur, '%Y-%m-%d')  AS tanggal_ukur,
             CAST(p.berat_badan  AS DECIMAL(5,2))     AS berat_badan,
             CAST(p.tinggi_badan AS DECIMAL(5,2))     AS tinggi_badan,
-            CAST(p.zscore_bbu   AS DECIMAL(6,3))     AS zscore_bbu,
-            CAST(p.zscore_tbu   AS DECIMAL(6,3))     AS zscore_tbu,
-            CAST(p.zscore_bbtb  AS DECIMAL(6,3))     AS zscore_bbtb,
-            p.status_gizi,
+            p.anak_id,
             pu.nama_lengkap AS ditangani_oleh
         FROM rujukan r
-        JOIN anak a              ON a.id  = r.anak_id
+        JOIN pengukuran p        ON p.id  = r.pengukuran_id
+        JOIN anak a              ON a.id  = p.anak_id
         JOIN orang_tua ot        ON ot.id = a.orang_tua_id
         JOIN kader k             ON k.id  = r.kader_id
-        JOIN pengukuran p        ON p.id  = r.pengukuran_id
         LEFT JOIN puskesmas pu   ON pu.id = r.puskesmas_id
         WHERE r.id = ?`,
         [id],
@@ -73,12 +69,8 @@ export const findById = async (id) => {
 
     return {
         ...rows[0],
-        skor_akhir: parseFloat(rows[0].skor_akhir),
         berat_badan: parseFloat(rows[0].berat_badan),
         tinggi_badan: parseFloat(rows[0].tinggi_badan),
-        zscore_bbu: parseFloat(rows[0].zscore_bbu),
-        zscore_tbu: parseFloat(rows[0].zscore_tbu),
-        zscore_bbtb: parseFloat(rows[0].zscore_bbtb),
     };
 };
 
@@ -91,27 +83,23 @@ export const findByAnak = async (anak_id) => {
             r.catatan_puskesmas,
             r.created_at,
             r.validated_at,
-            p.skor_saw AS skor_akhir,
-            p.kategori_risiko,
             pu.nama_lengkap AS ditangani_oleh
         FROM rujukan r
         JOIN pengukuran p ON p.id = r.pengukuran_id
         LEFT JOIN puskesmas pu ON pu.id = r.puskesmas_id
-        WHERE r.anak_id = ?
+        WHERE p.anak_id = ?
         ORDER BY r.created_at DESC`,
         [anak_id],
     );
-    return rows.map((row) => ({
-        ...row,
-        skor_akhir: row.skor_akhir !== null ? parseFloat(row.skor_akhir) : null,
-    }));
+    return rows;
 };
 
 export const findAktifByAnak = async (anak_id) => {
     const [rows] = await db.query(
-        `SELECT id FROM rujukan
-        WHERE anak_id = ?
-        AND status != 'selesai'`,
+        `SELECT r.id FROM rujukan r
+        JOIN pengukuran p ON p.id = r.pengukuran_id
+        WHERE p.anak_id = ?
+        AND r.status != 'selesai'`,
         [anak_id],
     );
     return rows[0] || null;

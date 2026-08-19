@@ -2,7 +2,9 @@ import * as PengukuranModel from "../models/pengukuranModel.js";
 import * as AnakModel from "../models/anakModel.js";
 import * as zscoreService from "../services/zscoreService.js";
 import * as sawService from "../services/sawService.js";
+import * as pengukuranService from "../services/pengukuranService.js";
 import * as geminiService from "../services/geminiService.js";
+import * as fcmService from "../services/fcmService.js";
 import { success, error } from "../utils/response.js";
 
 export const createPengukuran = async (req, res) => {
@@ -61,15 +63,7 @@ export const createPengukuran = async (req, res) => {
             );
         }
 
-        // req.kader diinjeksi oleh middleware requireKader
-        const zscores = zscoreService.hitungSemuaZScore({
-            berat_badan,
-            tinggi_badan,
-            tanggal_lahir: anak.tanggal_lahir,
-            tanggal_ukur,
-            jenis_kelamin: anak.jenis_kelamin,
-        });
-
+        // Simpan HANYA raw data ke database (3NF)
         const pengukuran_id = await PengukuranModel.createPengukuran({
             anak_id,
             kader_id: req.kader.id,
@@ -78,19 +72,52 @@ export const createPengukuran = async (req, res) => {
             tinggi_badan,
             lingkar_kepala,
             lingkar_lengan,
-            zscore_bbu: zscores.zscore_bbu,
-            zscore_tbu: zscores.zscore_tbu,
-            zscore_bbtb: zscores.zscore_bbtb,
-            status_gizi: zscores.status_gizi,
         });
 
-        const sawResult = await sawService.hitungSAW(
-            anak_id,
-            pengukuran_id,
-            zscores,
-            { berat_badan, tanggal_ukur },
+        // Hitung z-score on-the-fly untuk response
+        const zscores = zscoreService.hitungSemuaZScore({
+            berat_badan,
+            tinggi_badan,
+            tanggal_lahir: anak.tanggal_lahir,
+            tanggal_ukur,
+            jenis_kelamin: anak.jenis_kelamin,
+        });
+
+        // Hitung SAW on-the-fly untuk response
+        const prevBB = await PengukuranModel.findPreviousBB(anak_id, tanggal_ukur);
+        const tren_bb = prevBB !== null
+            ? parseFloat((berat_badan - prevBB).toFixed(3))
+            : null;
+
+        const sawResult = sawService.hitungSAW(
+            { zscore_bbu: zscores.zscore_bbu, zscore_tbu: zscores.zscore_tbu, zscore_bbtb: zscores.zscore_bbtb },
+            tren_bb,
         );
 
+        // Notifikasi ke orang tua bahwa anak sudah diukur
+        const STATUS_LABEL = {
+            buruk: "gizi buruk",
+            kurang: "gizi kurang",
+            normal: "gizi normal",
+            lebih: "gizi lebih",
+            obesitas: "obesitas",
+        };
+        const statusLabel = STATUS_LABEL[zscores.status_gizi] || zscores.status_gizi;
+
+        fcmService
+            .sendNotification(
+                anak.orang_tua_id,
+                `Hasil Pengukuran ${anak.nama}`,
+                `${anak.nama} telah diukur pada ${tanggal_ukur}. ` +
+                `BB: ${berat_badan}kg, TB: ${tinggi_badan}cm. ` +
+                `Status gizi: ${statusLabel}. ` +
+                `Cek detail lengkap di aplikasi.`,
+                "pengukuran",
+                pengukuran_id,
+            )
+            .catch((err) => console.error("[FCM PENGUKURAN]", err.message));
+
+        // Generate AI insight async (fire-and-forget)
         geminiService
             .generateInsight(anak_id, pengukuran_id, {
                 jenis_kelamin: anak.jenis_kelamin,
@@ -148,7 +175,8 @@ export const getRiwayatPengukuran = async (req, res) => {
             return error(res, "Data anak tidak ditemukan", 404);
         }
 
-        const riwayat = await PengukuranModel.findByAnak(anak_id);
+        const rawRiwayat = await PengukuranModel.findByAnak(anak_id);
+        const riwayat = pengukuranService.enrichPengukuranList(rawRiwayat, anak);
 
         return success(
             res,
@@ -167,12 +195,17 @@ export const getDetailPengukuran = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const pengukuran = await PengukuranModel.findById(id);
-        if (!pengukuran) {
+        const raw = await PengukuranModel.findById(id);
+        if (!raw) {
             return error(res, "Data pengukuran tidak ditemukan", 404);
         }
 
-        return success(res, pengukuran, "Detail pengukuran berhasil diambil");
+        const enriched = pengukuranService.enrichPengukuran(raw, {
+            tanggal_lahir: raw.tanggal_lahir,
+            jenis_kelamin: raw.jenis_kelamin,
+        });
+
+        return success(res, enriched, "Detail pengukuran berhasil diambil");
     } catch (err) {
         return error(res, err.message);
     }
@@ -180,7 +213,7 @@ export const getDetailPengukuran = async (req, res) => {
 
 export const getRankingAnak = async (req, res) => {
     try {
-        const ranking = await sawService.getRankingSAW();
+        const ranking = await pengukuranService.getRankingAllAnak();
         return success(res, ranking, "Ranking anak berhasil diambil");
     } catch (err) {
         return error(res, err.message);
@@ -191,7 +224,7 @@ export const getDetailSAW = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const detail = await sawService.getDetailSAW(id);
+        const detail = await pengukuranService.getDetailSAW(id);
         if (!detail) {
             return error(res, "Data SAW tidak ditemukan", 404);
         }

@@ -74,10 +74,12 @@ CREATE TABLE IF NOT EXISTS anak (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ==========================================================
--- 6. PENGUKURAN (+ skor_saw, kategori_risiko, insight_teks)
--- NOTE: zscore_*, status_gizi, skor_saw, kategori_risiko, insight_teks
---       adalah derived/computed values yang disimpan (bukan dihitung ulang)
---       untuk efisiensi query. Ini adalah intentional denormalization.
+-- 6. PENGUKURAN
+-- NOTE: Hanya menyimpan data mentah hasil pengukuran (3NF).
+--       Z-Score, status gizi, SAW, dan kategori risiko dihitung
+--       on-the-fly di application layer.
+--       insight_teks bukan derived data — ini konten yang
+--       digenerate AI (non-deterministic), sehingga harus disimpan.
 -- ==========================================================
 CREATE TABLE IF NOT EXISTS pengukuran (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -88,23 +90,12 @@ CREATE TABLE IF NOT EXISTS pengukuran (
     tinggi_badan DECIMAL(5,2) NOT NULL,
     lingkar_kepala DECIMAL(5,2) DEFAULT NULL,
     lingkar_lengan DECIMAL(5,2) DEFAULT NULL,
-    -- Derived: dihitung dari berat/tinggi/umur, disimpan untuk performa
-    zscore_bbu DECIMAL(6,3) DEFAULT NULL,
-    zscore_tbu DECIMAL(6,3) DEFAULT NULL,
-    zscore_bbtb DECIMAL(6,3) DEFAULT NULL,
-    status_gizi ENUM('buruk', 'kurang', 'normal', 'lebih', 'obesitas') DEFAULT 'normal',
-    -- SAW snapshot: disimpan saat pengukuran dibuat, tidak dihitung ulang
-    -- tren_bb = selisih BB dari pengukuran sebelumnya (kg), NULL jika pertama kali
-    tren_bb DECIMAL(5,3) DEFAULT NULL,
-    skor_saw DECIMAL(6,4) DEFAULT NULL,
-    kategori_risiko ENUM('rendah', 'sedang', 'tinggi') DEFAULT NULL,
+    -- AI-generated content (non-deterministic, disimpan karena tidak bisa direproduksi)
     insight_teks TEXT DEFAULT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (anak_id) REFERENCES anak(id) ON DELETE CASCADE,
     FOREIGN KEY (kader_id) REFERENCES kader(id) ON DELETE CASCADE,
     UNIQUE KEY unique_anak_tanggal (anak_id, tanggal_ukur),
-    -- Secondary indexes untuk query performa dashboard & laporan
-    INDEX idx_pengukuran_risiko (kategori_risiko),
     INDEX idx_pengukuran_tanggal (tanggal_ukur)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -140,13 +131,11 @@ CREATE TABLE IF NOT EXISTS pemberian (
 
 -- ==========================================================
 -- 8. RUJUKAN (simplified: 3 status, pengukuran_id, puskesmas_id)
--- NOTE: anak_id secara teknis bisa diambil dari pengukuran.anak_id,
---       namun disimpan di sini sebagai intentional denormalization
---       untuk mempermudah query langsung tanpa JOIN ke pengukuran.
+-- NOTE: anak_id dihapus untuk 3NF — didapat via
+--       pengukuran_id → pengukuran.anak_id (JOIN).
 -- ==========================================================
 CREATE TABLE IF NOT EXISTS rujukan (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    anak_id CHAR(36) NOT NULL,   -- intentional denorm dari pengukuran.anak_id
     kader_id CHAR(36) NOT NULL,
     puskesmas_id CHAR(36) DEFAULT NULL,
     pengukuran_id INT NOT NULL,
@@ -155,21 +144,34 @@ CREATE TABLE IF NOT EXISTS rujukan (
     catatan_puskesmas TEXT DEFAULT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     validated_at DATETIME DEFAULT NULL,
-    FOREIGN KEY (anak_id) REFERENCES anak(id) ON DELETE CASCADE,
     FOREIGN KEY (kader_id) REFERENCES kader(id) ON DELETE CASCADE,
     FOREIGN KEY (puskesmas_id) REFERENCES puskesmas(id) ON DELETE SET NULL,
     FOREIGN KEY (pengukuran_id) REFERENCES pengukuran(id) ON DELETE CASCADE,
-    INDEX idx_rujukan_anak_status (anak_id, status),
+    INDEX idx_rujukan_pengukuran (pengukuran_id),
     INDEX idx_rujukan_puskesmas (puskesmas_id, status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ==========================================================
--- 9. JADWAL POSYANDU
+-- 9a. PENGATURAN JADWAL (template default — singleton, max 1 row)
+-- ==========================================================
+CREATE TABLE IF NOT EXISTS pengaturan_jadwal (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    hari_tetap TINYINT NOT NULL CHECK (hari_tetap BETWEEN 1 AND 28),
+    waktu_mulai TIME NOT NULL,
+    waktu_selesai TIME NOT NULL,
+    lokasi_default VARCHAR(255) NOT NULL,
+    updated_by CHAR(36) DEFAULT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (updated_by) REFERENCES kader(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ==========================================================
+-- 9b. JADWAL POSYANDU
 -- ==========================================================
 CREATE TABLE IF NOT EXISTS jadwal_posyandu (
     id INT AUTO_INCREMENT PRIMARY KEY,
     kader_id CHAR(36) NOT NULL,
-    tanggal DATE NOT NULL,
+    tanggal DATE NOT NULL UNIQUE,
     waktu_mulai TIME NOT NULL,
     waktu_selesai TIME NOT NULL,
     lokasi VARCHAR(255) NOT NULL,
@@ -187,14 +189,16 @@ CREATE TABLE IF NOT EXISTS notifikasi (
     orang_tua_id CHAR(36) NOT NULL,
     judul VARCHAR(255) NOT NULL,
     pesan TEXT NOT NULL,
-    tipe ENUM('umum', 'jadwal', 'rujukan') DEFAULT 'umum',
+    tipe ENUM('jadwal', 'rujukan', 'pengukuran') NOT NULL,
     sudah_dibaca BOOLEAN DEFAULT FALSE,
     sent_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     jadwal_id INT DEFAULT NULL,
     rujukan_id INT DEFAULT NULL,
+    pengukuran_id INT DEFAULT NULL,
     FOREIGN KEY (orang_tua_id) REFERENCES orang_tua(id) ON DELETE CASCADE,
     FOREIGN KEY (jadwal_id) REFERENCES jadwal_posyandu(id) ON DELETE SET NULL,
     FOREIGN KEY (rujukan_id) REFERENCES rujukan(id) ON DELETE SET NULL,
+    FOREIGN KEY (pengukuran_id) REFERENCES pengukuran(id) ON DELETE SET NULL,
     -- Mempercepat query inbox & badge count per orang tua
     INDEX idx_notifikasi_inbox (orang_tua_id, sudah_dibaca)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

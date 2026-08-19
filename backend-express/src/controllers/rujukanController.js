@@ -2,6 +2,7 @@ import * as RujukanModel from "../models/rujukanModel.js";
 import * as AnakModel from "../models/anakModel.js";
 import * as PuskesmasModel from "../models/puskesmasModel.js";
 import * as PengukuranModel from "../models/pengukuranModel.js";
+import * as pengukuranService from "../services/pengukuranService.js";
 import * as fcmService from "../services/fcmService.js";
 import { success, error } from "../utils/response.js";
 
@@ -41,15 +42,17 @@ export const createRujukan = async (req, res) => {
             return error(res, "Pengukuran tidak sesuai dengan data anak yang dirujuk", 400);
         }
 
-        if (pengukuran.kategori_risiko === "rendah") {
+        // Hitung SAW on-the-fly untuk validasi kategori risiko
+        const sawDetail = await pengukuranService.getDetailSAW(pengukuran_id);
+        if (sawDetail && sawDetail.kategori_risiko === "rendah") {
             return error(
                 res,
                 "Rujukan hanya bisa diajukan untuk anak dengan risiko sedang atau tinggi",
                 400,
             );
         }
+
         const id = await RujukanModel.create({
-            anak_id,
             kader_id: req.kader.id,
             pengukuran_id,
             catatan_kader,
@@ -74,7 +77,7 @@ export const createRujukan = async (req, res) => {
                 pengukuran_id,
                 status: "diajukan",
                 catatan_kader,
-                kategori_risiko: pengukuran.kategori_risiko,
+                kategori_risiko: sawDetail?.kategori_risiko || null,
             },
             "Rujukan berhasil diajukan",
             201,
@@ -147,6 +150,7 @@ export const updateStatusRujukan = async (req, res) => {
             puskesmas_id,
         });
 
+        // anak_id didapat dari rujukan (via pengukuran JOIN)
         const anak = await AnakModel.findById(rujukan.anak_id);
         const pesanStatus = {
             ditangani: "Rujukan anak Anda sedang ditangani oleh puskesmas. Silakan datang untuk pemeriksaan.",

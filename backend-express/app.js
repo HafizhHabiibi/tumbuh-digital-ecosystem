@@ -3,6 +3,7 @@ import cors from "cors";
 import "dotenv/config";
 import authRoutes from "./src/routes/auth.js";
 import kaderRoutes from "./src/routes/kader.js";
+import puskesmasRoutes from "./src/routes/puskesmas.js";
 import pengukuranRoutes from "./src/routes/pengukuran.js";
 import pemberianRoutes from "./src/routes/pemberian.js";
 import rujukanRoutes from "./src/routes/rujukan.js";
@@ -22,6 +23,7 @@ app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/kader", kaderRoutes);
+app.use("/api/puskesmas", puskesmasRoutes);
 app.use("/api/pengukuran", pengukuranRoutes);
 app.use("/api/pemberian", pemberianRoutes);
 app.use("/api/rujukan", rujukanRoutes);

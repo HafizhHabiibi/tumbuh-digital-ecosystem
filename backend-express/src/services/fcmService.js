@@ -43,12 +43,13 @@ export const sendNotification = async (
 
         await db.query(
             `INSERT INTO notifikasi
-            (orang_tua_id, rujukan_id, jadwal_id, judul, pesan, tipe)
-            VALUES (?, ?, ?, ?, ?, ?)`,
+            (orang_tua_id, rujukan_id, jadwal_id, pengukuran_id, judul, pesan, tipe)
+            VALUES (?, ?, ?, ?, ?, ?, ?)`,
             [
                 orang_tua_id,
                 tipe === "rujukan" ? referensi_id : null,
                 tipe === "jadwal" ? referensi_id : null,
+                tipe === "pengukuran" ? referensi_id : null,
                 judul,
                 pesan,
                 tipe,

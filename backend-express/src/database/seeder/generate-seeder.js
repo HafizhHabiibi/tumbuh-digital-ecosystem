@@ -319,7 +319,7 @@ async function generateSeeder() {
     for (const t of [
         "notifikasi", "rujukan",
         "pemberian", "pengukuran",
-        "anak", "jadwal_posyandu",
+        "anak", "jadwal_posyandu", "pengaturan_jadwal",
         "orang_tua", "kader", "puskesmas",
         "refresh_tokens",
         "users"
@@ -413,6 +413,15 @@ async function generateSeeder() {
     }
     lines.push("");
 
+    // ── Pengaturan Jadwal (template default) ────────────────────────────────────
+    lines.push("-- ==========================================================");
+    lines.push("-- TIER 2: Pengaturan Jadwal (template default)");
+    lines.push("-- ==========================================================");
+    lines.push("");
+    lines.push(`INSERT INTO pengaturan_jadwal (hari_tetap, waktu_mulai, waktu_selesai, lokasi_default, updated_by) VALUES`);
+    lines.push(`    (3, '08:00', '11:00', 'Balai RW 05 Kelurahan Cempaka', ${sq(kaderIds[0].kId)});`);
+    lines.push("");
+
     // ══════════════════════════════════════════════════════════════════════════════
     // TIER 3 — anak
     // ══════════════════════════════════════════════════════════════════════════════
@@ -475,8 +484,8 @@ async function generateSeeder() {
             pengMeta[pengMeta.length - 1].kategori = saw.kategori;
             pengMeta[pengMeta.length - 1].tren_bb_kg = tren_bb_kg;
 
-            lines.push(`INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan, zscore_bbu, zscore_tbu, zscore_bbtb, status_gizi, tren_bb, skor_saw, kategori_risiko) VALUES`);
-            lines.push(`    (${sq(anakId)}, ${sq(kId)}, ${sq(date)}, ${w}, ${h}, ${lk ?? "NULL"}, ${ll ?? "NULL"}, ${zbbu}, ${ztbu}, ${zbbtb}, ${sq(sg)}, ${tren_bb_kg ?? "NULL"}, ${saw.skor}, ${sq(saw.kategori)});`);
+            lines.push(`INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan) VALUES`);
+            lines.push(`    (${sq(anakId)}, ${sq(kId)}, ${sq(date)}, ${w}, ${h}, ${lk ?? "NULL"}, ${ll ?? "NULL"});`);
         }
         lines.push("");
     }
@@ -550,8 +559,8 @@ async function generateSeeder() {
         });
 
         lines.push(`-- Rujukan untuk: ${ANAK_LIST[target.aIdx].nama} | Status: ${status}`);
-        lines.push(`INSERT INTO rujukan (anak_id, kader_id, puskesmas_id, pengukuran_id, status, catatan_kader, catatan_puskesmas, validated_at) VALUES`);
-        lines.push(`    (${sq(target.anakId)}, ${sq(kId)}, ${puskesId ? sq(puskesId) : "NULL"}, ${target.pengId}, ${sq(status)}, ${sq(catatanKader)}, ${catatanPusk ? sq(catatanPusk) : "NULL"}, ${validatedAt});`);
+        lines.push(`INSERT INTO rujukan (kader_id, puskesmas_id, pengukuran_id, status, catatan_kader, catatan_puskesmas, validated_at) VALUES`);
+        lines.push(`    (${sq(kId)}, ${puskesId ? sq(puskesId) : "NULL"}, ${target.pengId}, ${sq(status)}, ${sq(catatanKader)}, ${catatanPusk ? sq(catatanPusk) : "NULL"}, ${validatedAt});`);
         lines.push("");
     }
 

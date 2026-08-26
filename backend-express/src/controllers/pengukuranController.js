@@ -30,7 +30,10 @@ export const createPengukuran = async (req, res) => {
             return error(res, "Format tanggal harus YYYY-MM-DD", 400);
         }
 
-        if (berat_badan <= 0 || berat_badan > 30) {
+        const berat = Number(berat_badan);
+        const tinggi = Number(tinggi_badan);
+
+        if (!Number.isFinite(berat) || berat <= 0 || berat > 30) {
             return error(
                 res,
                 "Berat badan tidak valid, harus antara 0-30 kg",
@@ -38,7 +41,7 @@ export const createPengukuran = async (req, res) => {
             );
         }
 
-        if (tinggi_badan <= 0 || tinggi_badan > 120) {
+        if (!Number.isFinite(tinggi) || tinggi <= 0 || tinggi > 120) {
             return error(
                 res,
                 "Tinggi badan tidak valid, harus antara 0-120 cm",
@@ -63,36 +66,41 @@ export const createPengukuran = async (req, res) => {
             );
         }
 
-        // Simpan HANYA raw data ke database (3NF)
-        const pengukuran_id = await PengukuranModel.createPengukuran({
-            anak_id,
-            kader_id: req.kader.id,
-            tanggal_ukur,
-            berat_badan,
-            tinggi_badan,
-            lingkar_kepala,
-            lingkar_lengan,
-        });
-
-        // Hitung z-score on-the-fly untuk response
+        // Validasi domain dan hitung sebelum insert agar data invalid tidak tersimpan.
         const zscores = zscoreService.hitungSemuaZScore({
-            berat_badan,
-            tinggi_badan,
+            berat_badan: berat,
+            tinggi_badan: tinggi,
             tanggal_lahir: anak.tanggal_lahir,
             tanggal_ukur,
             jenis_kelamin: anak.jenis_kelamin,
         });
 
         // Hitung SAW on-the-fly untuk response
-        const prevBB = await PengukuranModel.findPreviousBB(anak_id, tanggal_ukur);
-        const tren_bb = prevBB !== null
-            ? parseFloat((berat_badan - prevBB).toFixed(3))
+        const previous = await PengukuranModel.findPrevious(anak_id, tanggal_ukur);
+        const tren_bb = previous
+            ? sawService.hitungTrenBBPerBulan(
+                berat,
+                previous.berat_badan,
+                tanggal_ukur,
+                previous.tanggal_ukur,
+            )
             : null;
 
         const sawResult = sawService.hitungSAW(
             { zscore_bbu: zscores.zscore_bbu, zscore_tbu: zscores.zscore_tbu, zscore_bbtb: zscores.zscore_bbtb },
             tren_bb,
         );
+
+        // Simpan HANYA raw data ke database (3NF).
+        const pengukuran_id = await PengukuranModel.createPengukuran({
+            anak_id,
+            kader_id: req.kader.id,
+            tanggal_ukur,
+            berat_badan: berat,
+            tinggi_badan: tinggi,
+            lingkar_kepala,
+            lingkar_lengan,
+        });
 
         // Notifikasi ke orang tua bahwa anak sudah diukur
         const STATUS_LABEL = {
@@ -109,7 +117,7 @@ export const createPengukuran = async (req, res) => {
                 anak.orang_tua_id,
                 `Hasil Pengukuran ${anak.nama}`,
                 `${anak.nama} telah diukur pada ${tanggal_ukur}. ` +
-                `BB: ${berat_badan}kg, TB: ${tinggi_badan}cm. ` +
+                `BB: ${berat}kg, TB: ${tinggi}cm. ` +
                 `Status gizi: ${statusLabel}. ` +
                 `Cek detail lengkap di aplikasi.`,
                 "pengukuran",
@@ -122,8 +130,8 @@ export const createPengukuran = async (req, res) => {
             .generateInsight(anak_id, pengukuran_id, {
                 jenis_kelamin: anak.jenis_kelamin,
                 usia_bulan: zscores.usia_bulan,
-                berat_badan,
-                tinggi_badan,
+                berat_badan: berat,
+                tinggi_badan: tinggi,
                 zscore_bbu: zscores.zscore_bbu,
                 zscore_tbu: zscores.zscore_tbu,
                 zscore_bbtb: zscores.zscore_bbtb,
@@ -143,8 +151,8 @@ export const createPengukuran = async (req, res) => {
                 pengukuran_id,
                 anak_id,
                 tanggal_ukur,
-                berat_badan,
-                tinggi_badan,
+                berat_badan: berat,
+                tinggi_badan: tinggi,
                 usia_bulan: zscores.usia_bulan,
                 zscore_bbu: zscores.zscore_bbu,
                 zscore_tbu: zscores.zscore_tbu,
@@ -162,6 +170,9 @@ export const createPengukuran = async (req, res) => {
             201,
         );
     } catch (err) {
+        if (err instanceof zscoreService.ZScoreValidationError) {
+            return error(res, err.message, 400);
+        }
         return error(res, err.message);
     }
 };
@@ -238,8 +249,15 @@ export const getInsight = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const insight = await geminiService.getInsight(id);
-        if (!insight) {
+        const result = await geminiService.getInsightForOrangTua(
+            id,
+            req.orangTua.id,
+        );
+        if (!result) {
+            return error(res, "Data pengukuran tidak ditemukan", 404);
+        }
+
+        if (!result.insight_teks) {
             return success(
                 res,
                 null,
@@ -247,7 +265,7 @@ export const getInsight = async (req, res) => {
             );
         }
 
-        return success(res, insight, "Insight berhasil diambil");
+        return success(res, result, "Insight berhasil diambil");
     } catch (err) {
         return error(res, err.message);
     }

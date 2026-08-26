@@ -257,6 +257,7 @@ export const resetPassword = async (req, res) => {
         const hash = await bcrypt.hash(password_baru, 10);
         await UserModel.updatePassword(user.id, hash);
         await UserModel.updateResetPasswordAt(user.id);
+        await RefreshTokenModel.revokeAllByUser(user.id);
 
         return success(
             res,

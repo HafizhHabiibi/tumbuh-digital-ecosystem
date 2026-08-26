@@ -1,10 +1,5 @@
 import admin from "firebase-admin";
-import { readFileSync } from "fs";
-import { resolve } from "path";
-import { fileURLToPath } from "url";
 import db from "../database/connection.js";
-
-const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
 let initialized = false;
 
@@ -12,11 +7,28 @@ const initFirebase = () => {
     if (initialized) return;
 
     try {
-        const serviceAccount = JSON.parse(
-            readFileSync(resolve(__dirname, "../../firebase-service-account.json"), "utf-8"),
-        );
+        const encodedCredential = process.env.FIREBASE_SERVICE_ACCOUNT_BASE64;
+        const useApplicationDefault =
+            process.env.FIREBASE_USE_APPLICATION_DEFAULT === "true" ||
+            Boolean(process.env.GOOGLE_APPLICATION_CREDENTIALS);
+
+        if (!encodedCredential && !useApplicationDefault) {
+            console.warn(
+                "[FCM WARNING] Credential Firebase tidak dikonfigurasi",
+            );
+            return;
+        }
+
+        const credential = encodedCredential
+            ? admin.credential.cert(
+                JSON.parse(
+                    Buffer.from(encodedCredential, "base64").toString("utf8"),
+                ),
+            )
+            : admin.credential.applicationDefault();
+
         admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount),
+            credential,
         });
         initialized = true;
         console.log("[FCM] firebase admin berhasil diinisialisasi");

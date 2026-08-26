@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { randomUUID } from "node:crypto";
 
 const ACCESS_TOKEN_EXPIRY = {
     kader: "8h",
@@ -18,7 +19,7 @@ export const generateToken = (payload) => {
 
 export const generateRefreshToken = (payload) => {
     return jwt.sign(
-        { id: payload.id, role: payload.role },
+        { id: payload.id, role: payload.role, jti: randomUUID() },
         process.env.JWT_REFRESH_SECRET,
         { expiresIn: REFRESH_TOKEN_EXPIRY },
     );

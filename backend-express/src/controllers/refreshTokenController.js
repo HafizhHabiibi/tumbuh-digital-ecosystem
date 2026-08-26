@@ -1,5 +1,9 @@
 import * as RefreshTokenModel from "../models/refreshTokenModel.js";
-import { generateToken, verifyRefreshToken } from "../utils/jwt.js";
+import {
+    generateToken,
+    generateRefreshToken,
+    verifyRefreshToken,
+} from "../utils/jwt.js";
 import { success, error } from "../utils/response.js";
 
 export const refreshAccessToken = async (req, res) => {
@@ -35,15 +39,33 @@ export const refreshAccessToken = async (req, res) => {
             );
         }
 
-        // Buat access token baru
+        // Gunakan role terbaru dari database, bukan role lama di JWT.
         const newAccessToken = generateToken({
             id: decoded.id,
-            role: decoded.role,
+            role: tokenData.role,
         });
+        const newRefreshToken = generateRefreshToken({
+            id: decoded.id,
+            role: tokenData.role,
+        });
+        const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+        const rotated = await RefreshTokenModel.rotate(
+            decoded.id,
+            refresh_token,
+            newRefreshToken,
+            expiresAt,
+        );
+        if (!rotated) {
+            return error(res, "Refresh token sudah digunakan atau dicabut", 401);
+        }
 
         return success(
             res,
-            { token: newAccessToken },
+            {
+                token: newAccessToken,
+                refresh_token: newRefreshToken,
+            },
             "Token berhasil diperbarui",
         );
     } catch (err) {

@@ -38,10 +38,10 @@ export const normalisasiZScore = (zscore) => {
  *
  * Referensi: Kemenkes RI (2021). Buku Kesehatan Ibu dan Anak. Jakarta: Kemenkes RI.
  */
-export const normalisasiTrenBB = (delta_kg) => {
-    if (delta_kg === null || delta_kg === undefined) return 0.5;
+export const normalisasiTrenBB = (delta_kg_per_bulan) => {
+    if (delta_kg_per_bulan === null || delta_kg_per_bulan === undefined) return 0.5;
 
-    const delta_gram = delta_kg * 1000;
+    const delta_gram = delta_kg_per_bulan * 1000;
     const THRESHOLD_CUKUP = 200;  // gram/bulan: kenaikan minimum yang sehat
     const MAX_TURUN = 500;        // gram: drop ≥500g = risiko maksimal
 
@@ -56,6 +56,25 @@ export const normalisasiTrenBB = (delta_kg) => {
 
     // Turun → interpolasi 0.7–1.0
     return Math.min(1.0, 0.7 + 0.3 * (Math.abs(delta_gram) / MAX_TURUN));
+};
+
+export const hitungTrenBBPerBulan = (
+    beratSekarang,
+    beratSebelumnya,
+    tanggalSekarang,
+    tanggalSebelumnya,
+) => {
+    if (beratSebelumnya === null || beratSebelumnya === undefined) return null;
+
+    const sekarang = new Date(tanggalSekarang);
+    const sebelumnya = new Date(tanggalSebelumnya);
+    const intervalHari = (sekarang - sebelumnya) / (1000 * 60 * 60 * 24);
+    if (!Number.isFinite(intervalHari) || intervalHari <= 0) return null;
+
+    const deltaKg = Number(beratSekarang) - Number(beratSebelumnya);
+    if (!Number.isFinite(deltaKg)) return null;
+
+    return parseFloat((deltaKg * (30.4375 / intervalHari)).toFixed(3));
 };
 
 export const tentukanKategoriRisiko = (skor_akhir) => {
@@ -90,15 +109,15 @@ export const KRITERIA = [
  * Pure function: input → output, tanpa side effect.
  *
  * @param {object} zscores    - { zscore_bbu, zscore_tbu, zscore_bbtb }
- * @param {number|null} tren_bb_kg - Selisih BB dalam kg (null jika pengukuran pertama)
+ * @param {number|null} tren_bb_kg_per_bulan - Perubahan BB yang dinormalisasi ke kg/bulan
  * @returns {{ skor_akhir: number, kategori_risiko: string, detail: Array }}
  */
-export const hitungSAW = (zscores, tren_bb_kg) => {
+export const hitungSAW = (zscores, tren_bb_kg_per_bulan) => {
     const nilaiNormalisasi = {
         zscore_tbu:  normalisasiZScore(zscores.zscore_tbu),
         zscore_bbu:  normalisasiZScore(zscores.zscore_bbu),
         zscore_bbtb: normalisasiZScore(zscores.zscore_bbtb),
-        tren_bb:     normalisasiTrenBB(tren_bb_kg),
+        tren_bb:     normalisasiTrenBB(tren_bb_kg_per_bulan),
     };
 
     let skor_akhir = 0;

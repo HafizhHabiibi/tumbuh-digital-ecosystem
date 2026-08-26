@@ -58,7 +58,12 @@ export const enrichPengukuranList = (rawList, anak) => {
         // Hitung tren BB: selisih dengan pengukuran sebelumnya
         const tren_bb = idx === 0
             ? null
-            : parseFloat((parseFloat(raw.berat_badan) - parseFloat(ascending[idx - 1].berat_badan)).toFixed(3));
+            : sawService.hitungTrenBBPerBulan(
+                raw.berat_badan,
+                ascending[idx - 1].berat_badan,
+                raw.tanggal_ukur,
+                ascending[idx - 1].tanggal_ukur,
+            );
 
         // Hitung SAW
         const saw = sawService.hitungSAW(
@@ -95,9 +100,14 @@ export const getRankingAllAnak = async () => {
                 jenis_kelamin: row.jenis_kelamin,
             });
 
-            const prevBB = await PengukuranModel.findPreviousBB(row.anak_id, row.tanggal_ukur);
-            const tren_bb = prevBB !== null
-                ? parseFloat((parseFloat(row.berat_badan) - prevBB).toFixed(3))
+            const previous = await PengukuranModel.findPrevious(row.anak_id, row.tanggal_ukur);
+            const tren_bb = previous
+                ? sawService.hitungTrenBBPerBulan(
+                    row.berat_badan,
+                    previous.berat_badan,
+                    row.tanggal_ukur,
+                    previous.tanggal_ukur,
+                )
                 : null;
 
             const saw = sawService.hitungSAW(
@@ -144,9 +154,14 @@ export const getDetailSAW = async (pengukuran_id) => {
         jenis_kelamin: pengukuran.jenis_kelamin,
     });
 
-    const prevBB = await PengukuranModel.findPreviousBB(pengukuran.anak_id, pengukuran.tanggal_ukur);
-    const tren_bb = prevBB !== null
-        ? parseFloat((parseFloat(pengukuran.berat_badan) - prevBB).toFixed(3))
+    const previous = await PengukuranModel.findPrevious(pengukuran.anak_id, pengukuran.tanggal_ukur);
+    const tren_bb = previous
+        ? sawService.hitungTrenBBPerBulan(
+            pengukuran.berat_badan,
+            previous.berat_badan,
+            pengukuran.tanggal_ukur,
+            previous.tanggal_ukur,
+        )
         : null;
 
     const saw = sawService.hitungSAW(
@@ -235,9 +250,14 @@ export const getDistribusiRisiko = async () => {
             jenis_kelamin: row.jenis_kelamin,
         });
 
-        const prevBB = await PengukuranModel.findPreviousBB(row.anak_id, row.tanggal_ukur);
-        const tren_bb = prevBB !== null
-            ? parseFloat((parseFloat(row.berat_badan) - prevBB).toFixed(3))
+        const previous = await PengukuranModel.findPrevious(row.anak_id, row.tanggal_ukur);
+        const tren_bb = previous
+            ? sawService.hitungTrenBBPerBulan(
+                row.berat_badan,
+                previous.berat_badan,
+                row.tanggal_ukur,
+                previous.tanggal_ukur,
+            )
             : null;
 
         const saw = sawService.hitungSAW(

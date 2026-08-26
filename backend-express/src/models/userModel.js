@@ -16,6 +16,16 @@ export const findById = async (id) => {
     return rows[0] || null;
 };
 
+export const findActiveById = async (id) => {
+    const [rows] = await db.query(
+        `SELECT id, email, role, is_active, updated_at
+        FROM users
+        WHERE id = ? AND is_active = TRUE`,
+        [id],
+    );
+    return rows[0] || null;
+};
+
 export const updateResetPasswordAt = async (id) => {
     await db.query(`UPDATE users SET reset_password_at = NOW() WHERE id = ?`, [
         id,

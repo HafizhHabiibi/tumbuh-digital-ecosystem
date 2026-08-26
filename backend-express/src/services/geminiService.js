@@ -139,17 +139,18 @@ export const generateInsight = async (anak_id, pengukuran_id, data) => {
     }
 };
 
-export const getInsight = async (pengukuran_id) => {
+export const getInsightForOrangTua = async (
+    pengukuran_id,
+    orang_tua_id,
+) => {
     const [rows] = await db.query(
-        `SELECT insight_teks, created_at
-        FROM pengukuran
-        WHERE id = ?`,
-        [pengukuran_id],
+        `SELECT p.insight_teks, p.created_at
+        FROM pengukuran p
+        JOIN anak a ON a.id = p.anak_id
+        WHERE p.id = ? AND a.orang_tua_id = ?`,
+        [pengukuran_id, orang_tua_id],
     );
 
-    if (!rows[0]) return null;              // pengukuran tidak ditemukan
-    if (!rows[0].insight_teks) return null; // insight belum selesai diproses
-
-    return rows[0];
+    return rows[0] || null;
 };
 

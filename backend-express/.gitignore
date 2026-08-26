@@ -1,4 +1,6 @@
 node_modules/
 .env
-database/seeder/seeder.sql
+src/database/seeder/seeder.sql
 firebase-service-account.json
+BACKEND_REVIEW_REPORT.md
+HIGH_RISK_FIXES.md

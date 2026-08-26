@@ -10,6 +10,7 @@ import {
 import { authenticate } from "../middlewares/auth.js";
 import { authorizeRole } from "../middlewares/role.js";
 import { requireKader } from "../middlewares/requireKader.js";
+import { requireOrangTua } from "../middlewares/requireOrangTua.js";
 
 const router = express.Router();
 
@@ -28,7 +29,12 @@ router.get(
 
 router.get("/:id/saw", authorizeRole("kader", "puskesmas"), getDetailSAW);
 
-router.get("/:id/insight", authorizeRole("orang_tua"), getInsight);
+router.get(
+    "/:id/insight",
+    authorizeRole("orang_tua"),
+    requireOrangTua,
+    getInsight,
+);
 
 router.get("/:id", authorizeRole("kader", "puskesmas"), getDetailPengukuran);
 

@@ -112,15 +112,15 @@ export const findLatestPerAnak = async () => {
 /**
  * Ambil BB pengukuran sebelumnya untuk hitung tren BB.
  */
-export const findPreviousBB = async (anak_id, tanggal_ukur) => {
+export const findPrevious = async (anak_id, tanggal_ukur) => {
     const [rows] = await db.query(
-        `SELECT berat_badan FROM pengukuran
+        `SELECT berat_badan, tanggal_ukur FROM pengukuran
         WHERE anak_id = ? AND tanggal_ukur < ?
         ORDER BY tanggal_ukur DESC
         LIMIT 1`,
         [anak_id, tanggal_ukur],
     );
-    return rows[0]?.berat_badan ?? null;
+    return rows[0] || null;
 };
 
 /**

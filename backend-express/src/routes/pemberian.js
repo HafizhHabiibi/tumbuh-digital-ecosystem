@@ -16,7 +16,9 @@ router.post("/", authorizeRole("kader"), requireKader, create);
 
 router.get(
     "/anak/:anak_id",
-    authorizeRole("kader", "puskesmas", "orang_tua"),
+    // Orang tua menggunakan /api/orang-tua/anak/:id/pemberian yang
+    // memverifikasi kepemilikan anak. Route lintas-anak ini hanya untuk petugas.
+    authorizeRole("kader", "puskesmas"),
     getByAnak,
 );
 

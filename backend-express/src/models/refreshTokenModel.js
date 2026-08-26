@@ -1,11 +1,15 @@
 import db from "../database/connection.js";
+import { createHash } from "node:crypto";
+
+export const hashRefreshToken = (token) =>
+    createHash("sha256").update(token).digest("hex");
 
 export const save = async (userId, token, expiresAt) => {
     // INSERT biasa — setiap login menghasilkan row baru (multi-device support)
     await db.query(
-        `INSERT INTO refresh_tokens (user_id, token, expires_at)
+        `INSERT INTO refresh_tokens (user_id, token_hash, expires_at)
          VALUES (?, ?, ?)`,
-        [userId, token, expiresAt],
+        [userId, hashRefreshToken(token), expiresAt],
     );
 };
 
@@ -15,10 +19,10 @@ export const findValid = async (userId, token) => {
         `SELECT rt.*, u.role
          FROM refresh_tokens rt
          JOIN users u ON u.id = rt.user_id
-         WHERE rt.user_id = ? AND rt.token = ?
+         WHERE rt.user_id = ? AND rt.token_hash = ?
          AND rt.expires_at > NOW() AND rt.revoked = 0
          AND u.is_active = TRUE`,
-        [userId, token],
+        [userId, hashRefreshToken(token)],
     );
     return rows[0] || null;
 };
@@ -37,11 +41,11 @@ export const rotate = async (
             `SELECT rt.id
             FROM refresh_tokens rt
             JOIN users u ON u.id = rt.user_id
-            WHERE rt.user_id = ? AND rt.token = ?
+            WHERE rt.user_id = ? AND rt.token_hash = ?
             AND rt.expires_at > NOW() AND rt.revoked = 0
             AND u.is_active = TRUE
             FOR UPDATE`,
-            [userId, oldToken],
+            [userId, hashRefreshToken(oldToken)],
         );
 
         if (!validRows[0]) {
@@ -54,9 +58,9 @@ export const rotate = async (
             [validRows[0].id],
         );
         await conn.query(
-            `INSERT INTO refresh_tokens (user_id, token, expires_at)
+            `INSERT INTO refresh_tokens (user_id, token_hash, expires_at)
             VALUES (?, ?, ?)`,
-            [userId, newToken, expiresAt],
+            [userId, hashRefreshToken(newToken), expiresAt],
         );
         await conn.commit();
         return true;
@@ -69,8 +73,8 @@ export const rotate = async (
 };
 
 export const revoke = async (token) => {
-    await db.query(`UPDATE refresh_tokens SET revoked = 1 WHERE token = ?`, [
-        token,
+    await db.query(`UPDATE refresh_tokens SET revoked = 1 WHERE token_hash = ?`, [
+        hashRefreshToken(token),
     ]);
 };
 

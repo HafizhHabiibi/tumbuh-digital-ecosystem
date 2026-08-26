@@ -1,0 +1,158 @@
+import { rules, ValidationError } from "../middlewares/validate.js";
+
+const email = rules.string({
+    min: 3,
+    max: 255,
+    lowercase: true,
+    pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+});
+const password = rules.string({ min: 6, max: 72 });
+const nik = rules.string({ min: 16, max: 16, pattern: /^\d{16}$/ });
+const nama = rules.string({ min: 2, max: 100 });
+const noHp = rules.string({ min: 8, max: 20, pattern: /^\+?\d+$/ });
+const uuid = rules.string({ min: 36, max: 36, pattern: /^[0-9a-f-]{36}$/i });
+
+export const loginSchema = {
+    fields: {
+        email,
+        password: rules.string({ min: 1, max: 72 }),
+        fcm_token: rules.string({ required: false, max: 512 }),
+        turnstileToken: rules.string({ required: false, max: 2048 }),
+        platform: rules.enum(["mobile", "web"], { required: false }),
+    },
+};
+
+export const forgotPasswordSchema = {
+    fields: {
+        email,
+        turnstileToken: rules.string({ required: false, max: 2048 }),
+    },
+};
+
+export const resetPasswordSchema = {
+    fields: {
+        token: rules.string({ min: 20, max: 2048 }),
+        password_baru: password,
+    },
+};
+
+export const changePasswordSchema = {
+    fields: {
+        password_lama: rules.string({ min: 1, max: 72 }),
+        password_baru: password,
+    },
+};
+
+export const refreshTokenSchema = {
+    fields: { refresh_token: rules.string({ min: 20, max: 2048 }) },
+};
+
+export const orangTuaCreateSchema = {
+    fields: {
+        nama_lengkap: nama,
+        email,
+        password,
+        no_hp: noHp,
+        alamat: rules.string({ min: 3, max: 1000 }),
+        nik,
+    },
+};
+
+export const orangTuaUpdateSchema = {
+    fields: {
+        nama_lengkap: nama,
+        no_hp: noHp,
+        alamat: rules.string({ min: 3, max: 1000 }),
+        nik,
+    },
+};
+
+export const anakCreateSchema = {
+    fields: {
+        orang_tua_id: uuid,
+        nama,
+        jenis_kelamin: rules.enum(["L", "P"]),
+        tanggal_lahir: rules.date({ allowFuture: false }),
+        nik,
+    },
+};
+
+export const anakUpdateSchema = {
+    fields: {
+        nama,
+        jenis_kelamin: rules.enum(["L", "P"]),
+        tanggal_lahir: rules.date({ allowFuture: false }),
+        nik: rules.string({ required: false, min: 16, max: 16, pattern: /^\d{16}$/ }),
+    },
+};
+
+export const pengukuranSchema = {
+    fields: {
+        anak_id: uuid,
+        tanggal_ukur: rules.date({ allowFuture: false }),
+        berat_badan: rules.number({ min: 0.01, max: 30 }),
+        tinggi_badan: rules.number({ min: 0.01, max: 120 }),
+        lingkar_kepala: rules.number({ required: false, min: 1, max: 80 }),
+        lingkar_lengan: rules.number({ required: false, min: 1, max: 60 }),
+    },
+};
+
+export const pemberianSchema = {
+    fields: {
+        anak_id: uuid,
+        jenis: rules.enum([
+            "vitamin_a_merah", "vitamin_a_biru", "obat_cacing",
+            "pmt_biskuit", "pmt_susu", "pmt_lainnya",
+        ]),
+        dosis: rules.string({ required: false, max: 50 }),
+        tanggal_pemberian: rules.date({ allowFuture: false }),
+        keterangan: rules.string({ required: false, max: 2000 }),
+    },
+};
+
+export const rujukanCreateSchema = {
+    fields: {
+        anak_id: uuid,
+        pengukuran_id: rules.integer(),
+        catatan_kader: rules.string({ min: 3, max: 2000 }),
+    },
+};
+
+export const rujukanStatusSchema = {
+    fields: {
+        status: rules.enum(["ditangani", "selesai"]),
+        catatan_puskesmas: rules.string({ required: false, max: 2000 }),
+    },
+};
+
+const jadwalFields = {
+    tanggal: rules.date({ allowPast: false }),
+    waktu_mulai: rules.time(),
+    waktu_selesai: rules.time(),
+    lokasi: rules.string({ min: 3, max: 255 }),
+    keterangan: rules.string({ required: false, max: 2000 }),
+};
+
+const waktuRefine = (body) => {
+    if (body.waktu_selesai <= body.waktu_mulai) {
+        throw new ValidationError("waktu_selesai harus setelah waktu_mulai");
+    }
+};
+
+export const jadwalSchema = { fields: jadwalFields, refine: waktuRefine };
+export const pengaturanJadwalSchema = {
+    fields: {
+        hari_tetap: rules.integer({ min: 1, max: 28 }),
+        waktu_mulai: rules.time(),
+        waktu_selesai: rules.time(),
+        lokasi_default: rules.string({ min: 3, max: 255 }),
+    },
+    refine: waktuRefine,
+};
+export const generateJadwalSchema = {
+    fields: { jumlah_bulan: rules.integer({ required: false, min: 1, max: 12 }) },
+};
+
+export const fcmTokenSchema = {
+    fields: { fcm_token: rules.string({ min: 1, max: 512 }) },
+};

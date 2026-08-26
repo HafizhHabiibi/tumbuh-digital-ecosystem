@@ -1,6 +1,8 @@
 import * as JadwalModel from "../models/jadwalModel.js";
 import * as fcmService from "../services/fcmService.js";
 import { success, error } from "../utils/response.js";
+import { parsePagination, paginationMeta } from "../utils/pagination.js";
+import { buildMonthlyScheduleDates } from "../utils/schedule.js";
 
 // =============================================================================
 // PENGATURAN JADWAL (Template)
@@ -93,27 +95,15 @@ export const generateJadwal = async (req, res) => {
         }
 
         const today = new Date();
-        const generated = [];
-        const skipped = [];
+        const candidates = [];
+        const dates = buildMonthlyScheduleDates(
+            today,
+            pengaturan.hari_tetap,
+            jumlah_bulan,
+        );
 
-        for (let i = 0; i < jumlah_bulan; i++) {
-            const targetDate = new Date(today.getFullYear(), today.getMonth() + i, pengaturan.hari_tetap);
-
-            // Skip jika tanggal sudah lewat
-            if (targetDate < today) {
-                targetDate.setMonth(targetDate.getMonth() + 1);
-            }
-
-            const tanggal = targetDate.toISOString().split("T")[0];
-
-            // Skip jika sudah ada jadwal di tanggal tersebut
-            const existing = await JadwalModel.findByTanggal(tanggal);
-            if (existing) {
-                skipped.push(tanggal);
-                continue;
-            }
-
-            const id = await JadwalModel.create({
+        for (const tanggal of dates) {
+            candidates.push({
                 kader_id: req.kader.id,
                 tanggal,
                 waktu_mulai: pengaturan.waktu_mulai,
@@ -121,27 +111,25 @@ export const generateJadwal = async (req, res) => {
                 lokasi: pengaturan.lokasi_default,
                 keterangan: null,
             });
-
-            generated.push({ id, tanggal });
         }
+
+        const { generated, skipped } = await JadwalModel.createMany(candidates);
 
         // Broadcast notifikasi ke semua orang tua (jika ada jadwal baru)
         if (generated.length > 0) {
             const semuaOrangTua = await JadwalModel.findAllOrangTua();
             const daftarTanggal = generated.map((g) => g.tanggal).join(", ");
 
-            Promise.all(
-                semuaOrangTua.map((ot) =>
-                    fcmService.sendNotification(
-                        ot.id,
+            await fcmService.sendBulkNotifications(
+                semuaOrangTua,
+                () => [
                         "Jadwal Posyandu Baru",
                         `${generated.length} jadwal posyandu baru telah dibuat: ${daftarTanggal}. ` +
                         `Lokasi: ${pengaturan.lokasi_default}. Harap hadir tepat waktu.`,
                         "jadwal",
                         generated[0].id,
-                    ),
-                ),
-            ).catch((err) => console.error("[FCM JADWAL]", err.message));
+                ],
+            );
         }
 
         return success(
@@ -219,19 +207,17 @@ export const createJadwal = async (req, res) => {
 
         // Broadcast notifikasi
         const semuaOrangTua = await JadwalModel.findAllOrangTua();
-        Promise.all(
-            semuaOrangTua.map((ot) =>
-                fcmService.sendNotification(
-                    ot.id,
+        await fcmService.sendBulkNotifications(
+            semuaOrangTua,
+            () => [
                     "Jadwal Posyandu Baru",
                     `Posyandu akan dilaksanakan pada ${tanggal} ` +
                     `pukul ${waktu_mulai} - ${waktu_selesai} ` +
                     `di ${lokasi}. Harap hadir tepat waktu.`,
                     "jadwal",
                     id,
-                ),
-            ),
-        ).catch((err) => console.error("[FCM JADWAL]", err.message));
+            ],
+        );
 
         return success(
             res,
@@ -321,18 +307,16 @@ export const updateJadwal = async (req, res) => {
             const semuaOrangTua = await JadwalModel.findAllOrangTua();
             const detailPerubahan = perubahan.join(", ");
 
-            Promise.all(
-                semuaOrangTua.map((ot) =>
-                    fcmService.sendNotification(
-                        ot.id,
+            await fcmService.sendBulkNotifications(
+                semuaOrangTua,
+                () => [
                         "Perubahan Jadwal Posyandu",
                         `Jadwal posyandu telah diubah. Perubahan: ${detailPerubahan}. ` +
                         `Harap perhatikan jadwal terbaru.`,
                         "jadwal",
                         parseInt(id),
-                    ),
-                ),
-            ).catch((err) => console.error("[FCM JADWAL]", err.message));
+                ],
+            );
         }
 
         return success(
@@ -370,18 +354,16 @@ export const deleteJadwal = async (req, res) => {
 
         // Broadcast notifikasi pembatalan ke semua orang tua
         const semuaOrangTua = await JadwalModel.findAllOrangTua();
-        Promise.all(
-            semuaOrangTua.map((ot) =>
-                fcmService.sendNotification(
-                    ot.id,
+        await fcmService.sendBulkNotifications(
+            semuaOrangTua,
+            () => [
                     "Jadwal Posyandu Dibatalkan",
                     `Jadwal posyandu pada ${jadwal.tanggal} di ${jadwal.lokasi} ` +
                     `telah dibatalkan. Mohon maaf atas ketidaknyamanan.`,
                     "jadwal",
-                    parseInt(id),
-                ),
-            ),
-        ).catch((err) => console.error("[FCM JADWAL]", err.message));
+                    null,
+            ],
+        );
 
         return success(res, null, "Jadwal berhasil dihapus");
     } catch (err) {
@@ -391,8 +373,12 @@ export const deleteJadwal = async (req, res) => {
 
 export const getAllJadwal = async (req, res) => {
     try {
-        const jadwal = await JadwalModel.findAll();
-        return success(res, jadwal, "Daftar jadwal berhasil diambil");
+        const { page, limit } = parsePagination(req.query);
+        const result = await JadwalModel.findAll(page, limit);
+        return success(res, {
+            items: result.items,
+            pagination: paginationMeta(page, limit, result.total),
+        }, "Daftar jadwal berhasil diambil");
     } catch (err) {
         return error(res, err.message);
     }

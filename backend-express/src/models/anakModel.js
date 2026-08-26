@@ -1,7 +1,8 @@
 import db from "../database/connection.js";
 import { uuidv7 } from "uuidv7";
 
-export const findAll = async () => {
+export const findAll = async (page = 1, limit = 20) => {
+    const offset = (page - 1) * limit;
     const [rows] = await db.query(
         `SELECT
             a.id,
@@ -14,9 +15,12 @@ export const findAll = async () => {
             ot.no_hp AS no_hp_orang_tua
             FROM anak a
             JOIN orang_tua ot ON ot.id = a.orang_tua_id
-            ORDER BY a.created_at DESC`,
+            ORDER BY a.created_at DESC
+            LIMIT ? OFFSET ?`,
+        [limit, offset],
     );
-    return rows;
+    const [[{ total }]] = await db.query("SELECT COUNT(*) AS total FROM anak");
+    return { items: rows, total: Number(total) };
 };
 
 export const findById = async (id) => {

@@ -87,7 +87,7 @@ export const enrichPengukuranList = (rawList, anak) => {
 // RANKING — Semua anak diurutkan dari risiko tertinggi
 // =============================================================================
 
-export const getRankingAllAnak = async () => {
+export const getRankingAllAnak = async (page = 1, limit = 20) => {
     const latestList = await PengukuranModel.findLatestPerAnak();
 
     const ranked = await Promise.all(
@@ -100,13 +100,12 @@ export const getRankingAllAnak = async () => {
                 jenis_kelamin: row.jenis_kelamin,
             });
 
-            const previous = await PengukuranModel.findPrevious(row.anak_id, row.tanggal_ukur);
-            const tren_bb = previous
+            const tren_bb = row.berat_sebelumnya !== null
                 ? sawService.hitungTrenBBPerBulan(
                     row.berat_badan,
-                    previous.berat_badan,
+                    row.berat_sebelumnya,
                     row.tanggal_ukur,
-                    previous.tanggal_ukur,
+                    row.tanggal_sebelumnya,
                 )
                 : null;
 
@@ -135,7 +134,11 @@ export const getRankingAllAnak = async () => {
 
     // Sort dari risiko tertinggi
     ranked.sort((a, b) => b.skor_akhir - a.skor_akhir);
-    return ranked;
+    const offset = (page - 1) * limit;
+    return {
+        items: ranked.slice(offset, offset + limit),
+        total: ranked.length,
+    };
 };
 
 // =============================================================================
@@ -250,13 +253,12 @@ export const getDistribusiRisiko = async () => {
             jenis_kelamin: row.jenis_kelamin,
         });
 
-        const previous = await PengukuranModel.findPrevious(row.anak_id, row.tanggal_ukur);
-        const tren_bb = previous
+        const tren_bb = row.berat_sebelumnya !== null
             ? sawService.hitungTrenBBPerBulan(
                 row.berat_badan,
-                previous.berat_badan,
+                row.berat_sebelumnya,
                 row.tanggal_ukur,
-                previous.tanggal_ukur,
+                row.tanggal_sebelumnya,
             )
             : null;
 

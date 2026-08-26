@@ -119,3 +119,16 @@ test("refresh token selalu memiliki jti unik", () => {
         }
     }
 });
+
+test("ringkasan status gizi dapat mengklasifikasikan obesitas", () => {
+    const result = hitungSemuaZScore({
+        berat_badan: 20,
+        tinggi_badan: 85,
+        tanggal_lahir: "2024-08-26",
+        tanggal_ukur: "2026-08-26",
+        jenis_kelamin: "L",
+    });
+
+    assert.equal(result.status_bbtb, "obesitas");
+    assert.equal(result.status_gizi, "obesitas");
+});

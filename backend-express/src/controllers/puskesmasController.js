@@ -2,6 +2,7 @@ import * as AnakModel from "../models/anakModel.js";
 import * as PengukuranModel from "../models/pengukuranModel.js";
 import * as pengukuranService from "../services/pengukuranService.js";
 import { success, error } from "../utils/response.js";
+import { parsePagination, paginationMeta } from "../utils/pagination.js";
 
 export const getProfile = async (req, res) => {
     try {
@@ -13,8 +14,12 @@ export const getProfile = async (req, res) => {
 
 export const getAllAnak = async (req, res) => {
     try {
-        const anak = await AnakModel.findAll();
-        return success(res, anak, "Daftar anak berhasil diambil");
+        const { page, limit } = parsePagination(req.query);
+        const result = await AnakModel.findAll(page, limit);
+        return success(res, {
+            items: result.items,
+            pagination: paginationMeta(page, limit, result.total),
+        }, "Daftar anak berhasil diambil");
     } catch (err) {
         return error(res, err.message);
     }

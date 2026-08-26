@@ -1,16 +1,42 @@
 import db from "../database/connection.js";
 
 export const create = async (data) => {
-    const [result] = await db.query(
-        `INSERT INTO rujukan
-        (kader_id, puskesmas_id, pengukuran_id, status, catatan_kader)
-        VALUES (?, NULL, ?, 'diajukan', ?)`,
-        [data.kader_id, data.pengukuran_id, data.catatan_kader],
-    );
-    return result.insertId;
+    const conn = await db.getConnection();
+    try {
+        await conn.beginTransaction();
+        await conn.query("SELECT id FROM anak WHERE id = ? FOR UPDATE", [
+            data.anak_id,
+        ]);
+        const [active] = await conn.query(
+            `SELECT r.id FROM rujukan r
+            JOIN pengukuran p ON p.id = r.pengukuran_id
+            WHERE p.anak_id = ? AND r.status != 'selesai'
+            LIMIT 1`,
+            [data.anak_id],
+        );
+        if (active[0]) {
+            await conn.rollback();
+            return null;
+        }
+
+        const [result] = await conn.query(
+            `INSERT INTO rujukan
+            (kader_id, puskesmas_id, pengukuran_id, status, catatan_kader)
+            VALUES (?, NULL, ?, 'diajukan', ?)`,
+            [data.kader_id, data.pengukuran_id, data.catatan_kader],
+        );
+        await conn.commit();
+        return result.insertId;
+    } catch (err) {
+        await conn.rollback();
+        throw err;
+    } finally {
+        conn.release();
+    }
 };
 
-export const findAll = async () => {
+export const findAll = async (page = 1, limit = 20) => {
+    const offset = (page - 1) * limit;
     const [rows] = await db.query(
         `SELECT
             r.id,
@@ -35,9 +61,14 @@ export const findAll = async () => {
         JOIN orang_tua ot ON ot.id = a.orang_tua_id
         JOIN kader k ON k.id = r.kader_id
         LEFT JOIN puskesmas pu ON pu.id = r.puskesmas_id
-        ORDER BY r.created_at DESC`,
+        ORDER BY r.created_at DESC
+        LIMIT ? OFFSET ?`,
+        [limit, offset],
     );
-    return rows;
+    const [[{ total }]] = await db.query(
+        "SELECT COUNT(*) AS total FROM rujukan",
+    );
+    return { items: rows, total: Number(total) };
 };
 
 export const findById = async (id) => {

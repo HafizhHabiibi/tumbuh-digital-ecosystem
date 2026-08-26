@@ -9,8 +9,9 @@
     "scripts": {
         "dev": "nodemon app.js",
         "test": "node --test",
+        "db:setup": "node src/database/setup-database.js",
         "seed:generate": "node src/database/seeder/generate-seeder.js",
-        "seed:run": "mysql -u root -p posyandu_pui < src/database/seeder/seeder.sql"
+        "seed:run": "node src/database/seeder/run-seeder.js"
     },
     "dependencies": {
         "axios": "^1.20.0",

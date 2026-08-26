@@ -12,14 +12,22 @@ import {
 
 import { authenticate } from "../middlewares/auth.js";
 import { ipRateLimit, emailRateLimit } from "../middlewares/loginRateLimit.js";
+import { validateBody } from "../middlewares/validate.js";
+import {
+    loginSchema,
+    forgotPasswordSchema,
+    resetPasswordSchema,
+    changePasswordSchema,
+    refreshTokenSchema,
+} from "../validation/schemas.js";
 
 const router = express.Router();
 
-router.post("/login", ipRateLimit, emailRateLimit, login);
-router.post("/forgot-password", ipRateLimit, forgotPassword);
-router.post("/reset-password", ipRateLimit, resetPassword);
-router.put("/change-password", authenticate, changePassword);
-router.post("/refresh", refreshAccessToken);
+router.post("/login", ipRateLimit, emailRateLimit, validateBody(loginSchema), login);
+router.post("/forgot-password", ipRateLimit, validateBody(forgotPasswordSchema), forgotPassword);
+router.post("/reset-password", ipRateLimit, validateBody(resetPasswordSchema), resetPassword);
+router.put("/change-password", authenticate, validateBody(changePasswordSchema), changePassword);
+router.post("/refresh", validateBody(refreshTokenSchema), refreshAccessToken);
 router.post("/logout", authenticate, revokeRefreshToken);
 
 export default router;

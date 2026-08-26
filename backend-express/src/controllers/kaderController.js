@@ -3,6 +3,7 @@ import * as KaderModel from "../models/kaderModel.js";
 import * as OrangTuaModel from "../models/orangTuaModel.js";
 import * as AnakModel from "../models/anakModel.js";
 import { success, error } from "../utils/response.js";
+import { parsePagination, paginationMeta } from "../utils/pagination.js";
 
 export const getProfile = async (req, res) => {
     try {
@@ -67,8 +68,12 @@ export const createOrangTua = async (req, res) => {
 
 export const getOrangTua = async (req, res) => {
     try {
-        const daftar = await OrangTuaModel.findAll();
-        return success(res, daftar, "Daftar orang tua berhasil diambil");
+        const { page, limit } = parsePagination(req.query);
+        const result = await OrangTuaModel.findAll(page, limit);
+        return success(res, {
+            items: result.items,
+            pagination: paginationMeta(page, limit, result.total),
+        }, "Daftar orang tua berhasil diambil");
     } catch (err) {
         return error(res, err.message);
     }
@@ -155,8 +160,12 @@ export const createAnak = async (req, res) => {
 
 export const getAllAnak = async (req, res) => {
     try {
-        const anak = await AnakModel.findAll();
-        return success(res, anak, "Daftar anak berhasil diambil");
+        const { page, limit } = parsePagination(req.query);
+        const result = await AnakModel.findAll(page, limit);
+        return success(res, {
+            items: result.items,
+            pagination: paginationMeta(page, limit, result.total),
+        }, "Daftar anak berhasil diambil");
     } catch (err) {
         return error(res, err.message);
     }

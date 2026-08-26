@@ -203,6 +203,10 @@ const ringkasanStatusGizi = (zscore_bbu, zscore_tbu, zscore_bbtb) => {
         return "kurang";
     }
 
+    if (zscore_bbtb > 3) {
+        return "obesitas";
+    }
+
     if (zscore_bbtb > 2) {
         return "lebih";
     }

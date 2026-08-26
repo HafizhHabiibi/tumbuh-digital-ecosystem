@@ -308,16 +308,13 @@ async function generateSeeder() {
     console.log("🌱 Generating comprehensive seeder...\n");
     const lines = [];
 
-    lines.push("USE tumbuh_pp;");
-    lines.push("");
-
     // ── Full Reset ──────────────────────────────────────────────────────────────
     lines.push("-- ==========================================================");
     lines.push("-- FULL RESET — Hapus semua data lama (urutan FK terbalik)");
     lines.push("-- ==========================================================");
     lines.push("SET FOREIGN_KEY_CHECKS = 0;");
     for (const t of [
-        "notifikasi", "rujukan",
+        "notification_outbox", "notifikasi", "rujukan",
         "pemberian", "pengukuran",
         "anak", "jadwal_posyandu", "pengaturan_jadwal",
         "orang_tua", "kader", "puskesmas",
@@ -359,7 +356,7 @@ async function generateSeeder() {
     for (let i = 0; i < KADER_LIST.length; i++) {
         const k = KADER_LIST[i];
         const ids = kaderIds[i];
-        console.log(`[Kader ${i + 1}] ${k.nama} | ${k.email} | password: ${k.password}`);
+        console.log(`[Kader ${i + 1}] ${k.nama} | ${k.email}`);
         lines.push(`INSERT INTO users (id, email, password_hash, role, is_active) VALUES`);
         lines.push(`    (${sq(ids.uId)}, ${sq(k.email)}, ${sq(kaderHashes[i])}, 'kader', TRUE);`);
         lines.push(`INSERT INTO kader (id, user_id, nama_lengkap, no_hp) VALUES`);
@@ -370,7 +367,7 @@ async function generateSeeder() {
     for (let i = 0; i < PUSKE_LIST.length; i++) {
         const p = PUSKE_LIST[i];
         const ids = puskeIds[i];
-        console.log(`[Puskesmas ${i + 1}] ${p.nama} | ${p.email} | password: ${p.password}`);
+        console.log(`[Puskesmas ${i + 1}] ${p.nama} | ${p.email}`);
         lines.push(`INSERT INTO users (id, email, password_hash, role, is_active) VALUES`);
         lines.push(`    (${sq(ids.uId)}, ${sq(p.email)}, ${sq(puskeHashes[i])}, 'puskesmas', TRUE);`);
         lines.push(`INSERT INTO puskesmas (id, user_id, nama_lengkap, jabatan, no_hp) VALUES`);
@@ -515,8 +512,8 @@ async function generateSeeder() {
         lines.push("");
     }
 
-    // SAW data is now embedded in pengukuran rows (skor_saw, kategori_risiko)
-    // No separate saw_result / saw_result_detail tables needed
+    // Z-score dan SAW hanya dihitung untuk memilih contoh rujukan.
+    // Nilai turunan tidak disimpan ke tabel pengukuran.
 
     // ══════════════════════════════════════════════════════════════════════════════
     // TIER 6 — rujukan (untuk anak dengan kategori_risiko 'tinggi')
@@ -645,7 +642,7 @@ async function generateSeeder() {
     console.log(`   Orang Tua         : ${OT_LIST.length}`);
     console.log(`   Anak              : ${ANAK_LIST.length}`);
     console.log(`   Jadwal Posyandu   : ${JADWAL_LIST.length} (6 lampau, 1 mendatang = hari demo)`);    
-    console.log(`   Pengukuran        : ${pengCount} (6 titik/anak × ${ANAK_LIST.length} anak, SAW+insight embedded)`);
+    console.log(`   Pengukuran        : ${pengCount} (6 titik/anak × ${ANAK_LIST.length} anak, raw data + insight)`);
     console.log(`   Riwayat Pemberian : ${pemberianCount}`);
     console.log(`   Rujukan           : ${rujukanCount}`);
     console.log(`   Notifikasi        : ${totalNotif} (${OT_LIST.length} jadwal + ${rujukanCount} rujukan)`);

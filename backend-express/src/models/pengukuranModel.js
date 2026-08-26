@@ -84,27 +84,41 @@ export const updateInsight = async (pengukuran_id, insight_teks) => {
  */
 export const findLatestPerAnak = async () => {
     const [rows] = await db.query(
-        `SELECT
-            p.id,
-            p.anak_id,
-            p.tanggal_ukur,
-            p.berat_badan,
-            p.tinggi_badan,
-            p.created_at,
+        `WITH ranked_pengukuran AS (
+            SELECT
+                p.*,
+                ROW_NUMBER() OVER (
+                    PARTITION BY p.anak_id
+                    ORDER BY p.tanggal_ukur DESC, p.id DESC
+                ) AS urutan_terbaru,
+                LAG(p.berat_badan) OVER (
+                    PARTITION BY p.anak_id
+                    ORDER BY p.tanggal_ukur ASC, p.id ASC
+                ) AS berat_sebelumnya,
+                LAG(p.tanggal_ukur) OVER (
+                    PARTITION BY p.anak_id
+                    ORDER BY p.tanggal_ukur ASC, p.id ASC
+                ) AS tanggal_sebelumnya
+            FROM pengukuran p
+        )
+        SELECT
+            rp.id,
+            rp.anak_id,
+            rp.tanggal_ukur,
+            rp.berat_badan,
+            rp.tinggi_badan,
+            rp.created_at,
+            rp.berat_sebelumnya,
+            rp.tanggal_sebelumnya,
             a.nama AS nama_anak,
             a.jenis_kelamin,
             a.tanggal_lahir,
             ot.nama_lengkap AS nama_orang_tua,
             ot.no_hp AS no_hp_orang_tua
-        FROM pengukuran p
-        JOIN anak a ON a.id = p.anak_id
+        FROM ranked_pengukuran rp
+        JOIN anak a ON a.id = rp.anak_id
         JOIN orang_tua ot ON ot.id = a.orang_tua_id
-        WHERE p.id = (
-            SELECT p2.id FROM pengukuran p2
-            WHERE p2.anak_id = p.anak_id
-            ORDER BY p2.tanggal_ukur DESC
-            LIMIT 1
-        )`,
+        WHERE rp.urutan_terbaru = 1`,
     );
     return rows;
 };

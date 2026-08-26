@@ -9,6 +9,11 @@ import {
 import { authenticate } from "../middlewares/auth.js";
 import { authorizeRole } from "../middlewares/role.js";
 import { requireKader } from "../middlewares/requireKader.js";
+import { validateBody } from "../middlewares/validate.js";
+import {
+    rujukanCreateSchema,
+    rujukanStatusSchema,
+} from "../validation/schemas.js";
 
 const router = express.Router();
 
@@ -21,12 +26,23 @@ router.get(
 );
 
 // requireKader per-route karena hanya POST yang butuh kader data
-router.post("/", authorizeRole("kader"), requireKader, createRujukan);
+router.post(
+    "/",
+    authorizeRole("kader"),
+    requireKader,
+    validateBody(rujukanCreateSchema),
+    createRujukan,
+);
 
 router.get("/", authorizeRole("puskesmas"), getAllRujukan);
 
 router.get("/:id", authorizeRole("kader", "puskesmas"), getDetailRujukan);
 
-router.put("/:id/status", authorizeRole("puskesmas"), updateStatusRujukan);
+router.put(
+    "/:id/status",
+    authorizeRole("puskesmas"),
+    validateBody(rujukanStatusSchema),
+    updateStatusRujukan,
+);
 
 export default router;

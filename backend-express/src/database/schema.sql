@@ -1,9 +1,6 @@
 -- ============================================================
--- SCHEMA: Posyandu PUI — 11 Tabel (Simplified)
+-- SCHEMA: Posyandu PUI — tabel inti + notification outbox
 -- ============================================================
-
-CREATE DATABASE IF NOT EXISTS tumbuh_pp;
-USE tumbuh_pp;
 
 -- ==========================================================
 -- 1. USERS
@@ -156,6 +153,7 @@ CREATE TABLE IF NOT EXISTS rujukan (
 -- ==========================================================
 CREATE TABLE IF NOT EXISTS pengaturan_jadwal (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    singleton_key TINYINT NOT NULL DEFAULT 1 UNIQUE CHECK (singleton_key = 1),
     hari_tetap TINYINT NOT NULL CHECK (hari_tetap BETWEEN 1 AND 28),
     waktu_mulai TIME NOT NULL,
     waktu_selesai TIME NOT NULL,
@@ -207,17 +205,40 @@ CREATE TABLE IF NOT EXISTS notifikasi (
 -- 11. REFRESH TOKENS
 -- NOTE: user_id TIDAK UNIQUE — satu user bisa punya banyak refresh token
 --       aktif secara bersamaan (multi-device login).
---       Yang UNIQUE adalah token itu sendiri.
+--       Yang UNIQUE adalah hash token itu sendiri; token mentah tidak disimpan.
 --       Cleanup token expired dapat dilakukan via scheduled job:
 --         DELETE FROM refresh_tokens WHERE expires_at < NOW();
 -- ==========================================================
 CREATE TABLE IF NOT EXISTS refresh_tokens (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id CHAR(36) NOT NULL,
-    token VARCHAR(512) NOT NULL UNIQUE,
+    token_hash CHAR(64) NOT NULL UNIQUE,
     expires_at DATETIME NOT NULL,
     revoked TINYINT(1) NOT NULL DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_refresh_user (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ==========================================================
+-- 12. NOTIFICATION OUTBOX
+-- Menjamin push notification dapat di-retry bila provider gagal.
+-- ==========================================================
+CREATE TABLE IF NOT EXISTS notification_outbox (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    notification_id INT NOT NULL,
+    orang_tua_id CHAR(36) NOT NULL,
+    fcm_token VARCHAR(512) NOT NULL,
+    judul VARCHAR(255) NOT NULL,
+    pesan TEXT NOT NULL,
+    status ENUM('pending', 'processing', 'sent', 'failed') NOT NULL DEFAULT 'pending',
+    attempts TINYINT UNSIGNED NOT NULL DEFAULT 0,
+    available_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_error VARCHAR(500) DEFAULT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    sent_at DATETIME DEFAULT NULL,
+    FOREIGN KEY (notification_id) REFERENCES notifikasi(id) ON DELETE CASCADE,
+    FOREIGN KEY (orang_tua_id) REFERENCES orang_tua(id) ON DELETE CASCADE,
+    INDEX idx_outbox_pending (status, available_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -6,6 +6,7 @@ import * as pengukuranService from "../services/pengukuranService.js";
 import * as geminiService from "../services/geminiService.js";
 import * as fcmService from "../services/fcmService.js";
 import { success, error } from "../utils/response.js";
+import { parsePagination, paginationMeta } from "../utils/pagination.js";
 
 export const createPengukuran = async (req, res) => {
     try {
@@ -224,8 +225,12 @@ export const getDetailPengukuran = async (req, res) => {
 
 export const getRankingAnak = async (req, res) => {
     try {
-        const ranking = await pengukuranService.getRankingAllAnak();
-        return success(res, ranking, "Ranking anak berhasil diambil");
+        const { page, limit } = parsePagination(req.query);
+        const result = await pengukuranService.getRankingAllAnak(page, limit);
+        return success(res, {
+            items: result.items,
+            pagination: paginationMeta(page, limit, result.total),
+        }, "Ranking anak berhasil diambil");
     } catch (err) {
         return error(res, err.message);
     }

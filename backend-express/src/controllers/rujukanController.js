@@ -5,6 +5,7 @@ import * as PengukuranModel from "../models/pengukuranModel.js";
 import * as pengukuranService from "../services/pengukuranService.js";
 import * as fcmService from "../services/fcmService.js";
 import { success, error } from "../utils/response.js";
+import { parsePagination, paginationMeta } from "../utils/pagination.js";
 
 const STATUS_VALID = ["ditangani", "selesai"];
 
@@ -53,10 +54,18 @@ export const createRujukan = async (req, res) => {
         }
 
         const id = await RujukanModel.create({
+            anak_id,
             kader_id: req.kader.id,
             pengukuran_id,
             catatan_kader,
         });
+        if (!id) {
+            return error(
+                res,
+                "Anak ini masih memiliki rujukan aktif yang belum selesai",
+                409,
+            );
+        }
 
         fcmService
             .sendNotification(
@@ -89,8 +98,12 @@ export const createRujukan = async (req, res) => {
 
 export const getAllRujukan = async (req, res) => {
     try {
-        const rujukan = await RujukanModel.findAll();
-        return success(res, rujukan, "Daftar rujukan berhasil diambil");
+        const { page, limit } = parsePagination(req.query);
+        const result = await RujukanModel.findAll(page, limit);
+        return success(res, {
+            items: result.items,
+            pagination: paginationMeta(page, limit, result.total),
+        }, "Daftar rujukan berhasil diambil");
     } catch (err) {
         return error(res, err.message);
     }

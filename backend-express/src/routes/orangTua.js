@@ -11,6 +11,8 @@ import {
 import { authenticate } from "../middlewares/auth.js";
 import { authorizeRole } from "../middlewares/role.js";
 import { requireOrangTua } from "../middlewares/requireOrangTua.js";
+import { validateBody } from "../middlewares/validate.js";
+import { fcmTokenSchema } from "../validation/schemas.js";
 
 const router = express.Router();
 
@@ -24,6 +26,6 @@ router.get("/anak/:id", getAnakById);
 router.get("/anak/:id/pengukuran", getPengukuranAnak);
 router.get("/anak/:id/pemberian", getPemberianAnak);
 router.get("/anak/:id/rujukan", getRujukanAnak);
-router.put("/update-fcm-token", updateFcmToken);
+router.put("/update-fcm-token", validateBody(fcmTokenSchema), updateFcmToken);
 
 export default router;

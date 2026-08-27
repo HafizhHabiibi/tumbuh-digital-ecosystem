@@ -54,9 +54,9 @@ const readExcel = async (filename, keyCol) => {
 const konversiHariKeBulan = (dataHarian) => {
     const dataBulanan = []
 
-    for (let bulan = 0; bulan <= 60; bulan++) {
+    for (let month = 0; month <= 60; month++) {
         // Hitung hari tengah dari bulan tersebut
-        const hariTarget = Math.round(bulan * 30.4375)
+        const hariTarget = Math.round(month * 30.4375)
 
         // Cari data yang paling dekat dengan hari target
         let closest = null
@@ -72,7 +72,7 @@ const konversiHariKeBulan = (dataHarian) => {
 
         if (closest) {
             dataBulanan.push({
-                bulan,
+                month,
                 L : closest.L,
                 M : closest.M,
                 S : closest.S,
@@ -86,41 +86,50 @@ const konversiHariKeBulan = (dataHarian) => {
 // ── Main ─────────────────────────────────────────────────────
 console.log('Membaca file WHO...\n')
 
-// 1. BB/U (Weight for Age) — referensi: Day
-console.log('Memproses wfa (BB/U)...')
+// 1. wfa — Weight for Age — referensi: Day
+console.log('Memproses wfa (Weight for Age)...')
 const wfaBoys  = await readExcel('wfa-boys-zscore-expanded-tables.xlsx',  'Day')
 const wfaGirls = await readExcel('wfa-girls-zscore-expanded-tables.xlsx', 'Day')
-result.bbu_L = konversiHariKeBulan(wfaBoys)
-result.bbu_P = konversiHariKeBulan(wfaGirls)
-console.log(`  bbu_L: ${result.bbu_L.length} baris`)
-console.log(`  bbu_P: ${result.bbu_P.length} baris`)
+result.wfa_boys  = konversiHariKeBulan(wfaBoys)
+result.wfa_girls = konversiHariKeBulan(wfaGirls)
+console.log(`  wfa_boys : ${result.wfa_boys.length} baris`)
+console.log(`  wfa_girls: ${result.wfa_girls.length} baris`)
 
-// 2. TB/U (Length/Height for Age) — referensi: Day
-console.log('Memproses lhfa (TB/U)...')
+// 2. lhfa — Length/Height for Age — referensi: Day
+console.log('Memproses lhfa (Length/Height for Age)...')
 const lhfaBoys  = await readExcel('lhfa-boys-zscore-expanded-tables.xlsx',  'Day')
 const lhfaGirls = await readExcel('lhfa-girls-zscore-expanded-tables.xlsx', 'Day')
-result.tbu_L = konversiHariKeBulan(lhfaBoys)
-result.tbu_P = konversiHariKeBulan(lhfaGirls)
-console.log(`  tbu_L: ${result.tbu_L.length} baris`)
-console.log(`  tbu_P: ${result.tbu_P.length} baris`)
+result.lhfa_boys  = konversiHariKeBulan(lhfaBoys)
+result.lhfa_girls = konversiHariKeBulan(lhfaGirls)
+console.log(`  lhfa_boys : ${result.lhfa_boys.length} baris`)
+console.log(`  lhfa_girls: ${result.lhfa_girls.length} baris`)
 
-// 3. BB/TB berbaring — wfl (Weight for Length) — referensi: Length (cm)
-console.log('Memproses wfl (BB/TB berbaring 0-24 bulan)...')
+// 3. wfl — Weight for Length (berbaring, 0-24 bulan) — referensi: Length (cm)
+console.log('Memproses wfl (Weight for Length, 0-24 bulan)...')
 const wflBoys  = await readExcel('wfl-boys-zscore-expanded-tables.xlsx',  'Length')
 const wflGirls = await readExcel('wfl-girls-zscore-expanded-tables.xlsx', 'Length')
-result.wfl_L = wflBoys.map(row => ({ panjang: row.key, L: row.L, M: row.M, S: row.S }))
-result.wfl_P = wflGirls.map(row => ({ panjang: row.key, L: row.L, M: row.M, S: row.S }))
-console.log(`  wfl_L: ${result.wfl_L.length} baris`)
-console.log(`  wfl_P: ${result.wfl_P.length} baris`)
+result.wfl_boys  = wflBoys.map(row => ({ length: row.key, L: row.L, M: row.M, S: row.S }))
+result.wfl_girls = wflGirls.map(row => ({ length: row.key, L: row.L, M: row.M, S: row.S }))
+console.log(`  wfl_boys : ${result.wfl_boys.length} baris`)
+console.log(`  wfl_girls: ${result.wfl_girls.length} baris`)
 
-// 4. BB/TB berdiri — wfh (Weight for Height) — referensi: Height (cm)
-console.log('Memproses wfh (BB/TB berdiri 24-60 bulan)...')
+// 4. wfh — Weight for Height (berdiri, 24-60 bulan) — referensi: Height (cm)
+console.log('Memproses wfh (Weight for Height, 24-60 bulan)...')
 const wfhBoys  = await readExcel('wfh-boys-zscore-expanded-tables.xlsx',  'Height')
 const wfhGirls = await readExcel('wfh-girls-zscore-expanded-tables.xlsx', 'Height')
-result.wfh_L = wfhBoys.map(row => ({ tinggi: row.key, L: row.L, M: row.M, S: row.S }))
-result.wfh_P = wfhGirls.map(row => ({ tinggi: row.key, L: row.L, M: row.M, S: row.S }))
-console.log(`  wfh_L: ${result.wfh_L.length} baris`)
-console.log(`  wfh_P: ${result.wfh_P.length} baris`)
+result.wfh_boys  = wfhBoys.map(row => ({ height: row.key, L: row.L, M: row.M, S: row.S }))
+result.wfh_girls = wfhGirls.map(row => ({ height: row.key, L: row.L, M: row.M, S: row.S }))
+console.log(`  wfh_boys : ${result.wfh_boys.length} baris`)
+console.log(`  wfh_girls: ${result.wfh_girls.length} baris`)
+
+// 5. bfa — BMI for Age — referensi: Day
+console.log('Memproses bfa (BMI for Age)...')
+const bfaBoys  = await readExcel('bfa-boys-zscore-expanded-tables.xlsx',  'Day')
+const bfaGirls = await readExcel('bfa-girls-zscore-expanded-tables.xlsx', 'Day')
+result.bfa_boys  = konversiHariKeBulan(bfaBoys)
+result.bfa_girls = konversiHariKeBulan(bfaGirls)
+console.log(`  bfa_boys : ${result.bfa_boys.length} baris`)
+console.log(`  bfa_girls: ${result.bfa_girls.length} baris`)
 
 // ── Tulis ke file JSON ───────────────────────────────────────
 fs.writeFileSync('./whoTables.json', JSON.stringify(result, null, 2), 'utf8')
@@ -128,11 +137,13 @@ fs.writeFileSync('./whoTables.json', JSON.stringify(result, null, 2), 'utf8')
 console.log('\n✓ whoTables.json berhasil dibuat!')
 console.log('Copy file ini ke src/constants/ di project Express.')
 console.log('\nRingkasan:')
-console.log(`  bbu_L : ${result.bbu_L.length} bulan (0-60)`)
-console.log(`  bbu_P : ${result.bbu_P.length} bulan (0-60)`)
-console.log(`  tbu_L : ${result.tbu_L.length} bulan (0-60)`)
-console.log(`  tbu_P : ${result.tbu_P.length} bulan (0-60)`)
-console.log(`  wfl_L : ${result.wfl_L.length} titik (per 0.1 cm)`)
-console.log(`  wfl_P : ${result.wfl_P.length} titik (per 0.1 cm)`)
-console.log(`  wfh_L : ${result.wfh_L.length} titik (per 0.1 cm)`)
-console.log(`  wfh_P : ${result.wfh_P.length} titik (per 0.1 cm)`)
+console.log(`  wfa_boys  : ${result.wfa_boys.length} bulan (0-60)`)
+console.log(`  wfa_girls : ${result.wfa_girls.length} bulan (0-60)`)
+console.log(`  lhfa_boys : ${result.lhfa_boys.length} bulan (0-60)`)
+console.log(`  lhfa_girls: ${result.lhfa_girls.length} bulan (0-60)`)
+console.log(`  wfl_boys  : ${result.wfl_boys.length} titik (per 0.1 cm)`)
+console.log(`  wfl_girls : ${result.wfl_girls.length} titik (per 0.1 cm)`)
+console.log(`  wfh_boys  : ${result.wfh_boys.length} titik (per 0.1 cm)`)
+console.log(`  wfh_girls : ${result.wfh_girls.length} titik (per 0.1 cm)`)
+console.log(`  bfa_boys  : ${result.bfa_boys.length} bulan (0-60)`)
+console.log(`  bfa_girls : ${result.bfa_girls.length} bulan (0-60)`)

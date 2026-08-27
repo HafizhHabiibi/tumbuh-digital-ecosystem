@@ -3,7 +3,12 @@ import assert from "node:assert/strict";
 import { hashRefreshToken } from "../src/models/refreshTokenModel.js";
 import { parsePagination, paginationMeta } from "../src/utils/pagination.js";
 import { buildMonthlyScheduleDates } from "../src/utils/schedule.js";
-import { validateBody, rules } from "../src/middlewares/validate.js";
+import {
+    validateBody,
+    validateQuery,
+    rules,
+} from "../src/middlewares/validate.js";
+import { laporanRekapQuerySchema } from "../src/validation/schemas.js";
 import { error } from "../src/utils/response.js";
 
 test("refresh token diubah menjadi hash SHA-256 sebelum disimpan", () => {
@@ -70,4 +75,42 @@ test("response 500 tidak membocorkan pesan internal", () => {
     error(response, "ER_BAD_FIELD_ERROR: kolom_rahasia", 500);
     assert.equal(response.statusCode, 500);
     assert.equal(response.body.message, "Terjadi kesalahan server");
+});
+
+test("validasi query laporan menolak periode terbalik dan terlalu panjang", () => {
+    const middleware = validateQuery(laporanRekapQuerySchema);
+    const response = {
+        statusCode: 200,
+        status(code) { this.statusCode = code; return this; },
+        json(body) { this.body = body; return this; },
+    };
+
+    middleware({
+        query: { tanggal_mulai: "2026-08-20", tanggal_selesai: "2026-08-01" },
+    }, response, () => {});
+    assert.equal(response.statusCode, 400);
+    assert.match(response.body.message, /tidak boleh sebelum/);
+
+    middleware({
+        query: { tanggal_mulai: "2025-01-01", tanggal_selesai: "2026-08-01" },
+    }, response, () => {});
+    assert.equal(response.statusCode, 400);
+    assert.match(response.body.message, /maksimal 366 hari/);
+});
+
+test("validasi query laporan menyimpan periode yang sudah dinormalisasi", () => {
+    const middleware = validateQuery(laporanRekapQuerySchema);
+    const req = {
+        query: { tanggal_mulai: "2026-08-01", tanggal_selesai: "2026-08-27" },
+    };
+    const response = {
+        status(code) { this.statusCode = code; return this; },
+        json(body) { this.body = body; return this; },
+    };
+    let nextDipanggil = false;
+
+    middleware(req, response, () => { nextDipanggil = true; });
+
+    assert.equal(nextDipanggil, true);
+    assert.deepEqual(req.validatedQuery, req.query);
 });

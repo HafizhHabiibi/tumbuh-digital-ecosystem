@@ -15,6 +15,7 @@ import jadwalRoutes from "./src/routes/jadwal.js";
 import notifikasiRoutes from "./src/routes/notifikasi.js";
 import orangTuaRoutes from "./src/routes/orangTua.js";
 import dashboardRoutes from "./src/routes/dashboard.js";
+import laporanRoutes from "./src/routes/laporan.js";
 
 const app = express();
 const { port: PORT, trustProxyHops } = validateEnvironment();
@@ -57,6 +58,7 @@ app.use("/api/jadwal", jadwalRoutes);
 app.use("/api/notifikasi", notifikasiRoutes);
 app.use("/api/orang-tua", orangTuaRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/laporan", laporanRoutes);
 
 app.use((req, res) => {
     res.status(404).json({

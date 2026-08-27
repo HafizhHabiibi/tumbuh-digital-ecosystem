@@ -90,16 +90,18 @@ export const rules = {
         rules.string({ required, min: 5, max: 5, pattern: /^([01]\d|2[0-3]):[0-5]\d$/ }),
 };
 
-export const validateBody = ({ fields, refine }) => (req, res, next) => {
+const validateSource = (source, outputProperty) =>
+    ({ fields, refine }) => (req, res, next) => {
     try {
-        const normalized = { ...req.body };
+        const input = req[source] || {};
+        const normalized = { ...input };
         for (const [field, validator] of Object.entries(fields)) {
-            const value = validator(req.body?.[field], field);
+            const value = validator(input[field], field);
             if (value === undefined) delete normalized[field];
             else normalized[field] = value;
         }
         if (refine) refine(normalized);
-        req.body = normalized;
+        req[outputProperty] = normalized;
         next();
     } catch (err) {
         if (err instanceof ValidationError) {
@@ -108,3 +110,7 @@ export const validateBody = ({ fields, refine }) => (req, res, next) => {
         next(err);
     }
 };
+
+export const validateBody = validateSource("body", "body");
+export const validateParams = validateSource("params", "validatedParams");
+export const validateQuery = validateSource("query", "validatedQuery");

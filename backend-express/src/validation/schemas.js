@@ -156,3 +156,30 @@ export const generateJadwalSchema = {
 export const fcmTokenSchema = {
     fields: { fcm_token: rules.string({ min: 1, max: 512 }) },
 };
+
+export const laporanAnakParamsSchema = {
+    fields: { anak_id: uuid },
+};
+
+export const laporanRekapQuerySchema = {
+    fields: {
+        tanggal_mulai: rules.date({ allowFuture: false }),
+        tanggal_selesai: rules.date({ allowFuture: false }),
+    },
+    refine: ({ tanggal_mulai, tanggal_selesai }) => {
+        const mulai = new Date(`${tanggal_mulai}T00:00:00.000Z`);
+        const selesai = new Date(`${tanggal_selesai}T00:00:00.000Z`);
+        if (selesai < mulai) {
+            throw new ValidationError(
+                "tanggal_selesai tidak boleh sebelum tanggal_mulai",
+            );
+        }
+        const jumlahHariInklusif =
+            Math.floor((selesai - mulai) / 86_400_000) + 1;
+        if (jumlahHariInklusif > 366) {
+            throw new ValidationError(
+                "Rentang laporan maksimal 366 hari",
+            );
+        }
+    },
+};

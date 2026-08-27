@@ -3,11 +3,15 @@ import assert from "node:assert/strict";
 import {
     hitungSemuaZScore,
     hitungUsiaHari,
+    statusBBU,
+    statusTBU,
+    statusBBTBdanIMTU,
     ZScoreValidationError,
 } from "../src/services/zscoreService.js";
 import {
-    hitungTrenBBPerBulan,
-    normalisasiTrenBB,
+    hitungSAW,
+    KRITERIA,
+    normalisasiPrioritasZScore,
 } from "../src/services/sawService.js";
 import {
     generateRefreshToken,
@@ -28,6 +32,8 @@ test("Z-score menghitung data valid dalam rentang WHO", () => {
     assert.ok(Number.isFinite(result.zscore_bbu));
     assert.ok(Number.isFinite(result.zscore_tbu));
     assert.ok(Number.isFinite(result.zscore_bbtb));
+    assert.ok(Number.isFinite(result.zscore_imtu));
+    assert.equal(result.nilai_imt, 15.22);
 });
 
 test("usia WHO dihitung sebagai selisih hari kalender tanpa konversi bulan", () => {
@@ -119,24 +125,66 @@ test("Z-score menolak tanggal kalender dan nilai numerik invalid", () => {
     );
 });
 
-test("tren berat dinormalisasi berdasarkan interval hari", () => {
-    const tren30Hari = hitungTrenBBPerBulan(
-        10.2,
-        10,
-        "2026-01-31",
-        "2026-01-01",
-    );
-    const tren60Hari = hitungTrenBBPerBulan(
-        10.2,
-        10,
-        "2026-03-02",
-        "2026-01-01",
+test("kategori antropometri mengikuti ambang Permenkes", () => {
+    assert.equal(statusBBU(-3.01), "berat_badan_sangat_kurang");
+    assert.equal(statusBBU(-3), "berat_badan_kurang");
+    assert.equal(statusBBU(-2), "berat_badan_normal");
+    assert.equal(statusBBU(1), "berat_badan_normal");
+    assert.equal(statusBBU(1.01), "risiko_berat_badan_lebih");
+
+    assert.equal(statusTBU(-3.01), "sangat_pendek");
+    assert.equal(statusTBU(-3), "pendek");
+    assert.equal(statusTBU(3), "normal");
+    assert.equal(statusTBU(3.01), "tinggi");
+
+    assert.equal(statusBBTBdanIMTU(-3.01), "gizi_buruk");
+    assert.equal(statusBBTBdanIMTU(-3), "gizi_kurang");
+    assert.equal(statusBBTBdanIMTU(-2), "gizi_baik");
+    assert.equal(statusBBTBdanIMTU(1), "gizi_baik");
+    assert.equal(statusBBTBdanIMTU(1.01), "risiko_gizi_lebih");
+    assert.equal(statusBBTBdanIMTU(2.01), "gizi_lebih");
+    assert.equal(statusBBTBdanIMTU(3.01), "obesitas");
+});
+
+test("SAW memakai empat kriteria literatur tanpa tren berat", () => {
+    assert.equal(KRITERIA.reduce((total, item) => total + item.bobot, 0), 1);
+    assert.deepEqual(
+        KRITERIA.map(({ nama_kriteria, bobot }) => [nama_kriteria, bobot]),
+        [
+            ["zscore_bbu", 0.25],
+            ["zscore_tbu", 0.30],
+            ["zscore_bbtb", 0.25],
+            ["zscore_imtu", 0.20],
+        ],
     );
 
-    assert.equal(tren30Hari, 0.203);
-    assert.equal(tren60Hari, 0.101);
-    assert.equal(normalisasiTrenBB(tren30Hari), 0);
-    assert.ok(normalisasiTrenBB(tren60Hari) > 0);
+    const normal = hitungSAW({
+        zscore_bbu: 0,
+        zscore_tbu: 0,
+        zscore_bbtb: 0,
+        zscore_imtu: 0,
+    });
+    const perluPerhatian = hitungSAW({
+        zscore_bbu: -3,
+        zscore_tbu: -3,
+        zscore_bbtb: -3,
+        zscore_imtu: -3,
+    });
+
+    assert.equal(normal.skor_akhir, 0);
+    assert.equal(normal.kategori_prioritas, "rendah");
+    assert.equal(perluPerhatian.skor_akhir, 1);
+    assert.equal(perluPerhatian.kategori_prioritas, "tinggi");
+    assert.equal(normalisasiPrioritasZScore(-1.5), 0.5);
+    assert.equal(normal.detail.some((item) => item.nama_kriteria === "tren_bb"), false);
+    assert.throws(
+        () => hitungSAW({
+            zscore_bbu: 0,
+            zscore_tbu: 0,
+            zscore_bbtb: 0,
+        }),
+        /Z-score SAW harus berupa angka/,
+    );
 });
 
 test("refresh token selalu memiliki jti unik", () => {
@@ -160,7 +208,7 @@ test("refresh token selalu memiliki jti unik", () => {
     }
 });
 
-test("ringkasan status gizi dapat mengklasifikasikan obesitas", () => {
+test("BB/TB dan IMT/U dapat mengklasifikasikan obesitas secara independen", () => {
     const result = hitungSemuaZScore({
         berat_badan: 20,
         tinggi_badan: 85,
@@ -170,5 +218,6 @@ test("ringkasan status gizi dapat mengklasifikasikan obesitas", () => {
     });
 
     assert.equal(result.status_bbtb, "obesitas");
-    assert.equal(result.status_gizi, "obesitas");
+    assert.equal(result.status_imtu, "obesitas");
+    assert.equal("status_gizi" in result, false);
 });

@@ -90,15 +90,7 @@ export const findLatestPerAnak = async () => {
                 ROW_NUMBER() OVER (
                     PARTITION BY p.anak_id
                     ORDER BY p.tanggal_ukur DESC, p.id DESC
-                ) AS urutan_terbaru,
-                LAG(p.berat_badan) OVER (
-                    PARTITION BY p.anak_id
-                    ORDER BY p.tanggal_ukur ASC, p.id ASC
-                ) AS berat_sebelumnya,
-                LAG(p.tanggal_ukur) OVER (
-                    PARTITION BY p.anak_id
-                    ORDER BY p.tanggal_ukur ASC, p.id ASC
-                ) AS tanggal_sebelumnya
+                ) AS urutan_terbaru
             FROM pengukuran p
         )
         SELECT
@@ -108,8 +100,6 @@ export const findLatestPerAnak = async () => {
             rp.berat_badan,
             rp.tinggi_badan,
             rp.created_at,
-            rp.berat_sebelumnya,
-            rp.tanggal_sebelumnya,
             a.nama AS nama_anak,
             a.jenis_kelamin,
             a.tanggal_lahir,
@@ -121,20 +111,6 @@ export const findLatestPerAnak = async () => {
         WHERE rp.urutan_terbaru = 1`,
     );
     return rows;
-};
-
-/**
- * Ambil BB pengukuran sebelumnya untuk hitung tren BB.
- */
-export const findPrevious = async (anak_id, tanggal_ukur) => {
-    const [rows] = await db.query(
-        `SELECT berat_badan, tanggal_ukur FROM pengukuran
-        WHERE anak_id = ? AND tanggal_ukur < ?
-        ORDER BY tanggal_ukur DESC
-        LIMIT 1`,
-        [anak_id, tanggal_ukur],
-    );
-    return rows[0] || null;
 };
 
 /**

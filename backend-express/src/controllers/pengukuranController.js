@@ -76,21 +76,12 @@ export const createPengukuran = async (req, res) => {
             jenis_kelamin: anak.jenis_kelamin,
         });
 
-        // Hitung SAW on-the-fly untuk response
-        const previous = await PengukuranModel.findPrevious(anak_id, tanggal_ukur);
-        const tren_bb = previous
-            ? sawService.hitungTrenBBPerBulan(
-                berat,
-                previous.berat_badan,
-                tanggal_ukur,
-                previous.tanggal_ukur,
-            )
-            : null;
-
-        const sawResult = sawService.hitungSAW(
-            { zscore_bbu: zscores.zscore_bbu, zscore_tbu: zscores.zscore_tbu, zscore_bbtb: zscores.zscore_bbtb },
-            tren_bb,
-        );
+        const sawResult = sawService.hitungSAW({
+            zscore_bbu: zscores.zscore_bbu,
+            zscore_tbu: zscores.zscore_tbu,
+            zscore_bbtb: zscores.zscore_bbtb,
+            zscore_imtu: zscores.zscore_imtu,
+        });
 
         // Simpan HANYA raw data ke database (3NF).
         const pengukuran_id = await PengukuranModel.createPengukuran({
@@ -104,22 +95,13 @@ export const createPengukuran = async (req, res) => {
         });
 
         // Notifikasi ke orang tua bahwa anak sudah diukur
-        const STATUS_LABEL = {
-            buruk: "gizi buruk",
-            kurang: "gizi kurang",
-            normal: "gizi normal",
-            lebih: "gizi lebih",
-            obesitas: "obesitas",
-        };
-        const statusLabel = STATUS_LABEL[zscores.status_gizi] || zscores.status_gizi;
-
         fcmService
             .sendNotification(
                 anak.orang_tua_id,
                 `Hasil Pengukuran ${anak.nama}`,
                 `${anak.nama} telah diukur pada ${tanggal_ukur}. ` +
                 `BB: ${berat}kg, TB: ${tinggi}cm. ` +
-                `Status gizi: ${statusLabel}. ` +
+                `Prioritas pemantauan: ${sawResult.kategori_prioritas}. ` +
                 `Cek detail lengkap di aplikasi.`,
                 "pengukuran",
                 pengukuran_id,
@@ -131,16 +113,19 @@ export const createPengukuran = async (req, res) => {
             .generateInsight(anak_id, pengukuran_id, {
                 jenis_kelamin: anak.jenis_kelamin,
                 usia_bulan: zscores.usia_bulan,
+                usia_hari: zscores.usia_hari,
                 berat_badan: berat,
                 tinggi_badan: tinggi,
+                nilai_imt: zscores.nilai_imt,
                 zscore_bbu: zscores.zscore_bbu,
                 zscore_tbu: zscores.zscore_tbu,
                 zscore_bbtb: zscores.zscore_bbtb,
+                zscore_imtu: zscores.zscore_imtu,
                 status_bbu: zscores.status_bbu,
                 status_tbu: zscores.status_tbu,
                 status_bbtb: zscores.status_bbtb,
-                status_gizi: zscores.status_gizi,
-                kategori_risiko: sawResult.kategori_risiko,
+                status_imtu: zscores.status_imtu,
+                kategori_prioritas: sawResult.kategori_prioritas,
             })
             .catch((err) => {
                 console.error("[GEMINI ASYNC ERROR]", err.message);
@@ -155,15 +140,18 @@ export const createPengukuran = async (req, res) => {
                 berat_badan: berat,
                 tinggi_badan: tinggi,
                 usia_bulan: zscores.usia_bulan,
+                usia_hari: zscores.usia_hari,
+                nilai_imt: zscores.nilai_imt,
                 zscore_bbu: zscores.zscore_bbu,
                 zscore_tbu: zscores.zscore_tbu,
                 zscore_bbtb: zscores.zscore_bbtb,
+                zscore_imtu: zscores.zscore_imtu,
                 status_bbu: zscores.status_bbu,
                 status_tbu: zscores.status_tbu,
                 status_bbtb: zscores.status_bbtb,
-                status_gizi: zscores.status_gizi,
+                status_imtu: zscores.status_imtu,
                 skor_saw: sawResult.skor_akhir,
-                kategori_risiko: sawResult.kategori_risiko,
+                kategori_prioritas: sawResult.kategori_prioritas,
                 detail_saw: sawResult.detail,
                 ai_insight: "Sedang diproses, tersedia dalam beberapa detik",
             },

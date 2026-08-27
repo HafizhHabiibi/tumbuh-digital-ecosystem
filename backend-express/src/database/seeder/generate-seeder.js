@@ -1,160 +1,24 @@
 import bcrypt from "bcrypt";
 import { uuidv7 } from "uuidv7";
 import fs from "fs";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
+import {
+    hitungSemuaZScore,
+    hitungUsiaBulan as hitungUsiaBulanService,
+} from "../../services/zscoreService.js";
+import { hitungSAW as hitungSAWService } from "../../services/sawService.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 // ─────────────────────────────────────────────────────────────────────────────
-// WHO TABLES — digunakan untuk kalkulasi z-score yang akurat secara medis
 // ─────────────────────────────────────────────────────────────────────────────
-const WHO = JSON.parse(
-    fs.readFileSync(join(__dirname, "../../constants/whoTables.json"), "utf8"),
-);
-
 const SALT_ROUNDS = 10;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SAW BOBOT KRITERIA
-// ⚠️  Pastikan nilai ini sesuai dengan implementasi di sawService.js!
 // ─────────────────────────────────────────────────────────────────────────────
-const SAW_BOBOT = {
-    zscore_tbu:  0.40,
-    zscore_bbu:  0.25,
-    zscore_bbtb: 0.20,
-    tren_bb:     0.15,
-};
-
 // =============================================================================
-// Z-SCORE CALCULATION (identik dengan src/services/zscoreService.js)
 // =============================================================================
 
-const hitungZScore = (nilai, L, M, S) => {
-    if (L === 0) return Math.log(nilai / M) / S;
-    return (Math.pow(nilai / M, L) - 1) / (L * S);
-};
-
-const hitungUsiaBulan = (tglLahir, tglUkur) => {
-    const lahir = new Date(tglLahir);
-    const ukur = new Date(tglUkur);
-    let bulan =
-        (ukur.getFullYear() - lahir.getFullYear()) * 12 +
-        (ukur.getMonth() - lahir.getMonth());
-    if (ukur.getDate() < lahir.getDate()) bulan--;
-    return Math.max(0, bulan);
-};
-
-const hitungUsiaBulanDesimal = (tglLahir, tglUkur) => {
-    const lahir = new Date(tglLahir);
-    const ukur = new Date(tglUkur);
-    const selisihHari = (ukur - lahir) / (1000 * 60 * 60 * 24);
-    return Math.max(0, selisihHari / 30.4375);
-};
-
-const cariLMS = (table, desimal) => {
-    const bawah = Math.floor(desimal);
-    const atas = Math.ceil(desimal);
-    if (bawah === atas) return table.find((r) => r.bulan === bawah) || null;
-    const lmsBawah = table.find((r) => r.bulan === bawah);
-    const lmsAtas = table.find((r) => r.bulan === atas);
-    if (!lmsBawah) return lmsAtas || null;
-    if (!lmsAtas) return lmsBawah || null;
-    const f = desimal - bawah;
-    return {
-        L: lmsBawah.L + (lmsAtas.L - lmsBawah.L) * f,
-        M: lmsBawah.M + (lmsAtas.M - lmsBawah.M) * f,
-        S: lmsBawah.S + (lmsAtas.S - lmsBawah.S) * f,
-    };
-};
-
-const zBBU = (bb, desimal, g) => {
-    const table = WHO[`bbu_${g}`];
-    if (!table) return 0;
-    const lms = cariLMS(table, desimal);
-    if (!lms) return 0;
-    return hitungZScore(bb, lms.L, lms.M, lms.S);
-};
-
-const zTBU = (tb, desimal, g) => {
-    const table = WHO[`tbu_${g}`];
-    if (!table) return 0;
-    const lms = cariLMS(table, desimal);
-    if (!lms) return 0;
-    return hitungZScore(tb, lms.L, lms.M, lms.S);
-};
-
-const zBBTB = (bb, tb, usiaBulan, g) => {
-    const key = usiaBulan <= 24 ? `wfl_${g}` : `wfh_${g}`;
-    const kolom = usiaBulan <= 24 ? "panjang" : "tinggi";
-    const table = WHO[key];
-    if (!table) return 0;
-    const tbR = Math.round(tb * 10) / 10;
-    let lms = table.find((r) => r[kolom] === tbR);
-    if (!lms) {
-        let closest = null,
-            minDiff = Infinity;
-        for (const row of table) {
-            const diff = Math.abs(row[kolom] - tbR);
-            if (diff < minDiff) {
-                minDiff = diff;
-                closest = row;
-            }
-        }
-        lms = closest;
-    }
-    if (!lms) return 0;
-    return hitungZScore(bb, lms.L, lms.M, lms.S);
-};
-
-const statusGizi = (bbu, tbu, bbtb) => {
-    const burukCount = [bbu, tbu, bbtb].filter((z) => z < -3).length;
-    const kurangCount = [bbu, tbu, bbtb].filter((z) => z < -2).length;
-    if (burukCount >= 2 || tbu < -3) return "buruk";
-    if (kurangCount >= 1) return "kurang";
-    if (bbtb > 2) return "lebih";
-    return "normal";
-};
-
 // =============================================================================
-// SAW CALCULATION (identik dengan src/services/sawService.js)
 // =============================================================================
-
-const normZ = (z) => {
-    const clipped = Math.max(-3, Math.min(2, z));
-    return 1 - (clipped - -3) / (2 - -3);
-};
-
-/**
- * Normalisasi tren BB — identik dengan sawService.normalisasiTrenBB
- * delta_kg: selisih BB dalam kg (null = pengukuran pertama)
- */
-const normTrenBB = (delta_kg) => {
-    if (delta_kg === null || delta_kg === undefined) return 0.5;
-    const delta_gram = delta_kg * 1000;
-    const THRESHOLD = 200;
-    const MAX_TURUN = 500;
-    if (delta_gram >= THRESHOLD) return 0.0;
-    if (delta_gram > 0) return 0.5 * (1 - delta_gram / THRESHOLD);
-    if (delta_gram === 0) return 0.7;
-    return Math.min(1.0, 0.7 + 0.3 * (Math.abs(delta_gram) / MAX_TURUN));
-};
-
-const hitungSAW = (zbbu, ztbu, zbbtb, tren_bb_kg) => {
-    const nilai = {
-        zscore_tbu:  normZ(ztbu),
-        zscore_bbu:  normZ(zbbu),
-        zscore_bbtb: normZ(zbbtb),
-        tren_bb:     normTrenBB(tren_bb_kg),
-    };
-    let skor = 0;
-    for (const [k, b] of Object.entries(SAW_BOBOT)) skor += b * nilai[k];
-    skor = parseFloat(skor.toFixed(4));
-    const kategori =
-        skor > 0.6667 ? "tinggi" : skor > 0.3334 ? "sedang" : "rendah";
-    return { skor, kategori, nilai };
-};
 
 // =============================================================================
 // HELPERS
@@ -214,6 +78,22 @@ const INSIGHT = {
 
     buruk: `**Kondisi Saat Ini**\nBerdasarkan hasil pengukuran terbaru, berat badan dan tinggi badan si kecil berada di bawah batas normal yang direkomendasikan WHO. Kondisi ini menunjukkan risiko stunting yang tinggi dan memerlukan perhatian segera dari tenaga kesehatan. Bunda perlu segera mengambil tindakan nyata agar kondisi tidak semakin memburuk.\n\n**Yang Bisa Dilakukan**\n1. Segera konsultasikan kondisi si kecil ke dokter atau bidan di puskesmas untuk mendapatkan penanganan gizi yang tepat, termasuk kemungkinan masuk dalam program PMT (Pemberian Makanan Tambahan) yang disediakan pemerintah.\n2. Berikan makanan tinggi kalori dan tinggi protein di setiap waktu makan — nasi tim dengan hati ayam cincang, bubur kacang hijau dengan santan, atau makanan yang diperkaya sedikit minyak kelapa atau mentega untuk menambah kalori.\n3. Pastikan si kecil tidak melewatkan satu pun waktu makan dan selalu tawarkan makanan tambahan di antara waktu makan utama untuk mendukung proses kejar tumbuh.\n\n**Kapan Perlu ke Dokter**\nSi kecil sangat disarankan untuk segera dirujuk ke dokter spesialis anak. Jangan tunda kunjungan jika si kecil mengalami penurunan berat badan, menolak makan sama sekali selama lebih dari 2 hari, tampak sangat lemas dan tidak responsif, atau terdapat pembengkakan pada kaki dan tangan yang bisa menjadi tanda kekurangan protein berat.`,
 };
+
+// Template lama dipertahankan sebagai konten demo, tetapi istilah diagnosis
+// diganti saat generator berjalan agar keluaran seeder konsisten dengan fungsi
+// SAW sebagai pemeringkatan prioritas saja.
+INSIGHT.normal = INSIGHT.normal.replace(
+    "Risiko stunting tergolong rendah",
+    "Prioritas pemantauan berdasarkan pemeringkatan sistem tergolong rendah",
+);
+INSIGHT.kurang = INSIGHT.kurang.replace(
+    "Risiko stunting tergolong sedang dan perlu diwaspadai sejak dini",
+    "Prioritas pemantauan berdasarkan pemeringkatan sistem tergolong sedang",
+);
+INSIGHT.buruk = INSIGHT.buruk.replace(
+    "Kondisi ini menunjukkan risiko stunting yang tinggi",
+    "Pemeringkatan sistem menempatkan anak pada prioritas pemantauan tinggi; hasil ini bukan diagnosis",
+);
 
 // =============================================================================
 // SEED DATA DEFINITIONS
@@ -459,27 +339,32 @@ async function generateSeeder() {
             const date = MEASUREMENT_DATES[dIdx];
             const w = parseFloat((a.baseWeight + dIdx * a.wInc).toFixed(1));
             const h = parseFloat((a.baseHeight + dIdx * a.hInc).toFixed(1));
-            const desimal = hitungUsiaBulanDesimal(a.tglLahir, date);
-            const bulan = hitungUsiaBulan(a.tglLahir, date);
-            const zbbu = parseFloat(zBBU(w, desimal, a.gender).toFixed(3));
-            const ztbu = parseFloat(zTBU(h, desimal, a.gender).toFixed(3));
-            const zbbtb = parseFloat(zBBTB(w, h, bulan, a.gender).toFixed(3));
-            const sg = statusGizi(zbbu, ztbu, zbbtb);
+            const bulan = hitungUsiaBulanService(a.tglLahir, date);
+            const zscores = hitungSemuaZScore({
+                berat_badan: w,
+                tinggi_badan: h,
+                tanggal_lahir: a.tglLahir,
+                tanggal_ukur: date,
+                jenis_kelamin: a.gender,
+            });
+            const {
+                zscore_bbu: zbbu,
+                zscore_tbu: ztbu,
+                zscore_bbtb: zbbtb,
+                zscore_imtu: zimtu,
+            } = zscores;
             const { lk, ll } = hitungLingkar(bulan);
 
             pengCount++;
             pengMeta.push({
                 aIdx, dIdx, anakId,
-                w, h, zbbu, ztbu, zbbtb, sg,
+                w, h, zbbu, ztbu, zbbtb, zimtu,
                 pengId: pengCount, date,
             });
 
-            // tren_bb: null untuk pengukuran pertama (dIdx=0), selisih BB untuk selanjutnya
-            const tren_bb_kg = dIdx === 0 ? null : parseFloat(a.wInc.toFixed(3));
-            const saw = hitungSAW(zbbu, ztbu, zbbtb, tren_bb_kg);
-            pengMeta[pengMeta.length - 1].skor = saw.skor;
-            pengMeta[pengMeta.length - 1].kategori = saw.kategori;
-            pengMeta[pengMeta.length - 1].tren_bb_kg = tren_bb_kg;
+            const saw = hitungSAWService(zscores);
+            pengMeta[pengMeta.length - 1].skor = saw.skor_akhir;
+            pengMeta[pengMeta.length - 1].kategori = saw.kategori_prioritas;
 
             lines.push(`INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan) VALUES`);
             lines.push(`    (${sq(anakId)}, ${sq(kId)}, ${sq(date)}, ${w}, ${h}, ${lk ?? "NULL"}, ${ll ?? "NULL"});`);
@@ -499,7 +384,7 @@ async function generateSeeder() {
     for (let aIdx = 0; aIdx < ANAK_LIST.length; aIdx++) {
         const a = ANAK_LIST[aIdx];
         const anakId = anakIds[aIdx];
-        const usiaSaatIni = hitungUsiaBulan(a.tglLahir, "2026-06-03");
+        const usiaSaatIni = hitungUsiaBulanService(a.tglLahir, "2026-06-03");
         const items = getRiwayatItems(usiaSaatIni);
 
         lines.push(`-- ${a.nama} (usia: ${usiaSaatIni} bulan)`);
@@ -516,7 +401,7 @@ async function generateSeeder() {
     // Nilai turunan tidak disimpan ke tabel pengukuran.
 
     // ══════════════════════════════════════════════════════════════════════════════
-    // TIER 6 — rujukan (untuk anak dengan kategori_risiko 'tinggi')
+    // TIER 6 — rujukan (untuk anak dengan prioritas pemantauan tinggi)
     // ══════════════════════════════════════════════════════════════════════════════
     lines.push("-- ==========================================================");
     lines.push("-- TIER 6: Rujukan (anak kategori risiko tinggi)");

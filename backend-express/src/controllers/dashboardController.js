@@ -39,7 +39,7 @@ export const getDistribusiRisiko = async (req, res) => {
         return success(
             res,
             distribusi,
-            "Distribusi risiko stunting berhasil diambil",
+            "Distribusi prioritas pemantauan berhasil diambil",
         );
     } catch (err) {
         return error(res, err.message);

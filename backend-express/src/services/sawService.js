@@ -1,145 +1,57 @@
-// =============================================================================
-// SAW SERVICE — Pure Functions (3NF: tidak menulis ke database)
-// Semua fungsi bersifat stateless, menerima input dan mengembalikan output.
-// =============================================================================
+// SAW dipakai untuk mengurutkan prioritas pemantauan, bukan untuk diagnosis.
+// Z-score terlebih dahulu diubah menjadi nilai perhatian 0-1. Setelah
+// transformasi, semua kriteria menjadi benefit: nilai lebih besar berarti
+// prioritas pemantauan lebih tinggi.
 
-// =============================================================================
-// NORMALISASI
-// Semua kriteria bersifat COST — makin tinggi nilai normalisasi = makin berisiko
-// =============================================================================
-
-/**
- * Normalisasi Z-Score (TB/U, BB/U, BB/TB)
- * Range diklem pada [-3, +2] sesuai batas klinis WHO untuk stunting.
- * Dibalik (1 - x) karena cost criterion: z-score rendah = risiko tinggi.
- *
- * Referensi: WHO (2006). WHO Child Growth Standards. Geneva: WHO.
- */
-export const normalisasiZScore = (zscore) => {
-    const MIN = -3;
-    const MAX = 2;
-    const clipped = Math.max(MIN, Math.min(MAX, zscore));
-    return 1 - (clipped - MIN) / (MAX - MIN);
-};
-
-/**
- * Normalisasi Tren Berat Badan (∆BB antar dua pengukuran berurutan)
- * Menggunakan threshold 200g/bulan sebagai kenaikan minimum yang sehat
- * sesuai Buku KIA Kemenkes RI (2021).
- *
- * delta_kg : selisih BB dalam kg (positif=naik, negatif=turun, null=tidak ada data sebelumnya)
- *
- * Skema nilai:
- *   ∆BB ≥ +200g       → 0.0  (naik cukup, risiko rendah)
- *   0 < ∆BB < +200g   → 0.0–0.5 (naik tapi kurang dari threshold)
- *   ∆BB = 0            → 0.7  (stagnan, perlu waspada)
- *   ∆BB < 0            → 0.7–1.0 (turun, interpolasi hingga drop 500g = 1.0)
- *   null               → 0.5  (netral, pengukuran pertama — tidak ada penalti)
- *
- * Referensi: Kemenkes RI (2021). Buku Kesehatan Ibu dan Anak. Jakarta: Kemenkes RI.
- */
-export const normalisasiTrenBB = (delta_kg_per_bulan) => {
-    if (delta_kg_per_bulan === null || delta_kg_per_bulan === undefined) return 0.5;
-
-    const delta_gram = delta_kg_per_bulan * 1000;
-    const THRESHOLD_CUKUP = 200;  // gram/bulan: kenaikan minimum yang sehat
-    const MAX_TURUN = 500;        // gram: drop ≥500g = risiko maksimal
-
-    if (delta_gram >= THRESHOLD_CUKUP) return 0.0;
-
-    if (delta_gram > 0) {
-        // Naik tapi di bawah threshold → interpolasi 0.0–0.5
-        return 0.5 * (1 - delta_gram / THRESHOLD_CUKUP);
+export const normalisasiPrioritasZScore = (zscore) => {
+    const nilai = Number(zscore);
+    if (!Number.isFinite(nilai)) {
+        throw new TypeError("Z-score SAW harus berupa angka yang valid");
     }
-
-    if (delta_gram === 0) return 0.7; // stagnan
-
-    // Turun → interpolasi 0.7–1.0
-    return Math.min(1.0, 0.7 + 0.3 * (Math.abs(delta_gram) / MAX_TURUN));
+    return Math.max(0, Math.min(1, -nilai / 3));
 };
 
-export const hitungTrenBBPerBulan = (
-    beratSekarang,
-    beratSebelumnya,
-    tanggalSekarang,
-    tanggalSebelumnya,
-) => {
-    if (beratSebelumnya === null || beratSebelumnya === undefined) return null;
-
-    const sekarang = new Date(tanggalSekarang);
-    const sebelumnya = new Date(tanggalSebelumnya);
-    const intervalHari = (sekarang - sebelumnya) / (1000 * 60 * 60 * 24);
-    if (!Number.isFinite(intervalHari) || intervalHari <= 0) return null;
-
-    const deltaKg = Number(beratSekarang) - Number(beratSebelumnya);
-    if (!Number.isFinite(deltaKg)) return null;
-
-    return parseFloat((deltaKg * (30.4375 / intervalHari)).toFixed(3));
-};
-
-export const tentukanKategoriRisiko = (skor_akhir) => {
-    if (skor_akhir > 0.6667) return "tinggi";
-    if (skor_akhir > 0.3334) return "sedang";
+export const tentukanKategoriPrioritas = (skorAkhir) => {
+    if (skorAkhir > 0.6667) return "tinggi";
+    if (skorAkhir > 0.3333) return "sedang";
     return "rendah";
 };
 
-// =============================================================================
-// KRITERIA & BOBOT
-// Ditetapkan berdasarkan standar indikator antropometri WHO dan Kemenkes RI.
-//
-// Referensi penetapan bobot:
-//   - TB/U (0.40): Indikator utama stunting (WHO, 2006; Kemenkes, 2020)
-//   - BB/U (0.25): Status gizi keseluruhan (WHO, 2009)
-//   - BB/TB (0.20): Wasting/kekurusan akut (Black et al., 2013)
-//   - Tren BB (0.15): Dinamika pertumbuhan (Victora et al., 2010; Kemenkes, 2021)
-// =============================================================================
-export const KRITERIA = [
-    { nama_kriteria: "zscore_tbu",  bobot: 0.40 },
-    { nama_kriteria: "zscore_bbu",  bobot: 0.25 },
-    { nama_kriteria: "zscore_bbtb", bobot: 0.20 },
-    { nama_kriteria: "tren_bb",     bobot: 0.15 },
-];
+// Bobot diadopsi dari dua penelitian SAW sejenis yang memperoleh penilaian
+// kriteria melalui tenaga puskesmas/bidan. Bobot hanya dipakai untuk ranking.
+export const KRITERIA = Object.freeze([
+    Object.freeze({ nama_kriteria: "zscore_bbu", bobot: 0.25 }),
+    Object.freeze({ nama_kriteria: "zscore_tbu", bobot: 0.30 }),
+    Object.freeze({ nama_kriteria: "zscore_bbtb", bobot: 0.25 }),
+    Object.freeze({ nama_kriteria: "zscore_imtu", bobot: 0.20 }),
+]);
 
-// =============================================================================
-// HITUNG SAW — Pure function, tidak menulis ke database
-// =============================================================================
+const totalBobot = KRITERIA.reduce((total, kriteria) => total + kriteria.bobot, 0);
+if (Math.abs(totalBobot - 1) > Number.EPSILON) {
+    throw new Error("Total bobot SAW harus sama dengan 1");
+}
 
-/**
- * Menghitung skor SAW dari z-scores dan tren BB.
- * Pure function: input → output, tanpa side effect.
- *
- * @param {object} zscores    - { zscore_bbu, zscore_tbu, zscore_bbtb }
- * @param {number|null} tren_bb_kg_per_bulan - Perubahan BB yang dinormalisasi ke kg/bulan
- * @returns {{ skor_akhir: number, kategori_risiko: string, detail: Array }}
- */
-export const hitungSAW = (zscores, tren_bb_kg_per_bulan) => {
-    const nilaiNormalisasi = {
-        zscore_tbu:  normalisasiZScore(zscores.zscore_tbu),
-        zscore_bbu:  normalisasiZScore(zscores.zscore_bbu),
-        zscore_bbtb: normalisasiZScore(zscores.zscore_bbtb),
-        tren_bb:     normalisasiTrenBB(tren_bb_kg_per_bulan),
-    };
-
-    let skor_akhir = 0;
+export const hitungSAW = (zscores) => {
+    let skorAkhir = 0;
     const detail = [];
 
-    for (const k of KRITERIA) {
-        const nilai = nilaiNormalisasi[k.nama_kriteria] ?? 0;
-        const bobot = parseFloat(k.bobot);
-        const skor = parseFloat((bobot * nilai).toFixed(4));
-
-        skor_akhir += skor;
+    for (const kriteria of KRITERIA) {
+        const nilai = normalisasiPrioritasZScore(zscores[kriteria.nama_kriteria]);
+        const skor = kriteria.bobot * nilai;
+        skorAkhir += skor;
 
         detail.push({
-            nama_kriteria: k.nama_kriteria,
-            bobot,
+            nama_kriteria: kriteria.nama_kriteria,
+            bobot: kriteria.bobot,
             nilai: parseFloat(nilai.toFixed(4)),
-            skor,
+            skor: parseFloat(skor.toFixed(4)),
         });
     }
 
-    skor_akhir = parseFloat(skor_akhir.toFixed(4));
-    const kategori_risiko = tentukanKategoriRisiko(skor_akhir);
-
-    return { skor_akhir, kategori_risiko, detail };
+    skorAkhir = parseFloat(skorAkhir.toFixed(4));
+    return {
+        skor_akhir: skorAkhir,
+        kategori_prioritas: tentukanKategoriPrioritas(skorAkhir),
+        detail,
+    };
 };

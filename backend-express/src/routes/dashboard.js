@@ -16,6 +16,8 @@ router.use(authorizeRole("kader", "puskesmas"));
 router.get("/statistik", getStatistik);
 router.get("/distribusi", getDistribusiGizi);
 router.get("/tren", getTrenGizi);
+router.get("/prioritas", getDistribusiRisiko);
+// Alias lama dipertahankan sementara untuk kompatibilitas client.
 router.get("/risiko", getDistribusiRisiko);
 
 export default router;

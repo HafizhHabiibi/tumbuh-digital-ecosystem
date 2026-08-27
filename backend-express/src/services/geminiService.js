@@ -14,17 +14,18 @@ const LABEL_STATUS_TBU = {
 };
 
 const LABEL_STATUS_BBU = {
-    buruk: "berat badan sangat kurang",
-    kurang: "berat badan kurang",
-    normal: "berat badan normal",
-    lebih: "berat badan berlebih",
+    berat_badan_sangat_kurang: "berat badan sangat kurang",
+    berat_badan_kurang: "berat badan kurang",
+    berat_badan_normal: "berat badan normal",
+    risiko_berat_badan_lebih: "berisiko berat badan lebih",
 };
 
-const LABEL_STATUS_BBTB = {
-    sangat_kurus: "sangat kurus untuk tingginya",
-    kurus: "kurus untuk tingginya",
-    normal: "proporsional",
-    gemuk: "agak gemuk untuk tingginya",
+const LABEL_STATUS_PROPORSI = {
+    gizi_buruk: "gizi buruk",
+    gizi_kurang: "gizi kurang",
+    gizi_baik: "gizi baik",
+    risiko_gizi_lebih: "berisiko gizi lebih",
+    gizi_lebih: "gizi lebih",
     obesitas: "obesitas",
 };
 
@@ -32,15 +33,19 @@ const susunPrompt = (data) => {
     const {
         jenis_kelamin,
         usia_bulan,
+        usia_hari,
         berat_badan,
         tinggi_badan,
+        nilai_imt,
         zscore_bbu,
         zscore_tbu,
         zscore_bbtb,
+        zscore_imtu,
         status_bbu,
         status_tbu,
         status_bbtb,
-        kategori_risiko,
+        status_imtu,
+        kategori_prioritas,
     } = data;
 
     const gender = jenis_kelamin === "L" ? "laki-laki" : "perempuan";
@@ -48,9 +53,9 @@ const susunPrompt = (data) => {
 
     return `Kamu adalah asisten gizi posyandu. Berikan insight dalam Bahasa Indonesia yang hangat dan mudah dipahami orang tua. Jangan gunakan istilah medis yang sulit.
     
-    Data anak: ${sapaan}, ${gender}, ${usia_bulan} bulan, BB ${berat_badan}kg, TB ${tinggi_badan}cm
-    Status: BB/U ${LABEL_STATUS_BBU[status_bbu] || status_bbu} (Z: ${zscore_bbu}), TB/U ${LABEL_STATUS_TBU[status_tbu] || status_tbu} (Z: ${zscore_tbu}), BB/TB ${LABEL_STATUS_BBTB[status_bbtb] || status_bbtb} (Z: ${zscore_bbtb})
-    Risiko stunting: ${kategori_risiko}
+    Data anak: ${sapaan}, ${gender}, ${usia_bulan} bulan (${usia_hari} hari), BB ${berat_badan}kg, TB ${tinggi_badan}cm, IMT ${nilai_imt}
+    Status: BB/U ${LABEL_STATUS_BBU[status_bbu] || status_bbu} (Z: ${zscore_bbu}), TB/U ${LABEL_STATUS_TBU[status_tbu] || status_tbu} (Z: ${zscore_tbu}), BB/TB ${LABEL_STATUS_PROPORSI[status_bbtb] || status_bbtb} (Z: ${zscore_bbtb}), IMT/U ${LABEL_STATUS_PROPORSI[status_imtu] || status_imtu} (Z: ${zscore_imtu})
+    Prioritas pemantauan berdasarkan perankingan SAW: ${kategori_prioritas}. Ini bukan diagnosis stunting.
 
     Jawab dalam 3 bagian singkat (total maksimal 200 kata):
     1. Kondisi Saat Ini — jelaskan kondisi anak dalam 2-3 kalimat

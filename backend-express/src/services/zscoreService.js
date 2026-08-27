@@ -59,11 +59,31 @@ const startOfTodayUtc = () => {
     ));
 };
 
-const hitungZScore = (nilai, L, M, S) => {
+const nilaiPadaZScore = (z, L, M, S) => {
     if (L === 0) {
-        return Math.log(nilai / M) / S;
+        return M * Math.exp(S * z);
     }
-    return (Math.pow(nilai / M, L) - 1) / (L * S);
+    return M * Math.pow(1 + L * S * z, 1 / L);
+};
+
+// WHO menggunakan LMS langsung pada rentang -3 sampai +3 SD. Untuk nilai
+// ekstrem, z-score diekstrapolasi secara linear dari jarak antara SD2 dan SD3.
+const hitungZScore = (nilai, L, M, S) => {
+    const zLms = L === 0
+        ? Math.log(nilai / M) / S
+        : (Math.pow(nilai / M, L) - 1) / (L * S);
+
+    if (zLms > 3) {
+        const sd2 = nilaiPadaZScore(2, L, M, S);
+        const sd3 = nilaiPadaZScore(3, L, M, S);
+        return 3 + (nilai - sd3) / (sd3 - sd2);
+    }
+    if (zLms < -3) {
+        const sdNeg2 = nilaiPadaZScore(-2, L, M, S);
+        const sdNeg3 = nilaiPadaZScore(-3, L, M, S);
+        return -3 + (nilai - sdNeg3) / (sdNeg2 - sdNeg3);
+    }
+    return zLms;
 };
 
 export const hitungUsiaBulan = (tanggal_lahir, tanggal_ukur) => {
@@ -115,6 +135,16 @@ const hitungZScoreTBU = (tinggi_badan, usia_hari, gender) => {
     return hitungZScore(tinggi_badan, lms.L, lms.M, lms.S);
 };
 
+const hitungZScoreIMTU = (imt, usia_hari, gender) => {
+    const table = WHO[`bfa_${gender}`];
+    if (!table) throw new ZScoreValidationError("Referensi IMT/U tidak tersedia");
+
+    const lms = cariLMSHarian(table, usia_hari);
+    if (!lms) throw new ZScoreValidationError("Usia di luar referensi IMT/U WHO");
+
+    return hitungZScore(imt, lms.L, lms.M, lms.S);
+};
+
 const hitungZScoreBBTB = (berat_badan, tinggi_badan, usia_hari, gender) => {
     // WHO menggunakan panjang badan telentang sebelum usia 24 bulan dan tinggi
     // badan berdiri mulai usia 24 bulan. Day 731 adalah batas tabel expanded.
@@ -153,53 +183,27 @@ const hitungZScoreBBTB = (berat_badan, tinggi_badan, usia_hari, gender) => {
     return hitungZScore(berat_badan, lms.L, lms.M, lms.S);
 };
 
-const statusBBU = (z) => {
-    if (z < -3) return "buruk";
-    if (z < -2) return "kurang";
-    if (z <= 2) return "normal";
-    return "lebih";
+export const statusBBU = (z) => {
+    if (z < -3) return "berat_badan_sangat_kurang";
+    if (z < -2) return "berat_badan_kurang";
+    if (z <= 1) return "berat_badan_normal";
+    return "risiko_berat_badan_lebih";
 };
 
-const statusTBU = (z) => {
+export const statusTBU = (z) => {
     if (z < -3) return "sangat_pendek";
     if (z < -2) return "pendek";
-    if (z <= 2) return "normal";
+    if (z <= 3) return "normal";
     return "tinggi";
 };
 
-const statusBBTB = (z) => {
-    if (z < -3) return "sangat_kurus";
-    if (z < -2) return "kurus";
-    if (z <= 2) return "normal";
-    if (z <= 3) return "gemuk";
+export const statusBBTBdanIMTU = (z) => {
+    if (z < -3) return "gizi_buruk";
+    if (z < -2) return "gizi_kurang";
+    if (z <= 1) return "gizi_baik";
+    if (z <= 2) return "risiko_gizi_lebih";
+    if (z <= 3) return "gizi_lebih";
     return "obesitas";
-};
-
-const ringkasanStatusGizi = (zscore_bbu, zscore_tbu, zscore_bbtb) => {
-    const jumlahBuruk = [zscore_bbu, zscore_tbu, zscore_bbtb].filter(
-        (z) => z < -3,
-    ).length;
-    const jumlahKurang = [zscore_bbu, zscore_tbu, zscore_bbtb].filter(
-        (z) => z < -2,
-    ).length;
-
-    if (jumlahBuruk >= 2 || zscore_tbu < -3) {
-        return "buruk";
-    }
-
-    if (jumlahKurang >= 1) {
-        return "kurang";
-    }
-
-    if (zscore_bbtb > 3) {
-        return "obesitas";
-    }
-
-    if (zscore_bbtb > 2) {
-        return "lebih";
-    }
-
-    return "normal";
 };
 
 export const hitungSemuaZScore = (data) => {
@@ -251,18 +255,21 @@ export const hitungSemuaZScore = (data) => {
         usia_hari,
         gender,
     );
+    const nilai_imt = berat / Math.pow(tinggi / 100, 2);
+    const zscore_imtu = hitungZScoreIMTU(nilai_imt, usia_hari, gender);
 
     return {
         usia_bulan,
         usia_hari,
+        nilai_imt: parseFloat(nilai_imt.toFixed(2)),
         zscore_bbu: parseFloat(zscore_bbu.toFixed(3)),
         zscore_tbu: parseFloat(zscore_tbu.toFixed(3)),
         zscore_bbtb: parseFloat(zscore_bbtb.toFixed(3)),
+        zscore_imtu: parseFloat(zscore_imtu.toFixed(3)),
 
         status_bbu: statusBBU(zscore_bbu),
         status_tbu: statusTBU(zscore_tbu),
-        status_bbtb: statusBBTB(zscore_bbtb),
-
-        status_gizi: ringkasanStatusGizi(zscore_bbu, zscore_tbu, zscore_bbtb),
+        status_bbtb: statusBBTBdanIMTU(zscore_bbtb),
+        status_imtu: statusBBTBdanIMTU(zscore_imtu),
     };
 };

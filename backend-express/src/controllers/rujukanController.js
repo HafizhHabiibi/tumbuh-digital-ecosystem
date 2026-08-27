@@ -43,15 +43,10 @@ export const createRujukan = async (req, res) => {
             return error(res, "Pengukuran tidak sesuai dengan data anak yang dirujuk", 400);
         }
 
-        // Hitung SAW on-the-fly untuk validasi kategori risiko
+        // Prioritas SAW dilampirkan sebagai informasi, bukan penentu kelayakan
+        // rujukan. Keputusan rujukan tetap dapat dibuat berdasarkan penilaian
+        // kader atau tenaga kesehatan.
         const sawDetail = await pengukuranService.getDetailSAW(pengukuran_id);
-        if (sawDetail && sawDetail.kategori_risiko === "rendah") {
-            return error(
-                res,
-                "Rujukan hanya bisa diajukan untuk anak dengan risiko sedang atau tinggi",
-                400,
-            );
-        }
 
         const id = await RujukanModel.create({
             anak_id,
@@ -86,7 +81,7 @@ export const createRujukan = async (req, res) => {
                 pengukuran_id,
                 status: "diajukan",
                 catatan_kader,
-                kategori_risiko: sawDetail?.kategori_risiko || null,
+                kategori_prioritas: sawDetail?.kategori_prioritas || null,
             },
             "Rujukan berhasil diajukan",
             201,

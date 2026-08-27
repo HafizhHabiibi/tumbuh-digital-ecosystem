@@ -89,15 +89,56 @@ CREATE TABLE IF NOT EXISTS pengukuran (
     lingkar_lengan DECIMAL(5,2) DEFAULT NULL,
     -- AI-generated content (non-deterministic, disimpan karena tidak bisa direproduksi)
     insight_teks TEXT DEFAULT NULL,
+    insight_status ENUM('pending', 'processing', 'completed', 'failed') NOT NULL DEFAULT 'pending',
+    insight_attempts TINYINT UNSIGNED NOT NULL DEFAULT 0,
+    -- Dipakai sebagai jadwal retry atau batas lease ketika sedang diproses.
+    insight_available_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    insight_generated_at DATETIME DEFAULT NULL,
+    insight_model VARCHAR(100) DEFAULT NULL,
+    insight_last_error VARCHAR(500) DEFAULT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (anak_id) REFERENCES anak(id) ON DELETE CASCADE,
     FOREIGN KEY (kader_id) REFERENCES kader(id) ON DELETE CASCADE,
     UNIQUE KEY unique_anak_tanggal (anak_id, tanggal_ukur),
-    INDEX idx_pengukuran_tanggal (tanggal_ukur)
+    INDEX idx_pengukuran_tanggal (tanggal_ukur),
+    INDEX idx_pengukuran_insight_queue (insight_status, insight_available_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ==========================================================
--- 7. RIWAYAT PEMBERIAN
+-- 7. CHAT MESSAGES
+-- Satu rangkaian percakapan untuk setiap pengukuran. Tidak ada
+-- chat_sessions karena pengukuran_id sudah menjadi batas sesi.
+-- anak_id dan orang_tua_id diperoleh melalui relasi pengukuran.
+-- ==========================================================
+CREATE TABLE IF NOT EXISTS chat_messages (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    pengukuran_id INT NOT NULL,
+    -- UUID dari frontend untuk idempotensi pesan orang tua.
+    client_message_id CHAR(36) DEFAULT NULL,
+    -- Balasan assistant menunjuk langsung ke pesan orang tua yang dijawab.
+    reply_to_message_id BIGINT DEFAULT NULL,
+    role ENUM('orang_tua', 'assistant') NOT NULL,
+    content TEXT NOT NULL,
+    response_type ENUM(
+        'answered',
+        'out_of_scope',
+        'medical_advice_refused'
+    ) DEFAULT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (pengukuran_id) REFERENCES pengukuran(id) ON DELETE CASCADE,
+    FOREIGN KEY (reply_to_message_id) REFERENCES chat_messages(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_chat_client_message (client_message_id),
+    UNIQUE KEY unique_chat_reply (reply_to_message_id),
+    INDEX idx_chat_messages_history (pengukuran_id, created_at, id),
+    CONSTRAINT chk_chat_message_metadata CHECK (
+        (role = 'orang_tua' AND client_message_id IS NOT NULL AND reply_to_message_id IS NULL AND response_type IS NULL)
+        OR
+        (role = 'assistant' AND client_message_id IS NULL AND reply_to_message_id IS NOT NULL AND response_type IS NOT NULL)
+    )
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ==========================================================
+-- 8. RIWAYAT PEMBERIAN
 -- NOTE: nama_item dihapus dan digantikan oleh jenis ENUM yang
 --       lebih spesifik untuk menjaga konsistensi data (domain integrity).
 --       Gunakan kolom keterangan untuk detail tambahan jika diperlukan.
@@ -127,7 +168,7 @@ CREATE TABLE IF NOT EXISTS pemberian (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ==========================================================
--- 8. RUJUKAN (simplified: 3 status, pengukuran_id, puskesmas_id)
+-- 9. RUJUKAN (simplified: 3 status, pengukuran_id, puskesmas_id)
 -- NOTE: anak_id dihapus untuk 3NF — didapat via
 --       pengukuran_id → pengukuran.anak_id (JOIN).
 -- ==========================================================
@@ -149,7 +190,7 @@ CREATE TABLE IF NOT EXISTS rujukan (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ==========================================================
--- 9a. PENGATURAN JADWAL (template default — singleton, max 1 row)
+-- 10a. PENGATURAN JADWAL (template default — singleton, max 1 row)
 -- ==========================================================
 CREATE TABLE IF NOT EXISTS pengaturan_jadwal (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -164,7 +205,7 @@ CREATE TABLE IF NOT EXISTS pengaturan_jadwal (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ==========================================================
--- 9b. JADWAL POSYANDU
+-- 10b. JADWAL POSYANDU
 -- ==========================================================
 CREATE TABLE IF NOT EXISTS jadwal_posyandu (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -180,7 +221,7 @@ CREATE TABLE IF NOT EXISTS jadwal_posyandu (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ==========================================================
--- 10. NOTIFIKASI
+-- 11. NOTIFIKASI
 -- ==========================================================
 CREATE TABLE IF NOT EXISTS notifikasi (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -202,7 +243,7 @@ CREATE TABLE IF NOT EXISTS notifikasi (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ==========================================================
--- 11. REFRESH TOKENS
+-- 12. REFRESH TOKENS
 -- NOTE: user_id TIDAK UNIQUE — satu user bisa punya banyak refresh token
 --       aktif secara bersamaan (multi-device login).
 --       Yang UNIQUE adalah hash token itu sendiri; token mentah tidak disimpan.
@@ -221,7 +262,7 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ==========================================================
--- 12. NOTIFICATION OUTBOX
+-- 13. NOTIFICATION OUTBOX
 -- Menjamin push notification dapat di-retry bila provider gagal.
 -- ==========================================================
 CREATE TABLE IF NOT EXISTS notification_outbox (

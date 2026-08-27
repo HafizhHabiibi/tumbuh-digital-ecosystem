@@ -71,13 +71,6 @@ export const findById = async (id) => {
     return rows[0] || null;
 };
 
-export const updateInsight = async (pengukuran_id, insight_teks) => {
-    await db.query(
-        `UPDATE pengukuran SET insight_teks = ? WHERE id = ?`,
-        [insight_teks, pengukuran_id],
-    );
-};
-
 /**
  * Ambil pengukuran terakhir setiap anak (untuk ranking & dashboard).
  * Mengembalikan raw data + info anak untuk dihitung on-the-fly.

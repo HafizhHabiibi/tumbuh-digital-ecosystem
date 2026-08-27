@@ -5,6 +5,10 @@ import { pathToFileURL } from "node:url";
 import { validateEnvironment } from "./src/config.js";
 import db from "./src/database/connection.js";
 import { processPendingNotifications } from "./src/services/fcmService.js";
+import {
+    INSIGHT_PROCESSING_CONFIG,
+    processPendingInsights,
+} from "./src/services/insightService.js";
 import authRoutes from "./src/routes/auth.js";
 import kaderRoutes from "./src/routes/kader.js";
 import puskesmasRoutes from "./src/routes/puskesmas.js";
@@ -100,9 +104,29 @@ if (isMainModule) {
     }, 30_000);
     outboxInterval.unref();
 
+    let insightWorkerRunning = false;
+    const runInsightWorker = async () => {
+        if (insightWorkerRunning) return;
+        insightWorkerRunning = true;
+        try {
+            await processPendingInsights();
+        } catch (err) {
+            console.error(`[INSIGHT WORKER] ${err.message}`);
+        } finally {
+            insightWorkerRunning = false;
+        }
+    };
+    void runInsightWorker();
+    const insightInterval = setInterval(
+        runInsightWorker,
+        INSIGHT_PROCESSING_CONFIG.workerIntervalMs,
+    );
+    insightInterval.unref();
+
     const shutdown = (signal) => {
         console.log(`${signal} diterima, menghentikan server...`);
         clearInterval(outboxInterval);
+        clearInterval(insightInterval);
         server.close(async () => {
             await db.end();
             process.exit(0);

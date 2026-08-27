@@ -3,7 +3,7 @@ import * as AnakModel from "../models/anakModel.js";
 import * as zscoreService from "../services/zscoreService.js";
 import * as sawService from "../services/sawService.js";
 import * as pengukuranService from "../services/pengukuranService.js";
-import * as geminiService from "../services/geminiService.js";
+import * as insightService from "../services/insightService.js";
 import * as fcmService from "../services/fcmService.js";
 import { success, error } from "../utils/response.js";
 import { parsePagination, paginationMeta } from "../utils/pagination.js";
@@ -109,24 +109,8 @@ export const createPengukuran = async (req, res) => {
             .catch((err) => console.error("[FCM PENGUKURAN]", err.message));
 
         // Generate AI insight async (fire-and-forget)
-        geminiService
-            .generateInsight(anak_id, pengukuran_id, {
-                jenis_kelamin: anak.jenis_kelamin,
-                usia_bulan: zscores.usia_bulan,
-                usia_hari: zscores.usia_hari,
-                berat_badan: berat,
-                tinggi_badan: tinggi,
-                nilai_imt: zscores.nilai_imt,
-                zscore_bbu: zscores.zscore_bbu,
-                zscore_tbu: zscores.zscore_tbu,
-                zscore_bbtb: zscores.zscore_bbtb,
-                zscore_imtu: zscores.zscore_imtu,
-                status_bbu: zscores.status_bbu,
-                status_tbu: zscores.status_tbu,
-                status_bbtb: zscores.status_bbtb,
-                status_imtu: zscores.status_imtu,
-                kategori_prioritas: sawResult.kategori_prioritas,
-            })
+        insightService
+            .processInsight(pengukuran_id)
             .catch((err) => {
                 console.error("[GEMINI ASYNC ERROR]", err.message);
             });
@@ -153,6 +137,7 @@ export const createPengukuran = async (req, res) => {
                 skor_saw: sawResult.skor_akhir,
                 kategori_prioritas: sawResult.kategori_prioritas,
                 detail_saw: sawResult.detail,
+                ai_insight_status: "pending",
                 ai_insight: "Sedang diproses, tersedia dalam beberapa detik",
             },
             "Pengukuran berhasil disimpan",
@@ -242,7 +227,7 @@ export const getInsight = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const result = await geminiService.getInsightForOrangTua(
+        const result = await insightService.getInsightForOrangTua(
             id,
             req.orangTua.id,
         );
@@ -250,11 +235,22 @@ export const getInsight = async (req, res) => {
             return error(res, "Data pengukuran tidak ditemukan", 404);
         }
 
+        if (result.insight_status === "failed") {
+            return success(
+                res,
+                { insight_status: "failed", insight_teks: null },
+                "Insight belum dapat tersedia saat ini",
+            );
+        }
+
         if (!result.insight_teks) {
             return success(
                 res,
-                null,
-                "Insight belum tersedia, silahkan coba dalam beberapa waktu kedepan",
+                {
+                    insight_status: result.insight_status,
+                    insight_teks: null,
+                },
+                "Insight sedang diproses",
             );
         }
 

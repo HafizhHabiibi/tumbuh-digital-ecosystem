@@ -157,6 +157,31 @@ export const fcmTokenSchema = {
     fields: { fcm_token: rules.string({ min: 1, max: 512 }) },
 };
 
+const strictUuid = rules.string({
+    min: 36,
+    max: 36,
+    lowercase: true,
+    pattern: /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+});
+
+export const chatPengukuranParamsSchema = {
+    fields: { id: rules.integer() },
+};
+
+export const chatHistoryQuerySchema = {
+    fields: {
+        limit: rules.integer({ required: false, min: 1, max: 100 }),
+        before_id: rules.integer({ required: false }),
+    },
+};
+
+export const chatMessageSchema = {
+    fields: {
+        client_message_id: strictUuid,
+        message: rules.string({ min: 2, max: 1000 }),
+    },
+};
+
 export const laporanAnakParamsSchema = {
     fields: { anak_id: uuid },
 };

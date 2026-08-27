@@ -682,6 +682,9 @@ Berdasarkan hasil pengukuran terbaru, berat badan dan tinggi badan si kecil bera
 **Kapan Perlu ke Dokter**
 Si kecil sangat disarankan untuk segera dirujuk ke dokter spesialis anak. Jangan tunda kunjungan jika si kecil mengalami penurunan berat badan, menolak makan sama sekali selama lebih dari 2 hari, tampak sangat lemas dan tidak responsif, atau terdapat pembengkakan pada kaki dan tangan yang bisa menjadi tanda kekurangan protein berat.' WHERE id = 90;
 
+-- Tandai seluruh insight statis sebagai hasil demo yang sudah selesai
+UPDATE pengukuran SET insight_status = 'completed', insight_attempts = 1, insight_available_at = NULL, insight_generated_at = created_at, insight_model = 'demo-seeder' WHERE insight_teks IS NOT NULL;
+
 -- ==========================================================
 -- TIER 7: Notifikasi
 -- Jadwal ID 7 = Posyandu Juli 2026 (jadwal mendatang = hari demo)

@@ -447,10 +447,10 @@ async function generateSeeder() {
     }
 
     // ══════════════════════════════════════════════════════════════════════════════
-    // TIER 6 — AI Insight (UPDATE pengukuran.insight_teks for last measurement)
+    // TIER 6 — AI Insight (UPDATE pengukuran insight for last measurement)
     // ══════════════════════════════════════════════════════════════════════════════
     lines.push("-- ==========================================================");
-    lines.push("-- TIER 6: AI Insight — UPDATE pengukuran.insight_teks (1 per anak)");
+    lines.push("-- TIER 6: AI Insight — pengukuran terakhir setiap anak");
     lines.push("-- ==========================================================");
     lines.push("");
 
@@ -465,6 +465,15 @@ async function generateSeeder() {
         lines.push(`UPDATE pengukuran SET insight_teks = ${sq(teks)} WHERE id = ${lastPeng.pengId};`);
         lines.push("");
     }
+
+    lines.push("-- Tandai seluruh insight statis sebagai hasil demo yang sudah selesai");
+    lines.push(
+        "UPDATE pengukuran SET insight_status = 'completed', " +
+            "insight_attempts = 1, insight_available_at = NULL, " +
+            "insight_generated_at = created_at, insight_model = 'demo-seeder' " +
+            "WHERE insight_teks IS NOT NULL;",
+    );
+    lines.push("");
 
     // ══════════════════════════════════════════════════════════════════════════════
     // TIER 7 — notifikasi

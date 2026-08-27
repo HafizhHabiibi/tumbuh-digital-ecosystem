@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
     hitungSemuaZScore,
+    hitungUsiaHari,
     ZScoreValidationError,
 } from "../src/services/zscoreService.js";
 import {
@@ -23,9 +24,48 @@ test("Z-score menghitung data valid dalam rentang WHO", () => {
     });
 
     assert.equal(result.usia_bulan, 24);
+    assert.equal(result.usia_hari, 730);
     assert.ok(Number.isFinite(result.zscore_bbu));
     assert.ok(Number.isFinite(result.zscore_tbu));
     assert.ok(Number.isFinite(result.zscore_bbtb));
+});
+
+test("usia WHO dihitung sebagai selisih hari kalender tanpa konversi bulan", () => {
+    assert.equal(hitungUsiaHari("2025-01-01", "2025-02-15"), 45);
+    assert.equal(hitungUsiaHari("2024-02-28", "2024-03-01"), 2);
+
+    const day45 = hitungSemuaZScore({
+        berat_badan: 5,
+        tinggi_badan: 55,
+        tanggal_lahir: "2025-01-01",
+        tanggal_ukur: "2025-02-15",
+        jenis_kelamin: "L",
+    });
+
+    assert.equal(day45.usia_hari, 45);
+    assert.ok(Number.isFinite(day45.zscore_bbu));
+    assert.ok(Number.isFinite(day45.zscore_tbu));
+});
+
+test("BB/TB berpindah dari tabel panjang ke tinggi pada day 731", () => {
+    const common = {
+        berat_badan: 8,
+        tinggi_badan: 64,
+        tanggal_lahir: "2023-01-01",
+        jenis_kelamin: "L",
+    };
+
+    assert.doesNotThrow(() => hitungSemuaZScore({
+        ...common,
+        tanggal_ukur: "2024-12-31",
+    }));
+    assert.throws(
+        () => hitungSemuaZScore({
+            ...common,
+            tanggal_ukur: "2025-01-01",
+        }),
+        /di luar referensi WHO/,
+    );
 });
 
 test("Z-score menolak usia di atas 60 bulan dan tidak fallback ke normal", () => {

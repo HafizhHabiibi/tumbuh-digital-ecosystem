@@ -79,60 +79,48 @@ export const hitungUsiaBulan = (tanggal_lahir, tanggal_ukur) => {
     return Math.max(0, bulan);
 };
 
-const hitungUsiaBulanDesimal = (tanggal_lahir, tanggal_ukur) => {
+export const hitungUsiaHari = (tanggal_lahir, tanggal_ukur) => {
     const lahir = parseTanggal(tanggal_lahir, "tanggal_lahir");
     const ukur = parseTanggal(tanggal_ukur, "tanggal_ukur");
-
-    const selisihHari = (ukur - lahir) / (1000 * 60 * 60 * 24);
-    return Math.max(0, selisihHari / 30.4375);
+    return Math.floor((ukur - lahir) / (1000 * 60 * 60 * 24));
 };
 
-const cariLMSInterpolasi = (table, usia_desimal) => {
-    const bulanBawah = Math.floor(usia_desimal);
-    const bulanAtas = Math.ceil(usia_desimal);
+const genderKey = (jenisKelamin) => jenisKelamin === "L" ? "boys" : "girls";
 
-    if (bulanBawah === bulanAtas) {
-        return table.find((row) => row.bulan === bulanBawah) || null;
-    }
-
-    const lmsBawah = table.find((row) => row.bulan === bulanBawah);
-    const lmsAtas = table.find((row) => row.bulan === bulanAtas);
-
-    if (!lmsBawah) return lmsAtas || null;
-    if (!lmsAtas) return lmsBawah || null;
-
-    const fraksi = usia_desimal - bulanBawah;
-
-    return {
-        L: lmsBawah.L + (lmsAtas.L - lmsBawah.L) * fraksi,
-        M: lmsBawah.M + (lmsAtas.M - lmsBawah.M) * fraksi,
-        S: lmsBawah.S + (lmsAtas.S - lmsBawah.S) * fraksi,
-    };
+// WHO Expanded Tables berurutan dari day 0, sehingga akses indeks memberi
+// lookup O(1). Pemeriksaan day tetap dipertahankan agar format data tervalidasi.
+const cariLMSHarian = (table, usiaHari) => {
+    const candidate = table[usiaHari];
+    if (candidate?.day === usiaHari) return candidate;
+    return table.find((row) => row.day === usiaHari) || null;
 };
 
-const hitungZScoreBBU = (berat_badan, usia_desimal, gender) => {
-    const table = WHO[`bbu_${gender}`];
+const hitungZScoreBBU = (berat_badan, usia_hari, gender) => {
+    const table = WHO[`wfa_${gender}`];
     if (!table) throw new ZScoreValidationError("Referensi BB/U tidak tersedia");
 
-    const lms = cariLMSInterpolasi(table, usia_desimal);
+    const lms = cariLMSHarian(table, usia_hari);
     if (!lms) throw new ZScoreValidationError("Usia di luar referensi BB/U WHO");
 
     return hitungZScore(berat_badan, lms.L, lms.M, lms.S);
 };
 
-const hitungZScoreTBU = (tinggi_badan, usia_desimal, gender) => {
-    const table = WHO[`tbu_${gender}`];
+const hitungZScoreTBU = (tinggi_badan, usia_hari, gender) => {
+    const table = WHO[`lhfa_${gender}`];
     if (!table) throw new ZScoreValidationError("Referensi TB/U tidak tersedia");
 
-    const lms = cariLMSInterpolasi(table, usia_desimal);
+    const lms = cariLMSHarian(table, usia_hari);
     if (!lms) throw new ZScoreValidationError("Usia di luar referensi TB/U WHO");
 
     return hitungZScore(tinggi_badan, lms.L, lms.M, lms.S);
 };
 
-const hitungZScoreBBTB = (berat_badan, tinggi_badan, usia_bulan, gender) => {
-    const key = usia_bulan <= 24 ? `wfl_${gender}` : `wfh_${gender}`;
-    const kolomRef = usia_bulan <= 24 ? "panjang" : "tinggi";
+const hitungZScoreBBTB = (berat_badan, tinggi_badan, usia_hari, gender) => {
+    // WHO menggunakan panjang badan telentang sebelum usia 24 bulan dan tinggi
+    // badan berdiri mulai usia 24 bulan. Day 731 adalah batas tabel expanded.
+    const gunakanPanjang = usia_hari < 731;
+    const key = gunakanPanjang ? `wfl_${gender}` : `wfh_${gender}`;
+    const kolomRef = gunakanPanjang ? "length" : "height";
     const table = WHO[key];
     if (!table) throw new ZScoreValidationError("Referensi BB/TB tidak tersedia");
 
@@ -244,27 +232,29 @@ export const hitungSemuaZScore = (data) => {
         throw new ZScoreValidationError("Tanggal ukur tidak boleh di masa depan");
     }
 
-    const gender = jenis_kelamin;
+    const gender = genderKey(jenis_kelamin);
     const usia_bulan = hitungUsiaBulan(tanggal_lahir, tanggal_ukur);
-    const usia_desimal = hitungUsiaBulanDesimal(tanggal_lahir, tanggal_ukur);
+    const usia_hari = hitungUsiaHari(tanggal_lahir, tanggal_ukur);
 
-    if (usia_bulan > 60) {
+    const maxUsiaHari = WHO[`wfa_${gender}`]?.at(-1)?.day;
+    if (!Number.isInteger(maxUsiaHari) || usia_hari > maxUsiaHari) {
         throw new ZScoreValidationError(
-            "Usia anak di luar rentang WHO yang didukung (0-60 bulan)",
+            "Usia anak di luar rentang WHO yang didukung (0-1856 hari)",
         );
     }
 
-    const zscore_bbu = hitungZScoreBBU(berat, usia_desimal, gender);
-    const zscore_tbu = hitungZScoreTBU(tinggi, usia_desimal, gender);
+    const zscore_bbu = hitungZScoreBBU(berat, usia_hari, gender);
+    const zscore_tbu = hitungZScoreTBU(tinggi, usia_hari, gender);
     const zscore_bbtb = hitungZScoreBBTB(
         berat,
         tinggi,
-        usia_bulan,
+        usia_hari,
         gender,
     );
 
     return {
         usia_bulan,
+        usia_hari,
         zscore_bbu: parseFloat(zscore_bbu.toFixed(3)),
         zscore_tbu: parseFloat(zscore_tbu.toFixed(3)),
         zscore_bbtb: parseFloat(zscore_bbtb.toFixed(3)),

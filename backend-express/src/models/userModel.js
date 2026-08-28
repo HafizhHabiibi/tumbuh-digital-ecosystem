@@ -18,7 +18,12 @@ export const findById = async (id) => {
 
 export const findActiveById = async (id) => {
     const [rows] = await db.query(
-        `SELECT id, email, role, is_active, updated_at
+        `SELECT
+            id,
+            email,
+            role,
+            is_active,
+            UNIX_TIMESTAMP(updated_at) AS updated_at_epoch
         FROM users
         WHERE id = ? AND is_active = TRUE`,
         [id],

@@ -2,7 +2,10 @@ import { verifyToken } from "../utils/jwt.js";
 import { error } from "../utils/response.js";
 import * as UserModel from "../models/userModel.js";
 
-export const authenticate = async (req, res, next) => {
+export const buatAuthenticate = ({
+    verifyTokenFn = verifyToken,
+    findActiveById = UserModel.findActiveById,
+} = {}) => async (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
 
@@ -12,9 +15,9 @@ export const authenticate = async (req, res, next) => {
 
         const token = authHeader.split(" ")[1];
 
-        const decoded = verifyToken(token);
+        const decoded = verifyTokenFn(token);
 
-        const user = await UserModel.findActiveById(decoded.id);
+        const user = await findActiveById(decoded.id);
         if (!user) {
             return error(res, "Akun tidak aktif atau tidak ditemukan", 401);
         }
@@ -22,14 +25,10 @@ export const authenticate = async (req, res, next) => {
         if (!decoded.iat) {
             return error(res, "Token tidak valid", 401);
         }
-        const tokenIssuedAt = new Date(decoded.iat * 1000);
-        const userUpdatedAt = user.updated_at
-            ? new Date(user.updated_at)
-            : null;
+        const userUpdatedAtEpoch = Number(user.updated_at_epoch);
         if (
-            userUpdatedAt &&
-            !Number.isNaN(userUpdatedAt.getTime()) &&
-            tokenIssuedAt < userUpdatedAt
+            Number.isFinite(userUpdatedAtEpoch) &&
+            decoded.iat < userUpdatedAtEpoch
         ) {
             return error(res, "Sesi sudah tidak berlaku, silakan login ulang", 401);
         }
@@ -40,3 +39,5 @@ export const authenticate = async (req, res, next) => {
         return error(res, "Token tidak valid atau sudah kadaluarsa", 401);
     }
 };
+
+export const authenticate = buatAuthenticate();

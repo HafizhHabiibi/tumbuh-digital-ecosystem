@@ -34,7 +34,7 @@ router.post(
     createRujukan,
 );
 
-router.get("/", authorizeRole("puskesmas"), getAllRujukan);
+router.get("/", authorizeRole("kader", "puskesmas"), getAllRujukan);
 
 router.get("/:id", authorizeRole("kader", "puskesmas"), getDetailRujukan);
 

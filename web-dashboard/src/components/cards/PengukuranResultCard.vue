@@ -54,41 +54,37 @@
                 </div>
             </div>
 
-            <!-- Status Gizi & Risiko -->
+            <!-- Status TB/U & prioritas pemantauan -->
             <div class="grid grid-cols-2 gap-3">
                 <div
                     class="rounded-xl p-3 text-center"
-                    :style="`background: ${statusGiziBg}; border: 1px solid ${statusGiziBorder}`"
+                    style="background: var(--color-green-50); border: 1px solid var(--color-input-border)"
                 >
                     <p
                         class="text-xs font-medium m-0 mb-1"
                         style="color: var(--color-text-muted)"
                     >
-                        Status Gizi
+                        Status TB/U
                     </p>
-                    <span
-                        class="text-sm font-bold capitalize"
-                        :style="`color: ${statusGiziColor}`"
-                    >
-                        {{ result.status_gizi }}
-                    </span>
+                    <StatusBadge
+                        type="antropometri"
+                        :value="result.status_tbu"
+                    />
                 </div>
                 <div
                     class="rounded-xl p-3 text-center"
-                    :style="`background: ${risikoBg}; border: 1px solid ${risikoBorder}`"
+                    style="background: var(--color-green-50); border: 1px solid var(--color-input-border)"
                 >
                     <p
                         class="text-xs font-medium m-0 mb-1"
                         style="color: var(--color-text-muted)"
                     >
-                        Risiko Stunting
+                        Prioritas Pemantauan
                     </p>
-                    <span
-                        class="text-sm font-bold capitalize"
-                        :style="`color: ${risikoColor}`"
-                    >
-                        {{ result.kategori_risiko }}
-                    </span>
+                    <StatusBadge
+                        type="prioritas"
+                        :value="result.kategori_prioritas"
+                    />
                 </div>
             </div>
         </div>
@@ -121,12 +117,10 @@
                             >
                                 {{ zs.value?.toFixed(2) ?? "—" }}
                             </span>
-                            <span
-                                class="text-xs px-1.5 py-0.5 rounded font-medium capitalize"
-                                :style="`background: ${zs.bg}; color: ${zs.color}`"
-                            >
-                                {{ zs.status ?? "—" }}
-                            </span>
+                            <StatusBadge
+                                type="antropometri"
+                                :value="zs.status"
+                            />
                         </div>
                     </div>
                     <!-- Bar Z-score: range -4 sampai +4, tengah = 0 -->
@@ -169,7 +163,7 @@
                     class="text-lg font-bold"
                     style="color: var(--color-text-heading)"
                 >
-                    {{ result.skor_saw?.toFixed(4) ?? "—" }}
+                    {{ formatSkor(result.skor_saw) }}
                 </span>
             </div>
             <div
@@ -178,11 +172,12 @@
             >
                 <div
                     class="h-full rounded-full transition-all duration-700"
-                    :style="`width: ${(result.skor_saw || 0) * 100}%; background: ${risikoColor}`"
+                    :style="`width: ${(result.skor_saw || 0) * 100}%; background: ${prioritasColor}`"
                 />
             </div>
             <p class="text-xs m-0" style="color: var(--color-text-muted)">
-                Skor mendekati 1 menunjukkan risiko stunting lebih tinggi
+                Skor mendekati 1 menunjukkan prioritas pemantauan lebih tinggi,
+                bukan diagnosis.
             </p>
         </div>
 
@@ -219,6 +214,7 @@
 
 <script setup>
 import { computed } from "vue";
+import StatusBadge from "@/components/ui/StatusBadge.vue";
 
 const props = defineProps({
     result: { type: Object, required: true },
@@ -231,38 +227,17 @@ const formatTanggal = (tgl) =>
         year: "numeric",
     });
 
-/* ── Warna status gizi ───────────────────────────────────────────── */
-const statusGiziMap = {
-    normal: { color: "#15803d", bg: "#dcfce7", border: "#86efac" },
-    kurang: { color: "#d97706", bg: "#fef3c7", border: "#fcd34d" },
-    buruk: { color: "#dc2626", bg: "#fee2e2", border: "#fca5a5" },
-    lebih: { color: "#2563eb", bg: "#dbeafe", border: "#93c5fd" },
+const warnaPrioritas = {
+    rendah: "#15803d",
+    sedang: "#d97706",
+    tinggi: "#dc2626",
 };
-const statusGiziColor = computed(
-    () => statusGiziMap[props.result.status_gizi]?.color ?? "#6b7280",
-);
-const statusGiziBg = computed(
-    () => statusGiziMap[props.result.status_gizi]?.bg ?? "#f3f4f6",
-);
-const statusGiziBorder = computed(
-    () => statusGiziMap[props.result.status_gizi]?.border ?? "#e5e7eb",
+const prioritasColor = computed(
+    () => warnaPrioritas[props.result.kategori_prioritas] ?? "#6b7280",
 );
 
-/* ── Warna risiko ────────────────────────────────────────────────── */
-const risikoMap = {
-    rendah: { color: "#15803d", bg: "#dcfce7", border: "#86efac" },
-    sedang: { color: "#d97706", bg: "#fef3c7", border: "#fcd34d" },
-    tinggi: { color: "#dc2626", bg: "#fee2e2", border: "#fca5a5" },
-};
-const risikoColor = computed(
-    () => risikoMap[props.result.kategori_risiko]?.color ?? "#6b7280",
-);
-const risikoBg = computed(
-    () => risikoMap[props.result.kategori_risiko]?.bg ?? "#f3f4f6",
-);
-const risikoBorder = computed(
-    () => risikoMap[props.result.kategori_risiko]?.border ?? "#e5e7eb",
-);
+const formatSkor = (value) =>
+    value === null || value === undefined ? "—" : Number(value).toFixed(4);
 
 /* ── Z-Score bars ────────────────────────────────────────────────── */
 const getZsColor = (val) => {
@@ -301,6 +276,13 @@ const zscores = computed(() => [
         status: props.result.status_bbtb,
         color: getZsColor(props.result.zscore_bbtb),
         bg: getZsBg(props.result.zscore_bbtb),
+    },
+    {
+        label: "IMT/U (IMT per Usia)",
+        value: props.result.zscore_imtu,
+        status: props.result.status_imtu,
+        color: getZsColor(props.result.zscore_imtu),
+        bg: getZsBg(props.result.zscore_imtu),
     },
 ]);
 

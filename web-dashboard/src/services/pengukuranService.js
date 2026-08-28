@@ -11,8 +11,8 @@ const pengukuranService = {
     getDetailPengukuran(id) {
         return api.get(`/pengukuran/${id}`);
     },
-    getRankingAnak() {
-        return api.get("/pengukuran/ranking");
+    getRankingAnak(params = {}) {
+        return api.get("/pengukuran/ranking", { params });
     },
     getDetailSAW(id) {
         return api.get(`/pengukuran/${id}/saw`);

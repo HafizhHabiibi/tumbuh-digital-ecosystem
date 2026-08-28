@@ -26,7 +26,10 @@ const { port: PORT, trustProxyHops } = validateEnvironment();
 
 app.set("trust proxy", trustProxyHops === 0 ? false : trustProxyHops);
 
-app.use(cors({ origin: process.env.CORS_ORIGIN }));
+app.use(cors({
+    origin: process.env.CORS_ORIGIN,
+    exposedHeaders: ["Content-Disposition"],
+}));
 app.use((req, res, next) => {
     req.id = req.headers["x-request-id"] || randomUUID();
     res.setHeader("X-Request-Id", req.id);

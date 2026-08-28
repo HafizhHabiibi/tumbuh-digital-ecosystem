@@ -9,6 +9,25 @@ import { parsePagination, paginationMeta } from "../utils/pagination.js";
 
 const STATUS_VALID = ["ditangani", "selesai"];
 
+const enrichRujukan = (rujukan, anak = rujukan) => {
+    const pengukuran = pengukuranService.enrichPengukuranDenganPrioritas(
+        rujukan,
+        anak,
+    );
+
+    return {
+        ...rujukan,
+        berat_badan: pengukuran.berat_badan,
+        tinggi_badan: pengukuran.tinggi_badan,
+        skor_saw: pengukuran.skor_saw,
+        kategori_prioritas: pengukuran.kategori_prioritas,
+        status_bbu: pengukuran.status_bbu,
+        status_tbu: pengukuran.status_tbu,
+        status_bbtb: pengukuran.status_bbtb,
+        status_imtu: pengukuran.status_imtu,
+    };
+};
+
 export const createRujukan = async (req, res) => {
     try {
         const { anak_id, pengukuran_id, catatan_kader } = req.body;
@@ -46,7 +65,11 @@ export const createRujukan = async (req, res) => {
         // Prioritas SAW dilampirkan sebagai informasi, bukan penentu kelayakan
         // rujukan. Keputusan rujukan tetap dapat dibuat berdasarkan penilaian
         // kader atau tenaga kesehatan.
-        const sawDetail = await pengukuranService.getDetailSAW(pengukuran_id);
+        const pengukuranEnriched =
+            pengukuranService.enrichPengukuranDenganPrioritas(
+                pengukuran,
+                anak,
+            );
 
         const id = await RujukanModel.create({
             anak_id,
@@ -81,7 +104,12 @@ export const createRujukan = async (req, res) => {
                 pengukuran_id,
                 status: "diajukan",
                 catatan_kader,
-                kategori_prioritas: sawDetail?.kategori_prioritas || null,
+                skor_saw: pengukuranEnriched.skor_saw,
+                kategori_prioritas: pengukuranEnriched.kategori_prioritas,
+                status_bbu: pengukuranEnriched.status_bbu,
+                status_tbu: pengukuranEnriched.status_tbu,
+                status_bbtb: pengukuranEnriched.status_bbtb,
+                status_imtu: pengukuranEnriched.status_imtu,
             },
             "Rujukan berhasil diajukan",
             201,
@@ -96,7 +124,7 @@ export const getAllRujukan = async (req, res) => {
         const { page, limit } = parsePagination(req.query);
         const result = await RujukanModel.findAll(page, limit);
         return success(res, {
-            items: result.items,
+            items: result.items.map((rujukan) => enrichRujukan(rujukan)),
             pagination: paginationMeta(page, limit, result.total),
         }, "Daftar rujukan berhasil diambil");
     } catch (err) {
@@ -113,7 +141,11 @@ export const getDetailRujukan = async (req, res) => {
             return error(res, "Rujukan tidak ditemukan", 404);
         }
 
-        return success(res, rujukan, "Detail rujukan berhasil diambil");
+        return success(
+            res,
+            enrichRujukan(rujukan),
+            "Detail rujukan berhasil diambil",
+        );
     } catch (err) {
         return error(res, err.message);
     }
@@ -181,6 +213,7 @@ export const updateStatusRujukan = async (req, res) => {
                 id: parseInt(id),
                 status,
                 catatan_puskesmas: catatan_puskesmas || null,
+                ditangani_oleh: puskesmas?.nama_lengkap || null,
             },
             "Status rujukan berhasil diupdate",
         );
@@ -198,7 +231,9 @@ export const getRujukanByAnak = async (req, res) => {
             return error(res, "Data anak tidak ditemukan", 404);
         }
 
-        const rujukan = await RujukanModel.findByAnak(anak_id);
+        const rujukan = (await RujukanModel.findByAnak(anak_id)).map((item) =>
+            enrichRujukan(item, anak),
+        );
         return success(
             res,
             {

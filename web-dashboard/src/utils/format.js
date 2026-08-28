@@ -57,27 +57,6 @@ export const hitungUsiaBulan = (tanggalLahir) => {
     return tahun * 12 + bulan;
 };
 
-// Warna berdasarkan kategori risiko SAW
-export const warnakategoriRisiko = (kategori) => {
-    const map = {
-        tinggi: "text-red-600 bg-red-100",
-        sedang: "text-orange-600 bg-orange-100",
-        rendah: "text-green-600 bg-green-100",
-    };
-    return map[kategori] || "text-gray-600 bg-gray-100";
-};
-
-// Warna berdasarkan status gizi
-export const warnaStatusGizi = (status) => {
-    const map = {
-        normal: "text-green-600 bg-green-100",
-        kurang: "text-yellow-600 bg-yellow-100",
-        buruk: "text-red-600 bg-red-100",
-        lebih: "text-orange-600 bg-orange-100",
-    };
-    return map[status] || "text-gray-600 bg-gray-100";
-};
-
 // Konversi Date object → "YYYY-MM-DD" menggunakan LOCAL timezone (bukan UTC)
 // Gunakan ini sebagai pengganti .toISOString().split("T")[0] yang menghasilkan
 // tanggal UTC dan bisa off-by-one di WIB (UTC+7) saat tengah malam.

@@ -133,3 +133,43 @@ export const findByNikExcluding = async (nik, excludeId) => {
     );
     return rows[0] || null;
 };
+
+export const buatDeleteIfNoChildren = (pool = db) => async (id) => {
+    const conn = await pool.getConnection();
+    try {
+        await conn.beginTransaction();
+
+        const [orangTuaRows] = await conn.query(
+            "SELECT user_id FROM orang_tua WHERE id = ? FOR UPDATE",
+            [id],
+        );
+        const orangTua = orangTuaRows[0];
+        if (!orangTua) {
+            await conn.rollback();
+            return { status: "not_found" };
+        }
+
+        const [countRows] = await conn.query(
+            "SELECT COUNT(*) AS total FROM anak WHERE orang_tua_id = ?",
+            [id],
+        );
+        const totalAnak = Number(countRows[0]?.total || 0);
+        if (totalAnak > 0) {
+            await conn.rollback();
+            return { status: "conflict", total_anak: totalAnak };
+        }
+
+        // Menghapus user agar akun, profil orang tua, token, dan notifikasi
+        // dibersihkan atomik melalui foreign key yang sudah didefinisikan.
+        await conn.query("DELETE FROM users WHERE id = ?", [orangTua.user_id]);
+        await conn.commit();
+        return { status: "deleted" };
+    } catch (error) {
+        await conn.rollback();
+        throw error;
+    } finally {
+        conn.release();
+    }
+};
+
+export const deleteIfNoChildren = buatDeleteIfNoChildren();

@@ -40,6 +40,7 @@ export const findAll = async (page = 1, limit = 20) => {
     const [rows] = await db.query(
         `SELECT
             r.id,
+            r.pengukuran_id,
             r.status,
             r.catatan_kader,
             r.catatan_puskesmas,
@@ -109,11 +110,15 @@ export const findByAnak = async (anak_id) => {
     const [rows] = await db.query(
         `SELECT
             r.id,
+            r.pengukuran_id,
             r.status,
             r.catatan_kader,
             r.catatan_puskesmas,
             r.created_at,
             r.validated_at,
+            DATE_FORMAT(p.tanggal_ukur, '%Y-%m-%d') AS tanggal_ukur,
+            CAST(p.berat_badan AS DECIMAL(5,2)) AS berat_badan,
+            CAST(p.tinggi_badan AS DECIMAL(5,2)) AS tinggi_badan,
             pu.nama_lengkap AS ditangani_oleh
         FROM rujukan r
         JOIN pengukuran p ON p.id = r.pengukuran_id

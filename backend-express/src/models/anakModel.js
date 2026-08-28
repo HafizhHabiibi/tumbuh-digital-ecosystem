@@ -6,6 +6,7 @@ export const findAll = async (page = 1, limit = 20) => {
     const [rows] = await db.query(
         `SELECT
             a.id,
+            a.orang_tua_id,
             a.nama,
             a.jenis_kelamin,
             a.tanggal_lahir,
@@ -98,3 +99,45 @@ export const update = async (id, data) => {
         [data.nama, data.jenis_kelamin, data.tanggal_lahir, data.nik, id],
     );
 };
+
+export const buatDeleteIfEmpty = (pool = db) => async (id) => {
+    const conn = await pool.getConnection();
+    try {
+        await conn.beginTransaction();
+
+        const [anakRows] = await conn.query(
+            "SELECT id FROM anak WHERE id = ? FOR UPDATE",
+            [id],
+        );
+        if (!anakRows[0]) {
+            await conn.rollback();
+            return { status: "not_found" };
+        }
+
+        const [relationRows] = await conn.query(
+            `SELECT
+                (SELECT COUNT(*) FROM pengukuran WHERE anak_id = ?) AS pengukuran,
+                (SELECT COUNT(*) FROM pemberian WHERE anak_id = ?) AS pemberian`,
+            [id, id],
+        );
+        const relations = {
+            pengukuran: Number(relationRows[0]?.pengukuran || 0),
+            pemberian: Number(relationRows[0]?.pemberian || 0),
+        };
+        if (relations.pengukuran > 0 || relations.pemberian > 0) {
+            await conn.rollback();
+            return { status: "conflict", relations };
+        }
+
+        await conn.query("DELETE FROM anak WHERE id = ?", [id]);
+        await conn.commit();
+        return { status: "deleted" };
+    } catch (error) {
+        await conn.rollback();
+        throw error;
+    } finally {
+        conn.release();
+    }
+};
+
+export const deleteIfEmpty = buatDeleteIfEmpty();

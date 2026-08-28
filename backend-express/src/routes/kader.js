@@ -10,6 +10,8 @@ import {
     getAnakById,
     getAnakByOrangTua,
     updateAnak,
+    deleteOrangTua,
+    deleteAnak,
 } from "../controllers/kaderController.js";
 import { authenticate } from "../middlewares/auth.js";
 import { authorizeRole } from "../middlewares/role.js";
@@ -33,11 +35,13 @@ router.post("/orang-tua", validateBody(orangTuaCreateSchema), createOrangTua);
 router.get("/orang-tua", getOrangTua);
 router.get("/orang-tua/:id", getOrangTuaById);
 router.put("/orang-tua/:id", validateBody(orangTuaUpdateSchema), updateOrangTua);
+router.delete("/orang-tua/:id", deleteOrangTua);
 router.get("/orang-tua/:id/anak", getAnakByOrangTua);
 
 router.post("/anak", validateBody(anakCreateSchema), createAnak);
 router.get("/anak", getAllAnak);
 router.get("/anak/:id", getAnakById);
 router.put("/anak/:id", validateBody(anakUpdateSchema), updateAnak);
+router.delete("/anak/:id", deleteAnak);
 
 export default router;

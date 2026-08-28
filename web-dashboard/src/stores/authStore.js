@@ -6,7 +6,16 @@ import * as authService from "../services/authService";
 export const useAuthStore = defineStore("auth", () => {
     // ========== STATE ==========
     const token = ref(localStorage.getItem("token") || null);
-    const user = ref(JSON.parse(localStorage.getItem("user") || "null"));
+    const parseStoredUser = () => {
+        try {
+            return JSON.parse(localStorage.getItem("user") || "null");
+        } catch {
+            localStorage.removeItem("user");
+            localStorage.removeItem("token");
+            return null;
+        }
+    };
+    const user = ref(parseStoredUser());
 
     // Loading & error per aksi
     const loading = ref({
@@ -14,6 +23,7 @@ export const useAuthStore = defineStore("auth", () => {
         forgotPassword: false,
         resetPassword: false,
         changePassword: false,
+        profile: false,
     });
 
     const error = ref({
@@ -21,10 +31,11 @@ export const useAuthStore = defineStore("auth", () => {
         forgotPassword: null,
         resetPassword: null,
         changePassword: null,
+        profile: null,
     });
 
     // ========== COMPUTED ==========
-    const isLoggedIn = computed(() => !!token.value);
+    const isLoggedIn = computed(() => !!token.value && !!user.value);
     const role = computed(() => user.value?.role || null);
     const isKader = computed(() => role.value === "kader");
     const isPuskesmas = computed(() => role.value === "puskesmas");
@@ -51,7 +62,6 @@ export const useAuthStore = defineStore("auth", () => {
     // ========== ACTIONS ==========
 
     const login = async (email, password, turnstileToken) => {
-        // [DIUBAH] tambah turnstileToken
         loading.value.login = true;
         error.value.login = null;
         try {
@@ -59,7 +69,7 @@ export const useAuthStore = defineStore("auth", () => {
                 email,
                 password,
                 turnstileToken,
-            ); // [DIUBAH]
+            );
             setAuth(res.data);
             return true;
         } catch (err) {
@@ -75,11 +85,10 @@ export const useAuthStore = defineStore("auth", () => {
     };
 
     const forgotPassword = async (email, turnstileToken) => {
-        // [DIUBAH] tambah turnstileToken
         loading.value.forgotPassword = true;
         error.value.forgotPassword = null;
         try {
-            await authService.forgotPassword(email, turnstileToken); // [DIUBAH]
+            await authService.forgotPassword(email, turnstileToken);
             return true;
         } catch (err) {
             error.value.forgotPassword =
@@ -120,6 +129,27 @@ export const useAuthStore = defineStore("auth", () => {
         }
     };
 
+    const refreshProfile = async () => {
+        if (!role.value || !["kader", "puskesmas"].includes(role.value)) {
+            return false;
+        }
+
+        loading.value.profile = true;
+        error.value.profile = null;
+        try {
+            const res = await authService.getProfile(role.value);
+            user.value = { ...user.value, profil: res.data };
+            localStorage.setItem("user", JSON.stringify(user.value));
+            return true;
+        } catch (err) {
+            error.value.profile =
+                err.response?.data?.message || "Gagal memuat profil";
+            return false;
+        } finally {
+            loading.value.profile = false;
+        }
+    };
+
     return {
         // State
         token,
@@ -141,6 +171,7 @@ export const useAuthStore = defineStore("auth", () => {
         forgotPassword,
         resetPassword,
         changePassword,
+        refreshProfile,
 
         // Helpers
         setAuth,

@@ -8,23 +8,23 @@ export const useDashboardStore = defineStore("dashboard", {
         // Data statistik kartu ringkasan
         statistik: {
             total_anak: 0,
-            total_stunting: 0,
+            total_prioritas_tinggi: 0,
             total_rujukan_aktif: 0,
             total_pengukuran_bulan: 0,
         },
 
-        // Data pie chart distribusi gizi
+        // Distribusi empat indeks antropometri dari backend
         distribusiGizi: {
-            normal: 0,
-            kurang: 0,
-            buruk: 0,
-            lebih: 0,
+            bbu: {},
+            tbu: {},
+            bbtb: {},
+            imtu: {},
         },
 
-        // Data line chart tren gizi [{periode, normal, kurang, buruk, lebih}]
+        // Data tren antropometri bulanan dengan kelompok bbu/tbu/bbtb/imtu
         trenGizi: [],
 
-        // Data distribusi risiko stunting
+        // Data distribusi prioritas pemantauan SAW
         distribusiRisiko: {
             rendah: 0,
             sedang: 0,
@@ -51,44 +51,45 @@ export const useDashboardStore = defineStore("dashboard", {
     // ========== GETTERS ==========
     getters: {
         /**
-         * Persentase stunting dari total anak
+         * Persentase anak dengan prioritas pemantauan tinggi
          */
-        persentaseStunting: (state) => {
+        persentasePrioritasTinggi: (state) => {
             if (state.statistik.total_anak === 0) return 0;
             return (
-                (state.statistik.total_stunting / state.statistik.total_anak) *
+                (state.statistik.total_prioritas_tinggi /
+                    state.statistik.total_anak) *
                 100
             ).toFixed(1);
         },
 
         /**
-         * Format data distribusi gizi untuk chart (array of {label, value})
+         * Format distribusi TB/U untuk chart (array of {label, value})
          */
         distribusiGiziChart: (state) => [
             {
-                label: "Normal",
-                value: state.distribusiGizi.normal,
-                color: "#22c55e",
-            },
-            {
-                label: "Kurang",
-                value: state.distribusiGizi.kurang,
-                color: "#f59e0b",
-            },
-            {
-                label: "Buruk",
-                value: state.distribusiGizi.buruk,
+                label: "Sangat Pendek",
+                value: state.distribusiGizi.tbu?.sangat_pendek ?? 0,
                 color: "#ef4444",
             },
             {
-                label: "Lebih",
-                value: state.distribusiGizi.lebih,
+                label: "Pendek",
+                value: state.distribusiGizi.tbu?.pendek ?? 0,
+                color: "#f59e0b",
+            },
+            {
+                label: "Normal",
+                value: state.distribusiGizi.tbu?.normal ?? 0,
+                color: "#22c55e",
+            },
+            {
+                label: "Tinggi",
+                value: state.distribusiGizi.tbu?.tinggi ?? 0,
                 color: "#3b82f6",
             },
         ],
 
         /**
-         * Format data distribusi risiko untuk chart
+         * Format data distribusi prioritas untuk chart
          */
         distribusiRisikoChart: (state) => [
             {

@@ -148,7 +148,8 @@ export const changePassword = async (req, res) => {
             user.password_hash,
         );
         if (!passwordMatch) {
-            return error(res, "Password lama tidak sesuai", 401);
+            // Sesi tetap valid; ini kegagalan validasi form, bukan token auth.
+            return error(res, "Password lama tidak sesuai", 400);
         }
 
         const hash = await bcrypt.hash(password_baru, 10);

@@ -82,6 +82,11 @@ const routes = [
                 component: () => import("../views/kader/JadwalView.vue"),
             },
             {
+                path: "laporan",
+                name: "KaderLaporan",
+                component: () => import("../views/shared/LaporanView.vue"),
+            },
+            {
                 path: "profil",
                 name: "KaderProfil",
                 component: () => import("../views/kader/ProfilView.vue"),
@@ -107,9 +112,30 @@ const routes = [
                 component: () => import("../views/puskesmas/RankingView.vue"),
             },
             {
+                path: "anak",
+                name: "PuskesmasAnak",
+                component: () => import("../views/puskesmas/AnakView.vue"),
+            },
+            {
+                path: "anak/:id",
+                name: "PuskesmasDetailAnak",
+                component: () =>
+                    import("../views/puskesmas/DetailAnakView.vue"),
+            },
+            {
                 path: "rujukan",
                 name: "PuskesmasRujukan",
                 component: () => import("../views/puskesmas/RujukanView.vue"),
+            },
+            {
+                path: "jadwal",
+                name: "PuskesmasJadwal",
+                component: () => import("../views/puskesmas/JadwalView.vue"),
+            },
+            {
+                path: "laporan",
+                name: "PuskesmasLaporan",
+                component: () => import("../views/shared/LaporanView.vue"),
             },
             {
                 path: "profil",

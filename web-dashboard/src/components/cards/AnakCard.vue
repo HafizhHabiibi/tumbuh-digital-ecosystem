@@ -2,7 +2,7 @@
     <!--
         AnakCard.vue
         Card ringkasan info anak — dipakai di DetailAnakView bagian atas.
-        Menampilkan identitas, usia, orang tua, dan status gizi terakhir.
+        Menampilkan identitas, usia, orang tua, dan status TB/U terakhir.
     -->
     <div class="card p-5 rounded-2xl">
         <div class="flex items-start gap-4 flex-wrap">
@@ -26,9 +26,9 @@
                     </h2>
                     <StatusBadge type="jk" :value="anak.jenis_kelamin" />
                     <StatusBadge
-                        v-if="statusGiziTerakhir"
-                        type="gizi"
-                        :value="statusGiziTerakhir"
+                        v-if="statusTbuTerakhir"
+                        type="antropometri"
+                        :value="statusTbuTerakhir"
                     />
                 </div>
 
@@ -56,14 +56,14 @@
                         {{ anak.nama_orang_tua }}
                     </span>
                     <span
-                        v-if="anak.no_kk"
+                        v-if="anak.nik"
                         style="color: var(--color-text-muted)"
                     >
                         <i
                             class="pi pi-id-card mr-1 text-xs"
                             aria-hidden="true"
                         />
-                        No. KK: {{ anak.no_kk }}
+                        NIK: {{ anak.nik }}
                     </span>
                 </div>
             </div>
@@ -78,10 +78,10 @@
 import StatusBadge from "@/components/ui/StatusBadge.vue";
 import { hitungUsia, formatTanggal as fmtTgl } from "@/utils/format.js";
 
-const props = defineProps({
+defineProps({
     anak: { type: Object, required: true },
-    /** Status gizi dari pengukuran terakhir */
-    statusGiziTerakhir: { type: String, default: null },
+    /** Status tinggi badan menurut umur dari pengukuran terakhir */
+    statusTbuTerakhir: { type: String, default: null },
 });
 
 const formatTanggal = (tgl) => fmtTgl(tgl);

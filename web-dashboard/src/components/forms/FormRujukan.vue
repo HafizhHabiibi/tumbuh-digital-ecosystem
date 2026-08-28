@@ -61,7 +61,7 @@
                 <i class="pi pi-calendar input-icon" aria-hidden="true" />
                 <select
                     id="pengukuran_id"
-                    v-model="form.saw_result_id"
+                    v-model="form.pengukuran_id"
                     :disabled="loading"
                     class="input-field w-full pl-9 pr-4 py-2.5 rounded-xl text-sm appearance-none"
                     aria-required="true"
@@ -71,17 +71,10 @@
                         v-for="p in riwayatPengukuran"
                         :key="p.id"
                         :value="p.id"
-                        :disabled="
-                            !p.kategori_risiko || p.kategori_risiko === 'rendah'
-                        "
                     >
                         {{ formatTanggal(p.tanggal_ukur) }} — BB:
                         {{ p.berat_badan }}kg, TB: {{ p.tinggi_badan }}cm
-                        {{
-                            p.kategori_risiko === "rendah"
-                                ? "(risiko rendah, tidak bisa dirujuk)"
-                                : ""
-                        }}
+                        (prioritas {{ p.kategori_prioritas ?? "—" }})
                     </option>
                 </select>
                 <i
@@ -95,39 +88,24 @@
             <Transition name="slide-down">
                 <div
                     v-if="pengukuranTerpilih"
-                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl flex-wrap"
+                    class="px-3 py-2.5 rounded-xl space-y-2"
                     style="
                         background: var(--color-green-50);
                         border: 1px solid var(--color-input-border);
                     "
                 >
-                    <div class="flex items-center gap-1.5">
+                    <div class="flex items-center gap-1.5 flex-wrap">
                         <span
                             class="text-xs"
                             style="color: var(--color-text-muted)"
-                            >Status Gizi:</span
-                        >
-                        <span
-                            class="text-xs font-semibold capitalize"
-                            style="color: var(--color-text-heading)"
-                        >
-                            {{ pengukuranTerpilih.status_gizi }}
-                        </span>
-                    </div>
-                    <div class="flex items-center gap-1.5">
-                        <span
-                            class="text-xs"
-                            style="color: var(--color-text-muted)"
-                            >Risiko:</span
+                            >Prioritas pemantauan:</span
                         >
                         <span
                             class="text-xs font-semibold capitalize px-2 py-0.5 rounded-full"
-                            :style="`background: ${warnaBg[pengukuranTerpilih.kategori_risiko]}; color: ${warnaHex[pengukuranTerpilih.kategori_risiko]}`"
+                            :style="`background: ${warnaBg[pengukuranTerpilih.kategori_prioritas]}; color: ${warnaHex[pengukuranTerpilih.kategori_prioritas]}`"
                         >
-                            {{ pengukuranTerpilih.kategori_risiko }}
+                            {{ pengukuranTerpilih.kategori_prioritas ?? "—" }}
                         </span>
-                    </div>
-                    <div class="flex items-center gap-1.5">
                         <span
                             class="text-xs"
                             style="color: var(--color-text-muted)"
@@ -138,8 +116,16 @@
                             style="color: var(--color-text-heading)"
                         >
                             {{
-                                pengukuranTerpilih.skor_akhir?.toFixed(4) ?? "—"
+                                formatSkor(pengukuranTerpilih.skor_saw)
                             }}
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+                        <span v-for="item in statusAntropometri" :key="item.label">
+                            <span style="color: var(--color-text-muted)">{{ item.label }}:</span>
+                            <strong class="ml-1" style="color: var(--color-text-heading)">
+                                {{ formatStatus(item.value) }}
+                            </strong>
                         </span>
                     </div>
                 </div>
@@ -155,14 +141,15 @@
                 rows="4"
                 placeholder="Jelaskan alasan rujukan dan kondisi anak saat ini..."
                 :disabled="loading"
+                maxlength="2000"
                 class="input-field w-full px-4 py-2.5 rounded-xl text-sm resize-none"
                 aria-required="true"
             />
             <p
-                v-if="form.catatan_kader && form.catatan_kader.length < 10"
+                v-if="form.catatan_kader && form.catatan_kader.trim().length < 3"
                 class="error-hint"
             >
-                Catatan minimal 10 karakter
+                Catatan minimal 3 karakter
             </p>
         </div>
 
@@ -210,11 +197,11 @@ const props = defineProps({
 const emit = defineEmits(["submit", "cancel"]);
 
 const form = reactive({
-    saw_result_id: "",
+    pengukuran_id: "",
     catatan_kader: "",
 });
 
-/* ── Warna risiko ────────────────────────────────────────────────── */
+/* ── Warna prioritas ─────────────────────────────────────────────── */
 const warnaHex = { rendah: "#15803d", sedang: "#d97706", tinggi: "#dc2626" };
 const warnaBg = { rendah: "#dcfce7", sedang: "#fef3c7", tinggi: "#fee2e2" };
 
@@ -229,13 +216,28 @@ const formatTanggal = (tgl) =>
 /* ── Info pengukuran terpilih ────────────────────────────────────── */
 const pengukuranTerpilih = computed(
     () =>
-        props.riwayatPengukuran.find((p) => p.id === form.saw_result_id) ||
+        props.riwayatPengukuran.find((p) => p.id === form.pengukuran_id) ||
         null,
 );
 
+const statusAntropometri = computed(() => {
+    const item = pengukuranTerpilih.value;
+    if (!item) return [];
+    return [
+        { label: "BB/U", value: item.status_bbu },
+        { label: "TB/U", value: item.status_tbu },
+        { label: "BB/TB", value: item.status_bbtb },
+        { label: "IMT/U", value: item.status_imtu },
+    ];
+});
+
+const formatStatus = (value) => value?.replaceAll("_", " ") ?? "—";
+const formatSkor = (value) =>
+    value === null || value === undefined ? "—" : Number(value).toFixed(4);
+
 /* ── Validasi ────────────────────────────────────────────────────── */
 const isValid = computed(
-    () => form.saw_result_id && form.catatan_kader.trim().length >= 10,
+    () => form.pengukuran_id && form.catatan_kader.trim().length >= 3,
 );
 
 /* ── Submit ──────────────────────────────────────────────────────── */
@@ -243,7 +245,7 @@ const handleSubmit = () => {
     if (!isValid.value || props.loading) return;
     emit("submit", {
         anak_id: props.anakId,
-        saw_result_id: form.saw_result_id,
+        pengukuran_id: form.pengukuran_id,
         catatan_kader: form.catatan_kader.trim(),
     });
 };

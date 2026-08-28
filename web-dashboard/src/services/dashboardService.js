@@ -16,7 +16,7 @@ const dashboardService = {
     },
 
     getDistribusiRisiko() {
-        return api.get("/dashboard/risiko");
+        return api.get("/dashboard/prioritas");
     },
 };
 

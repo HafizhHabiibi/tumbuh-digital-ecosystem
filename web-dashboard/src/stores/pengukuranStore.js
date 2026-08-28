@@ -1,6 +1,10 @@
 // src/stores/pengukuranStore.js
 import { defineStore } from "pinia";
 import pengukuranService from "@/services/pengukuranService";
+import {
+    createPagination,
+    extractPaginatedData,
+} from "@/utils/apiResponse";
 
 export const usePengukuranStore = defineStore("pengukuran", {
     state: () => ({
@@ -11,6 +15,7 @@ export const usePengukuranStore = defineStore("pengukuran", {
         pengukuranDetail: null,
         createResult: null,
         rankingAnak: [],
+        rankingPagination: createPagination(),
         detailSAW: null,
 
         loading: {
@@ -38,23 +43,7 @@ export const usePengukuranStore = defineStore("pengukuran", {
                 tanggal: p.tanggal_ukur,
                 berat_badan: parseFloat(p.berat_badan),
                 tinggi_badan: parseFloat(p.tinggi_badan),
-                status_gizi: p.status_gizi,
             }));
-        },
-
-        warnaRisiko: () => (kategori) => {
-            const map = { rendah: "green", sedang: "yellow", tinggi: "red" };
-            return map[kategori] || "gray";
-        },
-
-        warnaStatusGizi: () => (status) => {
-            const map = {
-                normal: "green",
-                kurang: "yellow",
-                buruk: "red",
-                lebih: "blue",
-            };
-            return map[status] || "gray";
         },
     },
 
@@ -78,6 +67,7 @@ export const usePengukuranStore = defineStore("pengukuran", {
         async fetchRiwayat(anakId) {
             this.loading.riwayat = true;
             this.error.riwayat = null;
+            this.riwayat = { anak: null, list: [] };
             try {
                 const res =
                     await pengukuranService.getRiwayatPengukuran(anakId);
@@ -104,12 +94,19 @@ export const usePengukuranStore = defineStore("pengukuran", {
             }
         },
 
-        async fetchRankingAnak() {
+        async fetchRankingAnak(params = {}) {
             this.loading.ranking = true;
             this.error.ranking = null;
             try {
-                const res = await pengukuranService.getRankingAnak();
-                this.rankingAnak = res.data.data;
+                const page = params.page ?? this.rankingPagination.page;
+                const limit = params.limit ?? this.rankingPagination.limit;
+                const res = await pengukuranService.getRankingAnak({
+                    page,
+                    limit,
+                });
+                const data = extractPaginatedData(res);
+                this.rankingAnak = data.items;
+                this.rankingPagination = data.pagination;
             } catch (err) {
                 this.error.ranking = err.response?.data?.message || err.message;
             } finally {

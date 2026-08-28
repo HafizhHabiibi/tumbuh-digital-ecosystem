@@ -83,6 +83,7 @@
                     type="text"
                     placeholder="contoh: Balai Desa RT 03"
                     :disabled="loading"
+                    maxlength="255"
                     class="input-field w-full pl-9 pr-4 py-2.5 rounded-xl text-sm"
                     aria-required="true"
                 />
@@ -108,6 +109,7 @@
                 rows="3"
                 placeholder="Informasi tambahan untuk peserta posyandu..."
                 :disabled="loading"
+                maxlength="2000"
                 class="input-field w-full px-4 py-2.5 rounded-xl text-sm resize-none"
             />
         </div>
@@ -127,8 +129,11 @@
                 aria-hidden="true"
             />
             <span
-                >Notifikasi akan dikirim otomatis ke semua orang tua yang
-                terdaftar.</span
+                >{{
+                    mode === "edit"
+                        ? "Notifikasi akan dikirim jika tanggal, waktu, atau lokasi berubah."
+                        : "Notifikasi akan dikirim otomatis ke semua orang tua yang terdaftar."
+                }}</span
             >
         </div>
 
@@ -157,20 +162,28 @@
                     class="pi pi-spin pi-spinner"
                     aria-hidden="true"
                 />
-                <span>{{ loading ? "Menyimpan..." : "Buat Jadwal" }}</span>
+                <span>{{
+                    loading
+                        ? "Menyimpan..."
+                        : mode === "edit"
+                          ? "Simpan Perubahan"
+                          : "Buat Jadwal"
+                }}</span>
             </button>
         </div>
     </form>
 </template>
 
 <script setup>
-import { reactive, computed } from "vue";
+import { reactive, computed, watch } from "vue";
 import { DatePicker } from "primevue";
 import { toLocalDateStr } from "@/utils/format.js";
 
 const props = defineProps({
     loading: { type: Boolean, default: false },
     error: { type: String, default: null },
+    mode: { type: String, default: "create" },
+    initialData: { type: Object, default: null },
 });
 const emit = defineEmits(["submit", "cancel"]);
 
@@ -184,6 +197,20 @@ const form = reactive({
     lokasi: "",
     keterangan: "",
 });
+
+watch(
+    () => props.initialData,
+    (data) => {
+        form.tanggal = data?.tanggal
+            ? new Date(`${data.tanggal}T00:00:00`)
+            : "";
+        form.waktu_mulai = data?.waktu_mulai?.slice(0, 5) ?? "08:00";
+        form.waktu_selesai = data?.waktu_selesai?.slice(0, 5) ?? "11:00";
+        form.lokasi = data?.lokasi ?? "";
+        form.keterangan = data?.keterangan ?? "";
+    },
+    { immediate: true },
+);
 
 /* ── Validasi ────────────────────────────────────────────────────── */
 const fieldError = computed(() => {

@@ -1,7 +1,7 @@
 <template>
     <!--
         StatusBadge.vue
-        Badge warna untuk status gizi, risiko stunting, status rujukan, dll.
+        Badge warna untuk status antropometri, prioritas, status rujukan, dll.
         Props: label, variant (green/yellow/red/blue/gray)
         Bisa juga pakai preset lewat prop `type` + `value`
     -->
@@ -17,6 +17,10 @@
 
 <script setup>
 import { computed } from "vue";
+import {
+    LABEL_STATUS_ANTROPOMETRI,
+    VARIANT_STATUS_ANTROPOMETRI,
+} from "@/utils/antropometri";
 
 const props = defineProps({
     /** Label teks yang ditampilkan */
@@ -30,7 +34,7 @@ const props = defineProps({
 
     /**
      * Preset otomatis berdasarkan tipe & nilai
-     * type: "gizi" | "risiko" | "rujukan" | "jk"
+     * type: "antropometri" | "prioritas" | "rujukan" | "jk"
      * value: nilai dari backend (misal "normal", "tinggi", "diajukan", "L")
      */
     type: { type: String, default: null },
@@ -42,23 +46,21 @@ const props = defineProps({
 
 /* ── Preset mapping ──────────────────────────────────────────────── */
 const presetMap = {
-    gizi: {
-        normal: { variant: "green", label: "Normal" },
-        kurang: { variant: "yellow", label: "Kurang" },
-        buruk: { variant: "red", label: "Buruk" },
-        lebih: { variant: "blue", label: "Lebih" },
-    },
-    risiko: {
+    antropometri: Object.fromEntries(
+        Object.entries(LABEL_STATUS_ANTROPOMETRI).map(([value, label]) => [
+            value,
+            { variant: VARIANT_STATUS_ANTROPOMETRI[value], label },
+        ]),
+    ),
+    prioritas: {
         rendah: { variant: "green", label: "Rendah" },
         sedang: { variant: "yellow", label: "Sedang" },
         tinggi: { variant: "red", label: "Tinggi" },
     },
     rujukan: {
         diajukan: { variant: "blue", label: "Diajukan" },
-        diterima: { variant: "green", label: "Diterima" },
-        dalam_penanganan: { variant: "yellow", label: "Dalam Penanganan" },
+        ditangani: { variant: "yellow", label: "Ditangani" },
         selesai: { variant: "gray", label: "Selesai" },
-        ditolak: { variant: "red", label: "Ditolak" },
     },
     jk: {
         L: { variant: "blue", label: "Laki-laki" },

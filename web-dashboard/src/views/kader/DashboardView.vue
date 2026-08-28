@@ -77,11 +77,11 @@
                     :loading="dashboardStore.loading.statistik"
                 />
                 <StatCard
-                    label="Terindikasi Stunting"
+                    label="Prioritas Tinggi"
                     icon="pi-chart-line"
                     color="red"
-                    :value="dashboardStore.statistik.total_stunting"
-                    :sub="`${dashboardStore.persentaseStunting}% dari total anak`"
+                    :value="dashboardStore.statistik.total_prioritas_tinggi"
+                    :sub="`${dashboardStore.persentasePrioritasTinggi}% dari total anak`"
                     :loading="dashboardStore.loading.statistik"
                 />
                 <StatCard
@@ -113,7 +113,7 @@
                     />
                 </div>
 
-                <!-- Distribusi gizi + Risiko stunting — berdampingan -->
+                <!-- Distribusi antropometri + prioritas — berdampingan -->
                 <DistribusiGiziChart
                     :data="dashboardStore.distribusiGiziChart"
                     :loading="dashboardStore.loading.distribusiGizi"

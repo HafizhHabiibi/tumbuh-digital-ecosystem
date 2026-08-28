@@ -50,7 +50,7 @@
                     >
                         <option value="">-- Pilih nama anak --</option>
                         <option
-                            v-for="anak in kaderStore.anakList"
+                            v-for="anak in kaderStore.anakOptions"
                             :key="anak.id"
                             :value="anak.id"
                         >
@@ -112,7 +112,7 @@
             </Transition>
 
             <!-- ─── Ringkasan status ───────────────────────────── -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                 <div
                     v-for="(status, key) in LABEL_STATUS"
                     :key="key"
@@ -186,7 +186,7 @@
                                 <th class="th-cell">Tanggal</th>
                                 <th class="th-cell">Status</th>
                                 <th class="th-cell hidden md:table-cell">
-                                    Risiko SAW
+                                    Prioritas SAW
                                 </th>
                                 <th class="th-cell hidden md:table-cell">
                                     Skor
@@ -229,16 +229,16 @@
                                 <td class="px-4 py-3 hidden md:table-cell">
                                     <span
                                         class="text-xs px-2 py-1 rounded-full font-medium capitalize"
-                                        :style="`background: ${warnaBg[r.kategori_risiko]}; color: ${warnaHex[r.kategori_risiko]}`"
+                                        :style="`background: ${warnaBg[r.kategori_prioritas]}; color: ${warnaHex[r.kategori_prioritas]}`"
                                     >
-                                        {{ r.kategori_risiko }}
+                                        {{ r.kategori_prioritas ?? "—" }}
                                     </span>
                                 </td>
                                 <td
                                     class="px-4 py-3 hidden md:table-cell font-mono text-xs"
                                     style="color: var(--color-text-body)"
                                 >
-                                    {{ r.skor_akhir?.toFixed(4) ?? "—" }}
+                                    {{ formatSkor(r.skor_saw) }}
                                 </td>
                                 <td
                                     class="px-4 py-3 hidden lg:table-cell text-sm"
@@ -350,23 +350,19 @@ const anakTerpilihId = ref("");
 const showForm = ref(false);
 const showDetail = ref(false);
 
-/* ── Warna status & risiko ───────────────────────────────────────── */
+/* ── Warna status & prioritas ────────────────────────────────────── */
 const warnaHex = {
     diajukan: "#2563eb",
-    diterima: "#15803d",
-    dalam_penanganan: "#d97706",
+    ditangani: "#d97706",
     selesai: "#6b7280",
-    ditolak: "#dc2626",
     rendah: "#15803d",
     sedang: "#d97706",
     tinggi: "#dc2626",
 };
 const warnaBg = {
     diajukan: "#dbeafe",
-    diterima: "#dcfce7",
-    dalam_penanganan: "#fef3c7",
+    ditangani: "#fef3c7",
     selesai: "#f3f4f6",
-    ditolak: "#fee2e2",
     rendah: "#dcfce7",
     sedang: "#fef3c7",
     tinggi: "#fee2e2",
@@ -388,6 +384,9 @@ const formatTanggal = (tgl) =>
         month: "short",
         year: "numeric",
     });
+
+const formatSkor = (value) =>
+    value === null || value === undefined ? "—" : Number(value).toFixed(4);
 
 /* ── Ganti anak ──────────────────────────────────────────────────── */
 const onAnakChange = () => {
@@ -423,15 +422,11 @@ const handleSubmit = async (payload) => {
     if (ok) closeForm();
 };
 
-onMounted(() => {
-    if (kaderStore.anakList.length === 0) {
-        kaderStore.fetchAllAnak().then(() => {
-            if (route.query.anakId) {
-                anakTerpilihId.value = route.query.anakId;
-                onAnakChange();
-            }
-        });
-    } else if (route.query.anakId) {
+onMounted(async () => {
+    if (kaderStore.anakOptions.length === 0) {
+        await kaderStore.fetchAnakOptions();
+    }
+    if (route.query.anakId) {
         anakTerpilihId.value = route.query.anakId;
         onAnakChange();
     }

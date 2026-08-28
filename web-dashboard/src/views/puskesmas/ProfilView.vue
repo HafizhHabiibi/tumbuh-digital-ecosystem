@@ -117,6 +117,7 @@
                             :type="show.lama ? 'text' : 'password'"
                             placeholder="••••••••"
                             autocomplete="current-password"
+                            maxlength="72"
                             :disabled="authStore.loading.changePassword"
                             class="input-field w-full pl-9 pr-10 py-2.5 rounded-xl text-sm"
                             aria-required="true"
@@ -157,6 +158,7 @@
                             :type="show.baru ? 'text' : 'password'"
                             placeholder="••••••••"
                             autocomplete="new-password"
+                            maxlength="72"
                             :disabled="authStore.loading.changePassword"
                             class="input-field w-full pl-9 pr-10 py-2.5 rounded-xl text-sm"
                             aria-required="true"
@@ -200,6 +202,7 @@
                             :type="show.konfirmasi ? 'text' : 'password'"
                             placeholder="••••••••"
                             autocomplete="new-password"
+                            maxlength="72"
                             :disabled="authStore.loading.changePassword"
                             class="input-field w-full pl-9 pr-10 py-2.5 rounded-xl text-sm"
                             aria-required="true"
@@ -268,7 +271,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from "vue";
+import { ref, reactive, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/authStore";
 
@@ -309,6 +312,8 @@ const handleLupaPassword = () => {
     authStore.logout();
     router.push({ name: "ForgotPassword" });
 };
+
+onMounted(() => authStore.refreshProfile());
 </script>
 
 <style scoped>

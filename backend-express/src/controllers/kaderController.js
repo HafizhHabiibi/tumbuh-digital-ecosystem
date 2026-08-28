@@ -304,3 +304,50 @@ export const updateAnak = async (req, res) => {
         return error(res, err.message);
     }
 };
+
+export const buatDeleteDataMasterHandlers = ({
+    deleteOrangTuaModel = OrangTuaModel.deleteIfNoChildren,
+    deleteAnakModel = AnakModel.deleteIfEmpty,
+} = {}) => ({
+    deleteOrangTua: async (req, res) => {
+        try {
+            const result = await deleteOrangTuaModel(req.params.id);
+            if (result.status === "not_found") {
+                return error(res, "Orang tua tidak ditemukan", 404);
+            }
+            if (result.status === "conflict") {
+                return error(
+                    res,
+                    `Orang tua tidak dapat dihapus karena masih memiliki ${result.total_anak} anak`,
+                    409,
+                );
+            }
+            return success(res, null, "Data dan akun orang tua berhasil dihapus");
+        } catch (err) {
+            return error(res, err.message);
+        }
+    },
+
+    deleteAnak: async (req, res) => {
+        try {
+            const result = await deleteAnakModel(req.params.id);
+            if (result.status === "not_found") {
+                return error(res, "Data anak tidak ditemukan", 404);
+            }
+            if (result.status === "conflict") {
+                return error(
+                    res,
+                    "Data anak tidak dapat dihapus karena sudah memiliki riwayat pengukuran atau pemberian",
+                    409,
+                );
+            }
+            return success(res, null, "Data anak berhasil dihapus");
+        } catch (err) {
+            return error(res, err.message);
+        }
+    },
+});
+
+const deleteDataMasterHandlers = buatDeleteDataMasterHandlers();
+export const deleteOrangTua = deleteDataMasterHandlers.deleteOrangTua;
+export const deleteAnak = deleteDataMasterHandlers.deleteAnak;

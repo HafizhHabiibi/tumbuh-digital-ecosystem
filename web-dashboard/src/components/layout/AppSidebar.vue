@@ -132,11 +132,15 @@ const kaderMenu = [
     { name: "KaderPemberian", label: "Pemberian", icon: "pi-list" },
     { name: "KaderRujukan", label: "Rujukan", icon: "pi-send" },
     { name: "KaderJadwal", label: "Jadwal", icon: "pi-calendar" },
+    { name: "KaderLaporan", label: "Laporan", icon: "pi-file-pdf" },
 ];
 const puskesmasMenu = [
     { name: "PuskesmasDashboard", label: "Dashboard", icon: "pi-home" },
     { name: "PuskesmasRanking", label: "Prioritas SAW", icon: "pi-sort-amount-down-alt" },
+    { name: "PuskesmasAnak", label: "Data Anak", icon: "pi-heart" },
     { name: "PuskesmasRujukan", label: "Rujukan", icon: "pi-send" },
+    { name: "PuskesmasJadwal", label: "Jadwal", icon: "pi-calendar" },
+    { name: "PuskesmasLaporan", label: "Laporan", icon: "pi-file-pdf" },
 ];
 
 const menuItems = computed(() => (isKader.value ? kaderMenu : puskesmasMenu));

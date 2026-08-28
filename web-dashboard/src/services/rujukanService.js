@@ -6,8 +6,8 @@ const rujukanService = {
         return api.post("/rujukan", payload);
     },
 
-    getAllRujukan() {
-        return api.get("/rujukan");
+    getAllRujukan(params = {}) {
+        return api.get("/rujukan", { params });
     },
 
     getDetailRujukan(id) {

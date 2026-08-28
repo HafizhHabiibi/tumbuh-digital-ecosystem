@@ -1,11 +1,11 @@
 <template>
     <!--
         TrenGiziChart.vue
-        Line chart tren status gizi N bulan terakhir.
+        Line chart tren status TB/U N bulan terakhir.
         Mendukung filter 3 / 6 / 12 bulan via emit.
     -->
     <ChartCard
-        title="Tren Status Gizi"
+        title="Tren Status TB/U"
         :subtitle="`${bulan} bulan terakhir`"
         :loading="loading"
         :empty="categories.length === 0"
@@ -85,10 +85,13 @@ const categories = computed(() =>
 );
 
 const series = computed(() => [
-    { name: "Normal", data: props.data.map((d) => d.normal) },
-    { name: "Kurang", data: props.data.map((d) => d.kurang) },
-    { name: "Buruk", data: props.data.map((d) => d.buruk) },
-    { name: "Lebih", data: props.data.map((d) => d.lebih) },
+    {
+        name: "Sangat Pendek",
+        data: props.data.map((d) => d.tbu?.sangat_pendek ?? 0),
+    },
+    { name: "Pendek", data: props.data.map((d) => d.tbu?.pendek ?? 0) },
+    { name: "Normal", data: props.data.map((d) => d.tbu?.normal ?? 0) },
+    { name: "Tinggi", data: props.data.map((d) => d.tbu?.tinggi ?? 0) },
 ]);
 
 const chartOptions = computed(() => ({
@@ -99,7 +102,7 @@ const chartOptions = computed(() => ({
         zoom: { enabled: false },
         animations: { enabled: true, speed: 600 },
     },
-    colors: ["#22c55e", "#f59e0b", "#ef4444", "#3b82f6"],
+    colors: ["#ef4444", "#f59e0b", "#22c55e", "#3b82f6"],
     stroke: { curve: "smooth", width: 2.5 },
     markers: { size: 4, hover: { size: 6 } },
     xaxis: {

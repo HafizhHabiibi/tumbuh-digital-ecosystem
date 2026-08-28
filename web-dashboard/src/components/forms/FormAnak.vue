@@ -26,9 +26,9 @@
                 <select
                     id="orang_tua_id"
                     v-model="form.orang_tua_id"
-                    :disabled="loading"
+                    :disabled="loading || isEdit"
                     class="input-field w-full pl-9 pr-4 py-2.5 rounded-xl text-sm appearance-none"
-                    aria-required="true"
+                    :aria-required="!isEdit"
                     :aria-invalid="!!fieldError.orang_tua_id"
                 >
                     <option value="" disabled>Pilih orang tua</option>
@@ -48,6 +48,13 @@
             </div>
             <p v-if="fieldError.orang_tua_id" class="error-hint">
                 {{ fieldError.orang_tua_id }}
+            </p>
+            <p
+                v-else-if="isEdit"
+                class="text-xs m-0"
+                style="color: var(--color-text-muted)"
+            >
+                Relasi orang tua tidak dapat dipindahkan dari data master.
             </p>
         </div>
 
@@ -138,34 +145,34 @@
             </p>
         </div>
 
-        <!-- No KK -->
+        <!-- NIK Anak -->
         <div class="space-y-1.5">
-            <label for="no_kk" class="field-label">
-                No. Kartu Keluarga
+            <label for="nik_anak" class="field-label">
+                NIK Anak
                 <span
                     class="text-xs font-normal"
                     style="color: var(--color-text-muted)"
-                    >(16 digit)</span
+                    >{{ isEdit ? "(opsional, 16 digit)" : "(16 digit)" }}</span
                 >
             </label>
             <div class="relative">
-                <i class="pi pi-home input-icon" aria-hidden="true" />
+                <i class="pi pi-id-card input-icon" aria-hidden="true" />
                 <input
-                    id="no_kk"
-                    v-model="form.no_kk"
+                    id="nik_anak"
+                    v-model="form.nik"
                     type="text"
                     placeholder="1234567890123456"
                     inputmode="numeric"
                     maxlength="16"
                     :disabled="loading"
                     class="input-field w-full pl-9 pr-4 py-2.5 rounded-xl text-sm font-mono"
-                    aria-required="true"
-                    :aria-invalid="!!fieldError.no_kk"
-                    @input="form.no_kk = form.no_kk.replace(/\D/g, '')"
+                    :aria-required="!isEdit"
+                    :aria-invalid="!!fieldError.nik"
+                    @input="form.nik = form.nik.replace(/\D/g, '')"
                 />
             </div>
-            <p v-if="fieldError.no_kk" class="error-hint">
-                {{ fieldError.no_kk }}
+            <p v-if="fieldError.nik" class="error-hint">
+                {{ fieldError.nik }}
             </p>
         </div>
 
@@ -194,14 +201,14 @@
                     class="pi pi-spin pi-spinner"
                     aria-hidden="true"
                 />
-                <span>{{ loading ? "Menyimpan..." : "Simpan" }}</span>
+                <span>{{ submitLabel }}</span>
             </button>
         </div>
     </form>
 </template>
 
 <script setup>
-import { ref, computed, reactive } from "vue";
+import { ref, computed, reactive, watch } from "vue";
 import { DatePicker } from "primevue";
 import { hitungUsia, toLocalDateStr } from "@/utils/format.js";
 
@@ -209,6 +216,12 @@ const props = defineProps({
     loading: { type: Boolean, default: false },
     error: { type: String, default: null },
     orangTuaList: { type: Array, default: () => [] },
+    mode: {
+        type: String,
+        default: "create",
+        validator: (value) => ["create", "edit"].includes(value),
+    },
+    initialData: { type: Object, default: null },
 });
 const emit = defineEmits(["submit", "cancel"]);
 
@@ -217,10 +230,32 @@ const form = reactive({
     nama: "",
     jenis_kelamin: "",
     tanggal_lahir: "",
-    no_kk: "",
+    nik: "",
 });
 
 const submitted = ref(false);
+const isEdit = computed(() => props.mode === "edit");
+
+const parseLocalDate = (value) => {
+    if (!value) return "";
+    if (value instanceof Date) return value;
+    const datePart = String(value).slice(0, 10);
+    const parsed = new Date(`${datePart}T00:00:00`);
+    return Number.isNaN(parsed.getTime()) ? "" : parsed;
+};
+
+watch(
+    () => props.initialData,
+    (data) => {
+        form.orang_tua_id = data?.orang_tua_id || "";
+        form.nama = data?.nama || "";
+        form.jenis_kelamin = data?.jenis_kelamin || "";
+        form.tanggal_lahir = parseLocalDate(data?.tanggal_lahir);
+        form.nik = data?.nik || "";
+        submitted.value = false;
+    },
+    { immediate: true },
+);
 
 const jkOptions = [
     {
@@ -239,20 +274,17 @@ const jkOptions = [
     },
 ];
 
-/* ── Hari ini sebagai max date ───────────────────────────────────── */
 const todayDate = new Date();
 
-/* ── Preview usia ────────────────────────────────────────────────────── */
 const previewUsia = computed(() => {
     if (!form.tanggal_lahir) return "";
     const hasil = hitungUsia(form.tanggal_lahir);
     return hasil === "-" ? "" : hasil;
 });
 
-/* ── Validasi per field ──────────────────────────────────────────── */
 const fieldError = computed(() => {
     const e = {};
-    if (submitted.value && !form.orang_tua_id)
+    if (!isEdit.value && submitted.value && !form.orang_tua_id)
         e.orang_tua_id = "Pilih orang tua terlebih dahulu";
     if (form.nama && form.nama.trim().length < 2)
         e.nama = "Nama minimal 2 karakter";
@@ -260,32 +292,41 @@ const fieldError = computed(() => {
         e.jenis_kelamin = "Pilih jenis kelamin";
     if (form.tanggal_lahir && form.tanggal_lahir > new Date())
         e.tanggal_lahir = "Tanggal lahir tidak boleh di masa depan";
-    if (form.no_kk && !/^\d{16}$/.test(form.no_kk))
-        e.no_kk = "No. KK harus tepat 16 digit angka";
+    if (form.nik && !/^\d{16}$/.test(form.nik))
+        e.nik = "NIK harus tepat 16 digit angka";
+    if (!isEdit.value && submitted.value && !form.nik)
+        e.nik = "NIK anak wajib diisi";
     return e;
 });
 
-/* ── Form valid ──────────────────────────────────────────────────── */
 const isValid = computed(
     () =>
-        form.orang_tua_id &&
+        (isEdit.value || form.orang_tua_id) &&
         form.nama.trim().length >= 2 &&
         ["L", "P"].includes(form.jenis_kelamin) &&
         form.tanggal_lahir &&
-        /^\d{16}$/.test(form.no_kk) &&
+        (isEdit.value
+            ? !form.nik || /^\d{16}$/.test(form.nik)
+            : /^\d{16}$/.test(form.nik)) &&
         Object.keys(fieldError.value).length === 0,
 );
 
-/* ── Submit ──────────────────────────────────────────────────────── */
+const submitLabel = computed(() => {
+    if (props.loading) return "Menyimpan...";
+    return isEdit.value ? "Perbarui" : "Simpan";
+});
+
 const handleSubmit = () => {
     submitted.value = true;
     if (!isValid.value || props.loading) return;
-    emit("submit", {
-        orang_tua_id: form.orang_tua_id,
+
+    const payload = {
         nama: form.nama.trim(),
         jenis_kelamin: form.jenis_kelamin,
         tanggal_lahir: toLocalDateStr(form.tanggal_lahir) || "",
-        no_kk: form.no_kk,
-    });
+        nik: form.nik || undefined,
+    };
+    if (!isEdit.value) payload.orang_tua_id = form.orang_tua_id;
+    emit("submit", payload);
 };
 </script>

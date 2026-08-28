@@ -26,9 +26,12 @@
             </div>
             <div class="flex items-center justify-between">
                 <span class="text-xs" style="color: var(--color-text-muted)"
-                    >Risiko</span
+                    >Prioritas pemantauan</span
                 >
-                <StatusBadge type="risiko" :value="rujukan.kategori_risiko" />
+                <StatusBadge
+                    type="prioritas"
+                    :value="rujukan.kategori_prioritas"
+                />
             </div>
         </div>
 
@@ -91,6 +94,7 @@
                 rows="3"
                 placeholder="Hasil pemeriksaan, tindakan yang dilakukan, dll..."
                 :disabled="loading"
+                maxlength="2000"
                 class="input-field w-full px-4 py-2.5 rounded-xl text-sm resize-none"
             />
         </div>
@@ -127,7 +131,7 @@
 </template>
 
 <script setup>
-import { reactive } from "vue";
+import { computed, reactive } from "vue";
 import { LABEL_STATUS } from "@/stores/rujukanStore";
 import StatusBadge from "@/components/ui/StatusBadge.vue";
 
@@ -144,29 +148,27 @@ const form = reactive({
 });
 
 /* ── Status yang bisa dipilih (exclude status saat ini & yang tidak valid) */
-const STATUS_OPTIONS = ["diterima", "dalam_penanganan", "selesai", "ditolak"];
+const STATUS_OPTIONS = ["ditangani", "selesai"];
 const ikonStatus = {
-    diterima: "pi-check",
-    dalam_penanganan: "pi-sync",
+    ditangani: "pi-sync",
     selesai: "pi-check-circle",
-    ditolak: "pi-times-circle",
 };
-const statusOptions = STATUS_OPTIONS.filter(
-    (s) => s !== props.rujukan.status,
-).map((s) => ({ value: s, label: LABEL_STATUS[s], icon: ikonStatus[s] }));
+const statusOptions = computed(() =>
+    STATUS_OPTIONS.filter((s) => s !== props.rujukan.status).map((s) => ({
+        value: s,
+        label: LABEL_STATUS[s],
+        icon: ikonStatus[s],
+    })),
+);
 
 /* ── Warna ───────────────────────────────────────────────────────── */
 const warnaHex = {
-    diterima: "#15803d",
-    dalam_penanganan: "#d97706",
+    ditangani: "#d97706",
     selesai: "#6b7280",
-    ditolak: "#dc2626",
 };
 const warnaBg = {
-    diterima: "#dcfce7",
-    dalam_penanganan: "#fef3c7",
+    ditangani: "#fef3c7",
     selesai: "#f3f4f6",
-    ditolak: "#fee2e2",
 };
 
 /* ── Submit ──────────────────────────────────────────────────────── */

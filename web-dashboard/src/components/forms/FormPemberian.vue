@@ -74,71 +74,6 @@
             </div>
         </div>
 
-        <!-- Nama Item — dropdown dinamis sesuai jenis -->
-        <div v-if="form.jenis" class="space-y-1.5">
-            <label for="nama_item" class="field-label">{{
-                labelNamaItem
-            }}</label>
-            <div class="relative">
-                <i class="pi pi-list input-icon" aria-hidden="true" />
-                <select
-                    id="nama_item"
-                    v-model="form.nama_item"
-                    :disabled="loading"
-                    class="input-field w-full pl-9 pr-4 py-2.5 rounded-xl text-sm appearance-none"
-                    aria-required="true"
-                >
-                    <option value="" disabled>
-                        Pilih {{ labelNamaItem.toLowerCase() }}
-                    </option>
-                    <option
-                        v-for="item in pilihanNamaItem"
-                        :key="item"
-                        :value="item"
-                        :disabled="
-                            form.jenis === 'imunisasi' &&
-                            imunisasiSudah.includes(item)
-                        "
-                    >
-                        {{ item }}
-                        {{
-                            form.jenis === "imunisasi" &&
-                            imunisasiSudah.includes(item)
-                                ? "✓ sudah"
-                                : ""
-                        }}
-                    </option>
-                </select>
-                <i
-                    class="pi pi-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none"
-                    style="color: var(--color-text-muted)"
-                    aria-hidden="true"
-                />
-            </div>
-
-            <!-- Warning imunisasi duplikat -->
-            <Transition name="slide-down">
-                <div
-                    v-if="
-                        form.jenis === 'imunisasi' &&
-                        imunisasiSudah.includes(form.nama_item)
-                    "
-                    class="flex items-center gap-2 px-3 py-2 rounded-lg text-xs"
-                    style="
-                        background: #fef3c7;
-                        border: 1px solid #fcd34d;
-                        color: #92400e;
-                    "
-                >
-                    <i
-                        class="pi pi-exclamation-triangle flex-shrink-0"
-                        aria-hidden="true"
-                    />
-                    <span>Imunisasi ini sudah pernah diberikan sebelumnya</span>
-                </div>
-            </Transition>
-        </div>
-
         <!-- Tanggal Pemberian -->
         <div class="space-y-1.5">
             <label for="tanggal_pemberian" class="field-label"
@@ -175,6 +110,7 @@
                     id="dosis"
                     v-model="form.dosis"
                     type="text"
+                    maxlength="50"
                     placeholder="contoh: 0.5 ml, 1 tablet"
                     :disabled="loading"
                     class="input-field w-full pl-9 pr-4 py-2.5 rounded-xl text-sm"
@@ -196,6 +132,7 @@
                 id="keterangan"
                 v-model="form.keterangan"
                 rows="2"
+                maxlength="2000"
                 placeholder="Catatan tambahan jika ada..."
                 :disabled="loading"
                 class="input-field w-full px-4 py-2.5 rounded-xl text-sm resize-none"
@@ -234,9 +171,15 @@
 </template>
 
 <script setup>
-import { reactive, computed, watch } from "vue";
+import { reactive, computed } from "vue";
 import { DatePicker } from "primevue";
-import { JENIS_VALID, LABEL_JENIS, PILIHAN } from "@/stores/pemberianStore";
+import {
+    JENIS_VALID,
+    LABEL_JENIS,
+    IKON_JENIS as ikonJenis,
+    WARNA_JENIS as warnaText,
+    WARNA_BG_JENIS as warnaBg,
+} from "@/stores/pemberianStore";
 import { toLocalDateStr } from "@/utils/format.js";
 
 const props = defineProps({
@@ -244,7 +187,6 @@ const props = defineProps({
     error: { type: String, default: null },
     anakId: { type: String, default: "" },
     anakList: { type: Array, default: () => [] },
-    imunisasiSudah: { type: Array, default: () => [] },
 });
 const emit = defineEmits(["submit", "cancel"]);
 
@@ -254,59 +196,16 @@ const todayStr = toLocalDateStr(todayDate);
 const form = reactive({
     anak_id: props.anakId || "",
     jenis: "",
-    nama_item: "",
     tanggal_pemberian: todayDate,
     dosis: "",
     keterangan: "",
 });
-
-/* ── Ikon & warna per jenis ──────────────────────────────────────── */
-const ikonJenis = {
-    imunisasi: "pi-shield",
-    vitamin_a: "pi-sun",
-    obat_cacing: "pi-heart",
-    pmt: "pi-apple",
-};
-const warnaText = {
-    imunisasi: "#1d4ed8",
-    vitamin_a: "#d97706",
-    obat_cacing: "#15803d",
-    pmt: "#7c3aed",
-};
-const warnaBg = {
-    imunisasi: "#dbeafe",
-    vitamin_a: "#fef3c7",
-    obat_cacing: "#dcfce7",
-    pmt: "#ede9fe",
-};
-
-/* ── Pilihan nama item sesuai jenis ──────────────────────────────── */
-const pilihanNamaItem = computed(() => PILIHAN[form.jenis] || []);
-
-const labelNamaItem = computed(() => {
-    const map = {
-        imunisasi: "Jenis Imunisasi",
-        vitamin_a: "Jenis Vitamin A",
-        obat_cacing: "Jenis Obat Cacing",
-        pmt: "Jenis PMT",
-    };
-    return map[form.jenis] ?? "Nama Item";
-});
-
-/* ── Reset nama_item saat jenis berubah ──────────────────────────── */
-watch(
-    () => form.jenis,
-    () => {
-        form.nama_item = "";
-    },
-);
 
 /* ── Validasi ────────────────────────────────────────────────────── */
 const isValid = computed(
     () =>
         (props.anakId || form.anak_id) &&
         form.jenis &&
-        form.nama_item &&
         form.tanggal_pemberian,
 );
 
@@ -316,7 +215,6 @@ const handleSubmit = () => {
     const payload = {
         anak_id: props.anakId || form.anak_id,
         jenis: form.jenis,
-        nama_item: form.nama_item,
         tanggal_pemberian: toLocalDateStr(form.tanggal_pemberian) || todayStr,
     };
     if (form.dosis.trim()) payload.dosis = form.dosis.trim();

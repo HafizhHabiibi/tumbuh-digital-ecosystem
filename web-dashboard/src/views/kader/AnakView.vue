@@ -28,7 +28,7 @@
         <!-- ─── Error ────────────────────────────────────────────── -->
         <Transition name="slide-down">
             <div
-                v-if="kaderStore.error.anakList"
+                v-if="kaderStore.error.anakList || kaderStore.error.deleteAnak"
                 class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm"
                 style="
                     background: #fef2f2;
@@ -41,7 +41,7 @@
                     class="pi pi-exclamation-circle flex-shrink-0"
                     aria-hidden="true"
                 />
-                <span>{{ kaderStore.error.anakList }}</span>
+                <span>{{ kaderStore.error.anakList || kaderStore.error.deleteAnak }}</span>
             </div>
         </Transition>
 
@@ -274,34 +274,59 @@
 
                             <!-- Aksi -->
                             <td class="px-4 py-3" @click.stop>
-                                <button
-                                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
-                                    style="
-                                        background: var(--color-green-100);
-                                        color: var(--color-green-700);
-                                    "
-                                    :aria-label="`Lihat detail ${anak.nama}`"
-                                    @click="lihatDetail(anak.id)"
-                                >
-                                    <i
-                                        class="pi pi-eye text-xs"
-                                        aria-hidden="true"
-                                    />
-                                    Detail
-                                </button>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <button
+                                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                                        style="
+                                            background: var(--color-green-100);
+                                            color: var(--color-green-700);
+                                        "
+                                        :aria-label="`Lihat detail ${anak.nama}`"
+                                        @click="lihatDetail(anak.id)"
+                                    >
+                                        <i class="pi pi-eye text-xs" aria-hidden="true" />
+                                        Detail
+                                    </button>
+                                    <button
+                                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors bg-amber-100 text-amber-700"
+                                        :aria-label="`Edit ${anak.nama}`"
+                                        @click="openEditForm(anak)"
+                                    >
+                                        <i class="pi pi-pencil text-xs" aria-hidden="true" />
+                                        Edit
+                                    </button>
+                                    <button
+                                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors bg-red-100 text-red-700 disabled:opacity-60"
+                                        :aria-label="`Hapus ${anak.nama}`"
+                                        :disabled="deletingAnakId === anak.id"
+                                        @click="hapusAnak(anak)"
+                                    >
+                                        <i
+                                            :class="deletingAnakId === anak.id ? 'pi pi-spin pi-spinner' : 'pi pi-trash'"
+                                            class="text-xs"
+                                            aria-hidden="true"
+                                        />
+                                        Hapus
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
+            <PaginationControls
+                :pagination="kaderStore.pagination.anak"
+                :loading="kaderStore.loading.anakList"
+                @change-page="changePage"
+            />
         </div>
 
-        <!-- ─── Dialog Form Tambah Anak ──────────────────────────── -->
+        <!-- ─── Dialog Form Anak ────────────────────────────────── -->
         <Dialog
             v-model:visible="showForm"
             modal
-            :closable="!kaderStore.loading.createAnak"
-            header="Tambah Data Anak"
+            :closable="!formLoading"
+            :header="editingAnak ? 'Edit Data Anak' : 'Tambah Data Anak'"
             :style="{ width: '480px', maxWidth: '95vw' }"
             :pt="{
                 header: {
@@ -310,9 +335,12 @@
             }"
         >
             <FormAnak
-                :loading="kaderStore.loading.createAnak"
-                :error="kaderStore.error.createAnak"
-                :orang-tua-list="kaderStore.orangTuaList"
+                :key="editingAnak?.id || 'create'"
+                :mode="editingAnak ? 'edit' : 'create'"
+                :initial-data="editingAnak"
+                :loading="formLoading"
+                :error="formError"
+                :orang-tua-list="kaderStore.orangTuaOptions"
                 @submit="handleSubmit"
                 @cancel="closeForm"
             />
@@ -326,6 +354,7 @@ import { useRouter } from "vue-router";
 import { useKaderStore } from "@/stores/kaderStore";
 import { Dialog } from "primevue";
 import FormAnak from "@/components/forms/FormAnak.vue";
+import PaginationControls from "@/components/ui/PaginationControls.vue";
 import { hitungUsia } from "@/utils/format.js";
 
 const router = useRouter();
@@ -334,6 +363,18 @@ const kaderStore = useKaderStore();
 const search = ref("");
 const filterJK = ref("semua");
 const showForm = ref(false);
+const editingAnak = ref(null);
+const deletingAnakId = ref(null);
+const formLoading = computed(() =>
+    editingAnak.value
+        ? kaderStore.loading.updateAnak
+        : kaderStore.loading.createAnak,
+);
+const formError = computed(() =>
+    editingAnak.value
+        ? kaderStore.error.updateAnak
+        : kaderStore.error.createAnak,
+);
 
 const filterOptions = [
     { label: "Semua", value: "semua" },
@@ -367,15 +408,24 @@ const formatTanggal = (tgl) =>
 
 /* ── Dialog ──────────────────────────────────────────────────────── */
 const openForm = () => {
+    editingAnak.value = null;
     kaderStore.resetCreateAnak();
+    showForm.value = true;
+};
+const openEditForm = (anak) => {
+    kaderStore.resetUpdateAnak();
+    editingAnak.value = { ...anak };
     showForm.value = true;
 };
 const closeForm = () => {
     showForm.value = false;
+    editingAnak.value = null;
 };
 
 const handleSubmit = async (payload) => {
-    const ok = await kaderStore.createAnak(payload);
+    const ok = editingAnak.value
+        ? await kaderStore.updateAnak(editingAnak.value.id, payload)
+        : await kaderStore.createAnak(payload);
     if (ok) closeForm();
 };
 
@@ -383,11 +433,25 @@ const handleSubmit = async (payload) => {
 const lihatDetail = (id) =>
     router.push({ name: "KaderDetailAnak", params: { id } });
 
+const hapusAnak = async (anak) => {
+    kaderStore.resetDeleteAnak();
+    const confirmed = window.confirm(
+        `Hapus data ${anak.nama}? Data hanya dapat dihapus jika belum memiliki riwayat pengukuran atau pemberian.`,
+    );
+    if (!confirmed) return;
+
+    deletingAnakId.value = anak.id;
+    await kaderStore.deleteAnak(anak.id);
+    deletingAnakId.value = null;
+};
+
+const changePage = (page) => kaderStore.fetchAllAnak({ page });
+
 onMounted(async () => {
     await Promise.all([
         kaderStore.fetchAllAnak(),
-        // Fetch orang tua juga supaya dropdown di FormAnak terisi
-        kaderStore.orangTuaList.length === 0 && kaderStore.fetchAllOrangTua(),
+        kaderStore.fetchAnakOptions(),
+        kaderStore.fetchOrangTuaOptions(),
     ]);
 });
 </script>

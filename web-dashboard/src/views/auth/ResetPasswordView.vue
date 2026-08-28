@@ -39,7 +39,7 @@ onMounted(() => {
 
 const isFormValid = computed(() => {
     const { password, passwordConfirmation } = form.value;
-    return password.length >= 8 && password === passwordConfirmation;
+    return password.length >= 6 && password.length <= 72 && password === passwordConfirmation;
 });
 
 const handleSubmit = async () => {

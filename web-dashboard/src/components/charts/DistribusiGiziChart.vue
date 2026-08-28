@@ -1,12 +1,12 @@
 <template>
     <!--
         DistribusiGiziChart.vue
-        Donut chart distribusi status gizi balita.
+        Donut chart distribusi status tinggi badan menurut umur.
         Data dari dashboardStore.distribusiGiziChart (getter).
     -->
     <ChartCard
-        title="Distribusi Status Gizi"
-        subtitle="Berdasarkan pengukuran terakhir"
+        title="Distribusi Status TB/U"
+        subtitle="Tinggi badan menurut umur dari pengukuran terakhir"
         :loading="loading"
         :empty="!series.some((v) => v > 0)"
     >

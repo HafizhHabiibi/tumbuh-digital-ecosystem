@@ -102,6 +102,7 @@
                                     :type="showPassword ? 'text' : 'password'"
                                     placeholder="••••••••"
                                     autocomplete="current-password"
+                                    maxlength="72"
                                     :disabled="loading"
                                     class="input-field w-full pl-11 pr-12 py-3 rounded-xl text-sm"
                                     aria-required="true"

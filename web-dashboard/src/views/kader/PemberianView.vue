@@ -50,7 +50,7 @@
                     >
                         <option value="">-- Pilih nama anak --</option>
                         <option
-                            v-for="anak in kaderStore.anakList"
+                            v-for="anak in kaderStore.anakOptions"
                             :key="anak.id"
                             :value="anak.id"
                         >
@@ -216,7 +216,6 @@
                             >
                                 <th class="th-cell">Tanggal</th>
                                 <th class="th-cell">Jenis</th>
-                                <th class="th-cell">Nama Item</th>
                                 <th class="th-cell hidden md:table-cell">
                                     Dosis
                                 </th>
@@ -258,12 +257,6 @@
                                             item.jenis
                                         }}
                                     </span>
-                                </td>
-                                <td
-                                    class="px-4 py-3 font-medium"
-                                    style="color: var(--color-text-heading)"
-                                >
-                                    {{ item.nama_item }}
                                 </td>
                                 <td
                                     class="px-4 py-3 hidden md:table-cell"
@@ -322,7 +315,7 @@
                 :loading="pemberianStore.loading.create"
                 :error="pemberianStore.error.create"
                 :anak-id="anakTerpilihId"
-                :anak-list="kaderStore.anakList"
+                :anak-list="kaderStore.anakOptions"
                 @submit="handleSubmit"
                 @cancel="closeForm"
             />
@@ -337,6 +330,9 @@ import {
     usePemberianStore,
     JENIS_VALID,
     LABEL_JENIS,
+    IKON_JENIS as ikonJenis,
+    WARNA_JENIS as warnaJenis,
+    WARNA_BG_JENIS as warnaBgJenis,
 } from "@/stores/pemberianStore";
 import { useKaderStore } from "@/stores/kaderStore";
 import FormPemberian from "@/components/forms/FormPemberian.vue";
@@ -347,25 +343,6 @@ const kaderStore = useKaderStore();
 const anakTerpilihId = ref("");
 const filterAktif = ref("semua");
 const showForm = ref(false);
-
-/* ── Ikon per jenis ──────────────────────────────────────────────── */
-const ikonJenis = {
-    vitamin_a: "pi-sun",
-    obat_cacing: "pi-heart",
-    pmt: "pi-apple",
-};
-
-/* ── Warna badge jenis ───────────────────────────────────────────── */
-const warnaJenis = {
-    vitamin_a: "#d97706",
-    obat_cacing: "#15803d",
-    pmt: "#7c3aed",
-};
-const warnaBgJenis = {
-    vitamin_a: "#fef3c7",
-    obat_cacing: "#dcfce7",
-    pmt: "#ede9fe",
-};
 
 /* ── Riwayat yang ditampilkan sesuai filter ──────────────────────── */
 const riwayatTampil = computed(() => {
@@ -422,7 +399,7 @@ const handleSubmit = async (payload) => {
 };
 
 onMounted(() => {
-    if (kaderStore.anakList.length === 0) kaderStore.fetchAllAnak();
+    kaderStore.fetchAnakOptions();
 });
 </script>
 

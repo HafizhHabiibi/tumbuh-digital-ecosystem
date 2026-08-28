@@ -1,32 +1,27 @@
 // src/stores/rujukanStore.js
 import { defineStore } from "pinia";
 import rujukanService from "@/services/rujukanService";
+import {
+    createPagination,
+    extractPaginatedData,
+} from "@/utils/apiResponse";
 
 /**
  * Konstanta status, duplikasi dari backend
  * Dipakai untuk validasi form + render label/warna UI
  */
-export const STATUS_VALID = [
-    "diterima",
-    "dalam_penanganan",
-    "selesai",
-    "ditolak",
-];
+export const STATUS_VALID = ["ditangani", "selesai"];
 
 export const LABEL_STATUS = {
     diajukan: "Diajukan",
-    diterima: "Diterima",
-    dalam_penanganan: "Dalam Penanganan",
+    ditangani: "Ditangani",
     selesai: "Selesai",
-    ditolak: "Ditolak",
 };
 
 export const WARNA_STATUS = {
     diajukan: "blue",
-    diterima: "green",
-    dalam_penanganan: "yellow",
+    ditangani: "yellow",
     selesai: "gray",
-    ditolak: "red",
 };
 
 export const useRujukanStore = defineStore("rujukan", {
@@ -34,6 +29,7 @@ export const useRujukanStore = defineStore("rujukan", {
     state: () => ({
         // Semua rujukan (dipakai halaman puskesmas)
         rujukanList: [],
+        pagination: createPagination(),
 
         // Detail satu rujukan
         rujukanDetail: null,
@@ -70,27 +66,23 @@ export const useRujukanStore = defineStore("rujukan", {
     // ========== GETTERS ==========
     getters: {
         /**
-         * Filter rujukan aktif (belum selesai/ditolak)
+         * Filter rujukan aktif (belum selesai)
          * Dipakai puskesmas untuk lihat antrian masuk
          */
         rujukanAktif: (state) => {
-            return state.rujukanList.filter(
-                (r) => r.status !== "selesai" && r.status !== "ditolak",
-            );
+            return state.rujukanList.filter((r) => r.status !== "selesai");
         },
 
         /**
-         * Filter rujukan selesai/ditolak (arsip)
+         * Filter rujukan selesai (arsip)
          */
         rujukanArsip: (state) => {
-            return state.rujukanList.filter(
-                (r) => r.status === "selesai" || r.status === "ditolak",
-            );
+            return state.rujukanList.filter((r) => r.status === "selesai");
         },
 
         /**
          * Hitung jumlah per status (untuk badge/summary puskesmas)
-         * { diajukan: 2, diterima: 1, dalam_penanganan: 3, selesai: 10, ditolak: 1 }
+         * { diajukan: 2, ditangani: 3, selesai: 10 }
          */
         jumlahPerStatus: (state) => {
             const semua = ["diajukan", ...STATUS_VALID];
@@ -107,17 +99,15 @@ export const useRujukanStore = defineStore("rujukan", {
          * Dipakai kader sebelum bisa ajukan rujukan baru
          */
         punyaRujukanAktif: (state) => {
-            return state.riwayatAnak.list.some(
-                (r) => r.status !== "selesai" && r.status !== "ditolak",
-            );
+            return state.riwayatAnak.list.some((r) => r.status !== "selesai");
         },
 
         /**
          * Status bisa di-update atau tidak
-         * Backend tolak jika sudah 'selesai' atau 'ditolak'
+         * Backend menolak perubahan jika status sudah 'selesai'
          */
         bisaDiupdate: () => (status) => {
-            return status !== "selesai" && status !== "ditolak";
+            return status !== "selesai";
         },
     },
 
@@ -127,7 +117,7 @@ export const useRujukanStore = defineStore("rujukan", {
         // KADER: Ajukan rujukan baru
         // --------------------------------------------------
         /**
-         * @param {Object} payload - { anak_id, saw_result_id, catatan_kader }
+         * @param {Object} payload - { anak_id, pengukuran_id, catatan_kader }
          * @returns {boolean}
          */
         async createRujukan(payload) {
@@ -138,12 +128,13 @@ export const useRujukanStore = defineStore("rujukan", {
                 const res = await rujukanService.createRujukan(payload);
                 this.createResult = res.data.data;
 
-                // Tambahkan ke riwayat anak jika sedang ditampilkan
+                // Ambil ulang agar baris baru memiliki tanggal dan data relasi
+                // lengkap, bukan hanya response ringkas dari endpoint create.
                 if (
                     this.riwayatAnak.anak &&
-                    this.riwayatAnak.anak.id === payload.anak_id
+                    String(this.riwayatAnak.anak.id) === String(payload.anak_id)
                 ) {
-                    this.riwayatAnak.list.unshift(res.data.data);
+                    await this.fetchRujukanByAnak(payload.anak_id);
                 }
 
                 return true;
@@ -158,12 +149,16 @@ export const useRujukanStore = defineStore("rujukan", {
         // --------------------------------------------------
         // PUSKESMAS: Ambil semua rujukan
         // --------------------------------------------------
-        async fetchAllRujukan() {
+        async fetchAllRujukan(params = {}) {
             this.loading.fetchAll = true;
             this.error.fetchAll = null;
             try {
-                const res = await rujukanService.getAllRujukan();
-                this.rujukanList = res.data.data;
+                const page = params.page ?? this.pagination.page;
+                const limit = params.limit ?? this.pagination.limit;
+                const res = await rujukanService.getAllRujukan({ page, limit });
+                const data = extractPaginatedData(res);
+                this.rujukanList = data.items;
+                this.pagination = data.pagination;
             } catch (err) {
                 this.error.fetchAll =
                     err.response?.data?.message || err.message;
@@ -208,22 +203,23 @@ export const useRujukanStore = defineStore("rujukan", {
                     payload,
                 );
                 this.updateResult = res.data.data;
+                const updated = res.data.data;
 
                 // Update status di list tanpa fetch ulang
                 const idx = this.rujukanList.findIndex((r) => r.id === id);
                 if (idx !== -1) {
                     this.rujukanList[idx] = {
                         ...this.rujukanList[idx],
-                        status: payload.status,
-                        catatan_puskesmas: payload.catatan_puskesmas || null,
+                        ...updated,
                     };
                 }
 
                 // Update juga di detail jika sedang dibuka
                 if (this.rujukanDetail?.id === id) {
-                    this.rujukanDetail.status = payload.status;
-                    this.rujukanDetail.catatan_puskesmas =
-                        payload.catatan_puskesmas || null;
+                    this.rujukanDetail = {
+                        ...this.rujukanDetail,
+                        ...updated,
+                    };
                 }
 
                 return true;
@@ -242,6 +238,7 @@ export const useRujukanStore = defineStore("rujukan", {
         async fetchRujukanByAnak(anakId) {
             this.loading.fetchByAnak = true;
             this.error.fetchByAnak = null;
+            this.riwayatAnak = { anak: null, list: [] };
             try {
                 const res = await rujukanService.getRujukanByAnak(anakId);
                 this.riwayatAnak.anak = res.data.data.anak;

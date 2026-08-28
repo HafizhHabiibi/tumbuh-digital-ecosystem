@@ -7,7 +7,16 @@ export default defineConfig({
     plugins: [vue(), tailwindcss()],
     resolve: {
         alias: {
-            "@": path.resolve(__dirname, "./src"),
+            "@": path.resolve(import.meta.dirname, "./src"),
         },
+    },
+    optimizeDeps: {
+        include: [
+            "apexcharts/core",
+            "apexcharts/line",
+            "apexcharts/bar",
+            "apexcharts/donut",
+            "apexcharts/features/legend",
+        ],
     },
 });

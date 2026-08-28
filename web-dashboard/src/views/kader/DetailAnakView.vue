@@ -48,8 +48,8 @@
             <!-- ─── Card info anak ───────────────────────────────── -->
             <AnakCard
                 :anak="kaderStore.anakDetail"
-                :status-gizi-terakhir="
-                    pengukuranStore.pengukuranTerakhir?.status_gizi
+                :status-tbu-terakhir="
+                    pengukuranStore.pengukuranTerakhir?.status_tbu
                 "
             />
 
@@ -185,8 +185,8 @@
                     <div v-else class="overflow-x-auto mt-3">
                         <table class="w-full text-sm">
                             <thead>
-                                <tr
-                                    style="
+                            <tr
+                                style="
                                         background: var(--color-green-50);
                                         border-bottom: 1px solid
                                             var(--color-input-border);
@@ -196,10 +196,10 @@
                                     <th class="th-cell">BB (kg)</th>
                                     <th class="th-cell">TB (cm)</th>
                                     <th class="th-cell hidden md:table-cell">
-                                        Status Gizi
+                                        Status Antropometri
                                     </th>
                                     <th class="th-cell hidden md:table-cell">
-                                        Risiko
+                                        Prioritas
                                     </th>
                                     <th class="th-cell hidden lg:table-cell">
                                         Skor SAW
@@ -240,15 +240,21 @@
                                         {{ p.tinggi_badan }}
                                     </td>
                                     <td class="px-4 py-3 hidden md:table-cell">
-                                        <StatusBadge
-                                            type="gizi"
-                                            :value="p.status_gizi"
-                                        />
+                                        <div class="grid grid-cols-2 gap-x-2 gap-y-1 text-[10px]">
+                                            <span
+                                                v-for="item in statusAntropometri(p)"
+                                                :key="item.label"
+                                                :title="formatStatusAntropometri(item.value)"
+                                            >
+                                                <strong>{{ item.label }}:</strong>
+                                                {{ formatStatusAntropometri(item.value) }}
+                                            </span>
+                                        </div>
                                     </td>
                                     <td class="px-4 py-3 hidden md:table-cell">
                                         <StatusBadge
-                                            type="risiko"
-                                            :value="p.kategori_risiko"
+                                            type="prioritas"
+                                            :value="p.kategori_prioritas"
                                         />
                                     </td>
                                     <td
@@ -256,11 +262,7 @@
                                         style="color: var(--color-text-body)"
                                     >
                                         {{
-                                            p.skor_akhir
-                                                ? parseFloat(
-                                                      p.skor_akhir,
-                                                  ).toFixed(4)
-                                                : "—"
+                                            formatSkor(p.skor_saw)
                                         }}
                                     </td>
                                 </tr>
@@ -322,7 +324,7 @@
                                 >
                                     <th class="th-cell">Tanggal</th>
                                     <th class="th-cell">Jenis</th>
-                                    <th class="th-cell">Nama Item</th>
+                                    <th class="th-cell">Dosis</th>
                                     <th class="th-cell hidden md:table-cell">
                                         Dicatat Oleh
                                     </th>
@@ -369,7 +371,7 @@
                                         class="px-4 py-3 font-medium"
                                         style="color: var(--color-text-heading)"
                                     >
-                                        {{ item.nama_item }}
+                                        {{ item.dosis ?? "—" }}
                                     </td>
                                     <td
                                         class="px-4 py-3 hidden md:table-cell text-sm"
@@ -437,7 +439,7 @@
                                     <th class="th-cell">Tanggal</th>
                                     <th class="th-cell">Status</th>
                                     <th class="th-cell hidden md:table-cell">
-                                        Risiko
+                                        Prioritas
                                     </th>
                                     <th class="th-cell hidden md:table-cell">
                                         Ditangani Oleh
@@ -474,8 +476,8 @@
                                     </td>
                                     <td class="px-4 py-3 hidden md:table-cell">
                                         <StatusBadge
-                                            type="risiko"
-                                            :value="r.kategori_risiko"
+                                            type="prioritas"
+                                            :value="r.kategori_prioritas"
                                         />
                                     </td>
                                     <td
@@ -541,6 +543,7 @@ import { useKaderStore } from "@/stores/kaderStore";
 import { usePengukuranStore } from "@/stores/pengukuranStore";
 import { usePemberianStore, LABEL_JENIS } from "@/stores/pemberianStore";
 import { useRujukanStore } from "@/stores/rujukanStore";
+import { formatStatusAntropometri } from "@/utils/antropometri";
 
 import AnakCard from "@/components/cards/AnakCard.vue";
 import StatusBadge from "@/components/ui/StatusBadge.vue";
@@ -649,10 +652,12 @@ const heightChartOptions = computed(() => ({
 
 /* ── Warna badge jenis pemberian ─────────────────────────────────── */
 const variantJenis = {
-    imunisasi: "blue",
-    vitamin_a: "yellow",
+    vitamin_a_merah: "red",
+    vitamin_a_biru: "blue",
     obat_cacing: "green",
-    pmt: "purple",
+    pmt_biskuit: "yellow",
+    pmt_susu: "purple",
+    pmt_lainnya: "green",
 };
 
 /* ── Format tanggal ──────────────────────────────────────────────── */
@@ -662,6 +667,16 @@ const formatTanggal = (tgl) =>
         month: "short",
         year: "numeric",
     });
+
+const formatSkor = (value) =>
+    value === null || value === undefined ? "—" : Number(value).toFixed(4);
+
+const statusAntropometri = (pengukuran) => [
+    { label: "BB/U", value: pengukuran.status_bbu },
+    { label: "TB/U", value: pengukuran.status_tbu },
+    { label: "BB/TB", value: pengukuran.status_bbtb },
+    { label: "IMT/U", value: pengukuran.status_imtu },
+];
 
 /* ── Detail rujukan ──────────────────────────────────────────────── */
 const lihatDetailRujukan = async (id) => {

@@ -16,19 +16,51 @@
                     Kelola dan pantau jadwal kegiatan posyandu
                 </p>
             </div>
-            <button
-                class="btn-primary flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white"
-                @click="openForm"
-            >
-                <i class="pi pi-plus" aria-hidden="true" />
-                Tambah Jadwal
-            </button>
+            <div class="flex items-center gap-2 flex-wrap">
+                <button
+                    class="px-3 py-2.5 rounded-xl text-sm font-semibold border"
+                    style="background: white; color: var(--color-green-700); border-color: var(--color-input-border)"
+                    @click="showPengaturan = true"
+                >
+                    <i class="pi pi-cog mr-1" aria-hidden="true" />
+                    Pengaturan
+                </button>
+                <select
+                    v-model.number="jumlahBulan"
+                    class="input-field px-3 py-2.5 rounded-xl text-sm"
+                    aria-label="Jumlah bulan yang akan dibuat"
+                >
+                    <option :value="3">3 bulan</option>
+                    <option :value="6">6 bulan</option>
+                    <option :value="12">12 bulan</option>
+                </select>
+                <button
+                    class="px-3 py-2.5 rounded-xl text-sm font-semibold border"
+                    style="background: white; color: var(--color-green-700); border-color: var(--color-input-border)"
+                    :disabled="jadwalStore.loading.generate || !jadwalStore.pengaturan"
+                    @click="handleGenerate"
+                >
+                    <i
+                        class="pi mr-1"
+                        :class="jadwalStore.loading.generate ? 'pi-spin pi-spinner' : 'pi-calendar-plus'"
+                        aria-hidden="true"
+                    />
+                    Generate
+                </button>
+                <button
+                    class="btn-primary flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white"
+                    @click="openForm"
+                >
+                    <i class="pi pi-plus" aria-hidden="true" />
+                    Tambah Jadwal
+                </button>
+            </div>
         </div>
 
         <!-- ─── Error ────────────────────────────────────────────── -->
         <Transition name="slide-down">
             <div
-                v-if="jadwalStore.error.fetchAll"
+                v-if="errorAktif"
                 class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm"
                 style="
                     background: #fef2f2;
@@ -41,7 +73,22 @@
                     class="pi pi-exclamation-circle flex-shrink-0"
                     aria-hidden="true"
                 />
-                <span>{{ jadwalStore.error.fetchAll }}</span>
+                <span>{{ errorAktif }}</span>
+            </div>
+        </Transition>
+
+        <Transition name="slide-down">
+            <div
+                v-if="jadwalStore.generateResult"
+                class="flex items-center gap-2 px-4 py-3 rounded-xl text-sm"
+                style="background: #dcfce7; border: 1px solid #86efac; color: #15803d"
+                role="status"
+            >
+                <i class="pi pi-check-circle" aria-hidden="true" />
+                <span>
+                    {{ jadwalStore.generateResult.total_generated }} jadwal dibuat,
+                    {{ jadwalStore.generateResult.total_skipped }} tanggal dilewati karena sudah tersedia.
+                </span>
             </div>
         </Transition>
 
@@ -70,8 +117,8 @@
                         }}
                     </h2>
                     <p class="text-sm text-white/80 m-0 mt-1">
-                        {{ jadwalStore.jadwalTerdekat.waktu_mulai }} –
-                        {{ jadwalStore.jadwalTerdekat.waktu_selesai }} WIB
+                        {{ formatWaktu(jadwalStore.jadwalTerdekat.waktu_mulai) }} –
+                        {{ formatWaktu(jadwalStore.jadwalTerdekat.waktu_selesai) }} WIB
                     </p>
                 </div>
                 <div class="text-right">
@@ -224,8 +271,8 @@
                         style="color: var(--color-text-muted)"
                     >
                         <i class="pi pi-clock mr-1" aria-hidden="true" />
-                        {{ jadwal.waktu_mulai }} –
-                        {{ jadwal.waktu_selesai }} WIB
+                        {{ formatWaktu(jadwal.waktu_mulai) }} –
+                        {{ formatWaktu(jadwal.waktu_selesai) }} WIB
                         <span class="mx-2">•</span>
                         <i class="pi pi-user mr-1" aria-hidden="true" />
                         {{ jadwal.dibuat_oleh }}
@@ -240,12 +287,42 @@
                 </div>
 
                 <!-- Arrow -->
+                <div
+                    v-if="!isLewat(jadwal.tanggal)"
+                    class="flex items-center gap-1"
+                >
+                    <button
+                        class="p-2 rounded-lg border"
+                        style="background: white; color: #2563eb; border-color: #bfdbfe"
+                        aria-label="Edit jadwal"
+                        @click.stop="openEdit(jadwal)"
+                    >
+                        <i class="pi pi-pencil text-xs" aria-hidden="true" />
+                    </button>
+                    <button
+                        class="p-2 rounded-lg border"
+                        style="background: white; color: #dc2626; border-color: #fecaca"
+                        :disabled="jadwalStore.loading.delete"
+                        aria-label="Hapus jadwal"
+                        @click.stop="handleDelete(jadwal)"
+                    >
+                        <i class="pi pi-trash text-xs" aria-hidden="true" />
+                    </button>
+                </div>
                 <i
                     class="pi pi-chevron-right text-sm flex-shrink-0"
                     style="color: var(--color-text-muted)"
                     aria-hidden="true"
                 />
             </div>
+        </div>
+
+        <div class="card rounded-2xl overflow-hidden">
+            <PaginationControls
+                :pagination="jadwalStore.pagination"
+                :loading="jadwalStore.loading.fetchAll"
+                @change-page="changePage"
+            />
         </div>
 
         <!-- ─── Dialog Detail ────────────────────────────────────── -->
@@ -312,6 +389,40 @@
             </div>
         </Dialog>
 
+        <Dialog
+            v-model:visible="showEdit"
+            modal
+            :closable="!jadwalStore.loading.update"
+            header="Edit Jadwal Posyandu"
+            :style="{ width: '460px', maxWidth: '95vw' }"
+        >
+            <FormJadwal
+                v-if="jadwalDipilih"
+                mode="edit"
+                :initial-data="jadwalDipilih"
+                :loading="jadwalStore.loading.update"
+                :error="jadwalStore.error.update"
+                @submit="handleUpdate"
+                @cancel="showEdit = false"
+            />
+        </Dialog>
+
+        <Dialog
+            v-model:visible="showPengaturan"
+            modal
+            :closable="!jadwalStore.loading.pengaturan"
+            header="Pengaturan Jadwal Bulanan"
+            :style="{ width: '440px', maxWidth: '95vw' }"
+        >
+            <FormPengaturanJadwal
+                :initial-data="jadwalStore.pengaturan"
+                :loading="jadwalStore.loading.pengaturan"
+                :error="jadwalStore.error.pengaturan"
+                @submit="handleSavePengaturan"
+                @cancel="showPengaturan = false"
+            />
+        </Dialog>
+
         <!-- ─── Dialog Form Buat Jadwal ──────────────────────────── -->
         <Dialog
             v-model:visible="showForm"
@@ -340,17 +451,30 @@ import { ref, computed, onMounted } from "vue";
 import { Dialog } from "primevue";
 import { useJadwalStore } from "@/stores/jadwalStore";
 import FormJadwal from "@/components/forms/FormJadwal.vue";
+import FormPengaturanJadwal from "@/components/forms/FormPengaturanJadwal.vue";
+import PaginationControls from "@/components/ui/PaginationControls.vue";
 
 const jadwalStore = useJadwalStore();
 
 const activeFilter = ref("mendatang");
 const showDetail = ref(false);
 const showForm = ref(false);
+const showEdit = ref(false);
+const showPengaturan = ref(false);
+const jadwalDipilih = ref(null);
+const jumlahBulan = ref(6);
 
 const filterTabs = [
     { key: "mendatang", label: "Mendatang" },
     { key: "lewat", label: "Lewat" },
 ];
+
+const errorAktif = computed(
+    () =>
+        jadwalStore.error.fetchAll ||
+        jadwalStore.error.delete ||
+        jadwalStore.error.generate,
+);
 
 /* ── Jadwal yang ditampilkan sesuai filter ───────────────────────── */
 const jadwalTampil = computed(() =>
@@ -387,13 +511,18 @@ const formatTanggalPanjang = (tgl) =>
 const bulanSingkat = (tgl) =>
     new Date(tgl).toLocaleDateString("id-ID", { month: "short" });
 
+const formatWaktu = (waktu) => waktu?.slice(0, 5) ?? "—";
+
 /* ── Detail items untuk dialog ───────────────────────────────────── */
 const detailItems = computed(() => {
     const j = jadwalStore.jadwalDetail;
     if (!j) return [];
     return [
         { label: "Tanggal", value: formatTanggalPanjang(j.tanggal) },
-        { label: "Waktu", value: `${j.waktu_mulai} – ${j.waktu_selesai} WIB` },
+        {
+            label: "Waktu",
+            value: `${formatWaktu(j.waktu_mulai)} – ${formatWaktu(j.waktu_selesai)} WIB`,
+        },
         { label: "Lokasi", value: j.lokasi },
         { label: "Dibuat Oleh", value: j.dibuat_oleh },
     ];
@@ -418,7 +547,46 @@ const handleSubmit = async (payload) => {
     if (ok) closeForm();
 };
 
-onMounted(() => jadwalStore.fetchAllJadwal());
+const openEdit = (jadwal) => {
+    jadwalStore.resetMutationErrors();
+    jadwalDipilih.value = jadwal;
+    showEdit.value = true;
+};
+
+const handleUpdate = async (payload) => {
+    const ok = await jadwalStore.updateJadwal(jadwalDipilih.value.id, payload);
+    if (ok) showEdit.value = false;
+};
+
+const handleDelete = async (jadwal) => {
+    const disetujui = window.confirm(
+        `Hapus jadwal ${formatTanggalPanjang(jadwal.tanggal)} di ${jadwal.lokasi}? Orang tua akan menerima notifikasi pembatalan.`,
+    );
+    if (!disetujui) return;
+    await jadwalStore.deleteJadwal(jadwal.id);
+};
+
+const handleSavePengaturan = async (payload) => {
+    const ok = await jadwalStore.savePengaturan(payload);
+    if (ok) showPengaturan.value = false;
+};
+
+const handleGenerate = async () => {
+    const disetujui = window.confirm(
+        `Buat jadwal otomatis untuk ${jumlahBulan.value} bulan ke depan? Tanggal yang sudah memiliki jadwal akan dilewati.`,
+    );
+    if (!disetujui) return;
+    await jadwalStore.generateJadwal(jumlahBulan.value);
+};
+
+const changePage = (page) => jadwalStore.fetchAllJadwal({ page });
+
+onMounted(() =>
+    Promise.all([
+        jadwalStore.fetchAllJadwal(),
+        jadwalStore.fetchPengaturan(),
+    ]),
+);
 </script>
 
 <style scoped>

@@ -54,7 +54,7 @@
                     </h1>
                     <p class="text-sm text-body leading-relaxed">
                         Password baru harus berbeda dari password sebelumnya dan
-                        minimal 8 karakter.
+                        6–72 karakter.
                     </p>
                 </header>
 
@@ -121,8 +121,9 @@
                                     id="new-password"
                                     :value="password"
                                     :type="showPassword ? 'text' : 'password'"
-                                    placeholder="Min. 8 karakter"
+                                    placeholder="Minimal 6 karakter"
                                     autocomplete="new-password"
+                                    maxlength="72"
                                     :disabled="loading"
                                     class="input-field w-full pl-11 pr-12 py-3 rounded-xl text-sm"
                                     aria-required="true"
@@ -203,6 +204,7 @@
                                     :type="showConfirm ? 'text' : 'password'"
                                     placeholder="Ulangi password baru"
                                     autocomplete="new-password"
+                                    maxlength="72"
                                     :disabled="loading"
                                     class="input-field w-full pl-11 pr-12 py-3 rounded-xl text-sm"
                                     :class="{

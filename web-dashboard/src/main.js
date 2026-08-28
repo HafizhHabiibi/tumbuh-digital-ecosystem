@@ -1,10 +1,9 @@
-import { createApp } from "vue";
+import { createApp, defineAsyncComponent } from "vue";
 import { createPinia } from "pinia";
 
 import PrimeVue from "primevue/config";
 import Aura from "@primeuix/themes/aura";
 
-import VueApexCharts from "vue3-apexcharts";
 import ToastService from "primevue/toastservice";
 
 import router from "./router";
@@ -46,6 +45,18 @@ app.use(PrimeVue, {
 
 app.use(ToastService);
 
-app.component("apexchart", VueApexCharts);
+app.component(
+    "apexchart",
+    defineAsyncComponent(async () => {
+        await Promise.all([
+            import("apexcharts/line"),
+            import("apexcharts/bar"),
+            import("apexcharts/donut"),
+            import("apexcharts/features/legend"),
+        ]);
+        const module = await import("vue3-apexcharts/core");
+        return module.default;
+    }),
+);
 
 app.mount("#app");

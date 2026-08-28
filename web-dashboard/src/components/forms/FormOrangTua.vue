@@ -78,19 +78,26 @@
                     type="email"
                     placeholder="nama@email.com"
                     autocomplete="email"
-                    :disabled="loading"
+                    :disabled="loading || isEdit"
                     class="input-field w-full pl-9 pr-4 py-2.5 rounded-xl text-sm"
-                    aria-required="true"
+                    :aria-required="!isEdit"
                     :aria-invalid="!!fieldError.email"
                 />
             </div>
             <p v-if="fieldError.email" class="error-hint">
                 {{ fieldError.email }}
             </p>
+            <p
+                v-else-if="isEdit"
+                class="text-xs m-0"
+                style="color: var(--color-text-muted)"
+            >
+                Email akun tidak dapat diubah dari data master.
+            </p>
         </div>
 
         <!-- Password -->
-        <div class="space-y-1.5">
+        <div v-if="!isEdit" class="space-y-1.5">
             <label for="password_ot" class="field-label"
                 >Password
                 <span
@@ -107,6 +114,7 @@
                     :type="showPassword ? 'text' : 'password'"
                     placeholder="••••••••"
                     :disabled="loading"
+                    maxlength="72"
                     class="input-field w-full pl-9 pr-10 py-2.5 rounded-xl text-sm"
                     aria-required="true"
                     :aria-invalid="!!fieldError.password"
@@ -200,23 +208,30 @@
                     class="pi pi-spin pi-spinner"
                     aria-hidden="true"
                 />
-                <span>{{ loading ? "Menyimpan..." : "Simpan" }}</span>
+                <span>{{ submitLabel }}</span>
             </button>
         </div>
     </form>
 </template>
 
 <script setup>
-import { ref, computed, reactive } from "vue";
+import { ref, computed, reactive, watch } from "vue";
 
 const props = defineProps({
     loading: { type: Boolean, default: false },
     error: { type: String, default: null },
+    mode: {
+        type: String,
+        default: "create",
+        validator: (value) => ["create", "edit"].includes(value),
+    },
+    initialData: { type: Object, default: null },
 });
 const emit = defineEmits(["submit", "cancel"]);
 
 const showPassword = ref(false);
 const submitted = ref(false);
+const isEdit = computed(() => props.mode === "edit");
 
 const form = reactive({
     nama_lengkap: "",
@@ -227,55 +242,83 @@ const form = reactive({
     alamat: "",
 });
 
-/* ── Validasi per field ──────────────────────────────────────────── */
+watch(
+    () => props.initialData,
+    (data) => {
+        form.nama_lengkap = data?.nama_lengkap || "";
+        form.nik = data?.nik || "";
+        form.email = data?.email || "";
+        form.password = "";
+        form.no_hp = data?.no_hp || "";
+        form.alamat = data?.alamat || "";
+        submitted.value = false;
+        showPassword.value = false;
+    },
+    { immediate: true },
+);
+
 const fieldError = computed(() => {
     const e = {};
-    if (form.nama_lengkap && form.nama_lengkap.trim().length < 3)
-        e.nama_lengkap = "Nama minimal 3 karakter";
+    if (form.nama_lengkap && form.nama_lengkap.trim().length < 2)
+        e.nama_lengkap = "Nama minimal 2 karakter";
     if (form.nik && !/^\d{16}$/.test(form.nik))
         e.nik = "NIK harus tepat 16 digit angka";
-    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+    if (!isEdit.value && form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
         e.email = "Format email tidak valid";
-    if (form.password && form.password.length < 6)
+    if (!isEdit.value && form.password && form.password.length < 6)
         e.password = "Password minimal 6 karakter";
-    if (form.no_hp && !/^(\+62|08)\d{7,12}$/.test(form.no_hp))
+    else if (!isEdit.value && form.password.length > 72)
+        e.password = "Password maksimal 72 karakter";
+    if (form.no_hp && !/^\+?\d{8,20}$/.test(form.no_hp))
         e.no_hp = "Format nomor HP tidak valid";
-    // Validasi field wajib (tampil setelah submit)
+    if (form.alamat && form.alamat.trim().length < 3)
+        e.alamat = "Alamat minimal 3 karakter";
+
     if (submitted.value) {
         if (!e.nama_lengkap && !form.nama_lengkap.trim())
             e.nama_lengkap = "Nama lengkap wajib diisi";
         if (!e.nik && !form.nik) e.nik = "NIK wajib diisi";
-        if (!e.email && !form.email) e.email = "Email wajib diisi";
-        if (!e.password && !form.password) e.password = "Password wajib diisi";
+        if (!isEdit.value && !e.email && !form.email)
+            e.email = "Email wajib diisi";
+        if (!isEdit.value && !e.password && !form.password)
+            e.password = "Password wajib diisi";
         if (!e.no_hp && !form.no_hp.trim()) e.no_hp = "No. HP wajib diisi";
         if (!form.alamat.trim()) e.alamat = "Alamat wajib diisi";
     }
     return e;
 });
 
-/* ── Form valid jika semua field terisi dan tidak ada error ──────── */
 const isValid = computed(
     () =>
-        form.nama_lengkap.trim() &&
+        form.nama_lengkap.trim().length >= 2 &&
         /^\d{16}$/.test(form.nik) &&
-        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email) &&
-        form.password.length >= 6 &&
-        form.no_hp.trim() &&
-        form.alamat.trim() &&
+        (isEdit.value || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) &&
+        (isEdit.value ||
+            (form.password.length >= 6 && form.password.length <= 72)) &&
+        /^\+?\d{8,20}$/.test(form.no_hp) &&
+        form.alamat.trim().length >= 3 &&
         Object.keys(fieldError.value).length === 0,
 );
 
-/* ── Submit ──────────────────────────────────────────────────────── */
+const submitLabel = computed(() => {
+    if (props.loading) return "Menyimpan...";
+    return isEdit.value ? "Perbarui" : "Simpan";
+});
+
 const handleSubmit = () => {
     submitted.value = true;
     if (!isValid.value || props.loading) return;
-    emit("submit", {
+
+    const payload = {
         nama_lengkap: form.nama_lengkap.trim(),
         nik: form.nik,
-        email: form.email.trim(),
-        password: form.password,
         no_hp: form.no_hp.trim(),
         alamat: form.alamat.trim(),
-    });
+    };
+    if (!isEdit.value) {
+        payload.email = form.email.trim();
+        payload.password = form.password;
+    }
+    emit("submit", payload);
 };
 </script>

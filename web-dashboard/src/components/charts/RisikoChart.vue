@@ -1,12 +1,12 @@
 <template>
     <!--
         RisikoChart.vue
-        Bar chart distribusi risiko stunting berdasarkan hasil SAW.
+        Bar chart distribusi prioritas pemantauan berdasarkan hasil SAW.
         Tiga kategori: Rendah, Sedang, Tinggi.
     -->
     <ChartCard
-        title="Distribusi Risiko Stunting"
-        subtitle="Berdasarkan hasil analisis SAW"
+        title="Distribusi Prioritas Pemantauan"
+        subtitle="SAW digunakan untuk mengurutkan tindak lanjut, bukan diagnosis"
         :loading="loading"
         :empty="!series[0]?.data?.some((v) => v > 0)"
     >

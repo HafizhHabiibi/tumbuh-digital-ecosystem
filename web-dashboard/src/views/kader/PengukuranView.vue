@@ -81,7 +81,7 @@
                                     Pilih nama anak
                                 </option>
                                 <option
-                                    v-for="anak in kaderStore.anakList"
+                                    v-for="anak in kaderStore.anakOptions"
                                     :key="anak.id"
                                     :value="anak.id"
                                 >
@@ -297,7 +297,7 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive, onMounted } from "vue";
+import { computed, reactive, onMounted } from "vue";
 import { DatePicker } from "primevue";
 import { usePengukuranStore } from "@/stores/pengukuranStore";
 import { useKaderStore } from "@/stores/kaderStore";
@@ -320,7 +320,7 @@ const form = reactive({
 
 /* ── Info anak terpilih ──────────────────────────────────────────── */
 const anakTerpilih = computed(
-    () => kaderStore.anakList.find((a) => a.id === form.anak_id) || null,
+    () => kaderStore.anakOptions.find((a) => a.id === form.anak_id) || null,
 );
 
 
@@ -367,7 +367,7 @@ const handleSubmit = async () => {
 };
 
 onMounted(() => {
-    if (kaderStore.anakList.length === 0) kaderStore.fetchAllAnak();
+    kaderStore.fetchAnakOptions();
 });
 </script>
 

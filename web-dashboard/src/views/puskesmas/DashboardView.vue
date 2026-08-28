@@ -73,11 +73,11 @@
                     :loading="dashboardStore.loading.statistik"
                 />
                 <StatCard
-                    label="Terindikasi Stunting"
+                    label="Prioritas Tinggi"
                     icon="pi-chart-line"
                     color="red"
-                    :value="dashboardStore.statistik.total_stunting"
-                    :sub="`${dashboardStore.persentaseStunting}% dari total anak`"
+                    :value="dashboardStore.statistik.total_prioritas_tinggi"
+                    :sub="`${dashboardStore.persentasePrioritasTinggi}% dari total anak`"
                     :loading="dashboardStore.loading.statistik"
                 />
                 <StatCard
@@ -197,8 +197,8 @@
                         </div>
                         <div class="flex items-center gap-2 flex-shrink-0">
                             <StatusBadge
-                                type="risiko"
-                                :value="r.kategori_risiko"
+                                type="prioritas"
+                                :value="r.kategori_prioritas"
                             />
                             <StatusBadge type="rujukan" :value="r.status" />
                         </div>
@@ -298,7 +298,7 @@ const formatTanggal = (tgl) =>
 
 const refresh = () => {
     dashboardStore.fetchAll(selectedBulan.value);
-    rujukanStore.fetchAllRujukan();
+    rujukanStore.fetchAllRujukan({ page: 1 });
 };
 
 onMounted(refresh);

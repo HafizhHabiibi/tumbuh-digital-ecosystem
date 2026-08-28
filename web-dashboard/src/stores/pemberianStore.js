@@ -2,18 +2,49 @@
 import { defineStore } from "pinia";
 import pemberianService from "@/services/pemberianService";
 
-export const JENIS_VALID = ["vitamin_a", "obat_cacing", "pmt"];
-
-export const PILIHAN = {
-    vitamin_a: ["Vitamin A Biru 100.000 IU", "Vitamin A Merah 200.000 IU"],
-    obat_cacing: ["Albendazole 400mg"],
-    pmt: ["Biskuit PMT Balita"],
-};
+export const JENIS_VALID = [
+    "vitamin_a_merah",
+    "vitamin_a_biru",
+    "obat_cacing",
+    "pmt_biskuit",
+    "pmt_susu",
+    "pmt_lainnya",
+];
 
 export const LABEL_JENIS = {
-    vitamin_a: "Vitamin A",
+    vitamin_a_merah: "Vitamin A Merah",
+    vitamin_a_biru: "Vitamin A Biru",
     obat_cacing: "Obat Cacing",
-    pmt: "PMT (Pemberian Makanan Tambahan)",
+    pmt_biskuit: "PMT Biskuit",
+    pmt_susu: "PMT Susu",
+    pmt_lainnya: "PMT Lainnya",
+};
+
+export const IKON_JENIS = {
+    vitamin_a_merah: "pi-sun",
+    vitamin_a_biru: "pi-sun",
+    obat_cacing: "pi-heart",
+    pmt_biskuit: "pi-box",
+    pmt_susu: "pi-inbox",
+    pmt_lainnya: "pi-apple",
+};
+
+export const WARNA_JENIS = {
+    vitamin_a_merah: "#dc2626",
+    vitamin_a_biru: "#2563eb",
+    obat_cacing: "#15803d",
+    pmt_biskuit: "#b45309",
+    pmt_susu: "#7c3aed",
+    pmt_lainnya: "#0f766e",
+};
+
+export const WARNA_BG_JENIS = {
+    vitamin_a_merah: "#fee2e2",
+    vitamin_a_biru: "#dbeafe",
+    obat_cacing: "#dcfce7",
+    pmt_biskuit: "#fef3c7",
+    pmt_susu: "#ede9fe",
+    pmt_lainnya: "#ccfbf1",
 };
 
 export const usePemberianStore = defineStore("pemberian", {
@@ -42,10 +73,6 @@ export const usePemberianStore = defineStore("pemberian", {
 
     // ========== GETTERS ==========
     getters: {
-        pilihanByJenis: () => (jenis) => {
-            return PILIHAN[jenis] || [];
-        },
-
         riwayatPerJenis: (state) => {
             return JENIS_VALID.reduce((acc, jenis) => {
                 acc[jenis] = state.riwayat.list.filter(
@@ -75,15 +102,12 @@ export const usePemberianStore = defineStore("pemberian", {
                 const res = await pemberianService.createRiwayat(payload);
                 this.createResult = res.data.data;
 
-                // Jika riwayat anak yang sama sedang ditampilkan,
-                // langsung tambahkan ke list tanpa fetch ulang
-                if (
-                    this.riwayat.anak &&
-                    this.riwayat.anak.id === payload.anak_id &&
-                    (this.riwayat.filterAktif === "semua" ||
-                        this.riwayat.filterAktif === payload.jenis)
-                ) {
-                    this.riwayat.list.unshift(res.data.data); // tambah ke paling atas
+                if (this.riwayat.anak?.id === payload.anak_id) {
+                    const filter =
+                        this.riwayat.filterAktif === "semua"
+                            ? null
+                            : this.riwayat.filterAktif;
+                    await this.fetchRiwayat(payload.anak_id, filter);
                 }
 
                 return true;
@@ -98,13 +122,18 @@ export const usePemberianStore = defineStore("pemberian", {
         async fetchRiwayat(anakId, jenis = null) {
             this.loading.riwayat = true;
             this.error.riwayat = null;
+            this.riwayat = {
+                anak: null,
+                list: [],
+                filterAktif: jenis || "semua",
+            };
             try {
                 const res = await pemberianService.getRiwayatByAnak(
                     anakId,
                     jenis,
                 );
                 this.riwayat.anak = res.data.data.anak;
-                this.riwayat.list = res.data.data.riwayat;
+                this.riwayat.list = res.data.data.pemberian;
                 this.riwayat.filterAktif = res.data.data.filter; // 'semua' atau nama jenis
             } catch (err) {
                 this.error.riwayat = err.response?.data?.message || err.message;

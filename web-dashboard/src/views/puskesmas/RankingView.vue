@@ -13,7 +13,7 @@
                     class="text-sm mt-1 m-0"
                     style="color: var(--color-text-muted)"
                 >
-                    Daftar prioritas penanganan stunting balita di wilayah kerja Puskesmas menggunakan metode Simple Additive Weighting (SAW)
+                    Urutan prioritas pemantauan balita di wilayah kerja Puskesmas berdasarkan pengukuran terakhir
                 </p>
             </div>
         </div>
@@ -34,22 +34,22 @@
                 />
             </div>
 
-            <!-- Filter Risiko -->
+            <!-- Filter prioritas -->
             <div class="flex items-center gap-3 w-full md:w-auto">
                 <label
-                    for="filter-risiko"
+                    for="filter-prioritas"
                     class="text-sm font-semibold flex-shrink-0"
                     style="color: var(--color-text-body)"
                 >
-                    Risiko SAW:
+                    Prioritas:
                 </label>
                 <div class="relative flex-1 md:w-48">
                     <select
-                        id="filter-risiko"
-                        v-model="selectedRisiko"
+                        id="filter-prioritas"
+                        v-model="selectedPrioritas"
                         class="input-field w-full px-4 py-2.5 rounded-xl text-sm appearance-none"
                     >
-                        <option value="">Semua Risiko</option>
+                        <option value="">Semua Prioritas</option>
                         <option value="tinggi">Tinggi</option>
                         <option value="sedang">Sedang</option>
                         <option value="rendah">Rendah</option>
@@ -121,8 +121,8 @@
                             <th class="th-cell hidden sm:table-cell">Gender</th>
                             <th class="th-cell hidden md:table-cell">Usia</th>
                             <th class="th-cell">Pengukuran Terakhir</th>
-                            <th class="th-cell hidden lg:table-cell">Status Gizi</th>
-                            <th class="th-cell">Risiko SAW</th>
+                            <th class="th-cell hidden lg:table-cell">Status TB/U</th>
+                            <th class="th-cell">Prioritas</th>
                             <th class="th-cell text-right">Skor SAW</th>
                             <th class="th-cell text-center w-40">Aksi</th>
                         </tr>
@@ -143,7 +143,7 @@
                                 <span
                                     class="w-7 h-7 rounded-full flex items-center justify-center mx-auto text-xs bg-slate-100 text-slate-600"
                                 >
-                                    {{ index + 1 }}
+                                    {{ nomorPeringkat(index) }}
                                 </span>
                             </td>
 
@@ -177,19 +177,25 @@
                                 </div>
                             </td>
 
-                            <!-- Status Gizi -->
+                            <!-- Status TB/U -->
                             <td class="px-4 py-3 hidden lg:table-cell">
-                                <StatusBadge type="gizi" :value="row.status_gizi" />
+                                <StatusBadge
+                                    type="antropometri"
+                                    :value="row.status_tbu"
+                                />
                             </td>
 
-                            <!-- Risiko SAW -->
+                            <!-- Prioritas pemantauan -->
                             <td class="px-4 py-3">
-                                <StatusBadge type="risiko" :value="row.kategori_risiko" />
+                                <StatusBadge
+                                    type="prioritas"
+                                    :value="row.kategori_prioritas"
+                                />
                             </td>
 
                             <!-- Skor SAW -->
                             <td class="px-4 py-3 text-right font-mono font-semibold text-slate-700">
-                                {{ row.skor_akhir.toFixed(4) }}
+                                {{ formatSkor(row.skor_saw) }}
                             </td>
 
                             <!-- Aksi -->
@@ -207,6 +213,11 @@
                     </tbody>
                 </table>
             </div>
+            <PaginationControls
+                :pagination="pengukuranStore.rankingPagination"
+                :loading="pengukuranStore.loading.ranking"
+                @change-page="loadData"
+            />
         </div>
     </div>
 </template>
@@ -216,16 +227,17 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { usePengukuranStore } from "@/stores/pengukuranStore";
 import StatusBadge from "@/components/ui/StatusBadge.vue";
+import PaginationControls from "@/components/ui/PaginationControls.vue";
 
 const router = useRouter();
 const pengukuranStore = usePengukuranStore();
 
 const searchQuery = ref("");
-const selectedRisiko = ref("");
+const selectedPrioritas = ref("");
 
 /* ── Load data ranking balita ────────────────────────────────────── */
-const loadData = () => {
-    pengukuranStore.fetchRankingAnak();
+const loadData = (page = pengukuranStore.rankingPagination.page) => {
+    pengukuranStore.fetchRankingAnak({ page });
 };
 
 /* ── Filter & Search logic ────────────────────────────────────────── */
@@ -242,9 +254,10 @@ const filteredRanking = computed(() => {
         );
     }
 
-    // Filter by risk category
-    if (selectedRisiko.value) {
-        list = list.filter((item) => item.kategori_risiko === selectedRisiko.value);
+    if (selectedPrioritas.value) {
+        list = list.filter(
+            (item) => item.kategori_prioritas === selectedPrioritas.value,
+        );
     }
 
     return list;
@@ -268,6 +281,15 @@ const hitungUsia = (tgl) => {
     if (bulan < 24) return `${bulan} bulan`;
     return `${Math.floor(bulan / 12)} thn ${bulan % 12} bln`;
 };
+
+const formatSkor = (value) =>
+    value === null || value === undefined ? "—" : Number(value).toFixed(4);
+
+const nomorPeringkat = (index) =>
+    (pengukuranStore.rankingPagination.page - 1) *
+        pengukuranStore.rankingPagination.limit +
+    index +
+    1;
 
 onMounted(() => {
     loadData();

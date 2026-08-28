@@ -84,6 +84,22 @@ export const enrichPengukuran = (raw, anak) => {
 };
 
 /**
+ * Enrich satu pengukuran dengan z-score, status antropometri, dan prioritas SAW.
+ * Helper ini juga dipakai rujukan agar enrichment dilakukan dari data yang sudah
+ * diambil model, tanpa query detail SAW per baris.
+ */
+export const enrichPengukuranDenganPrioritas = (raw, anak) => {
+    const item = enrichPengukuran(raw, anak);
+    const saw = sawService.hitungSAW(inputSAW(item));
+
+    return {
+        ...item,
+        skor_saw: saw.skor_akhir,
+        kategori_prioritas: saw.kategori_prioritas,
+    };
+};
+
+/**
  * Enrich daftar pengukuran (riwayat) dengan z-score dan SAW.
  * List harus sudah diurutkan dari terbaru ke terlama (DESC tanggal_ukur).
  * @param {Array} rawList - Daftar pengukuran dari DB (DESC order)
@@ -91,16 +107,7 @@ export const enrichPengukuran = (raw, anak) => {
  * @returns {Array} Enriched list
  */
 export const enrichPengukuranList = (rawList, anak) => {
-    return rawList.map((raw) => {
-        const item = enrichPengukuran(raw, anak);
-        const saw = sawService.hitungSAW(inputSAW(item));
-
-        return {
-            ...item,
-            skor_saw: saw.skor_akhir,
-            kategori_prioritas: saw.kategori_prioritas,
-        };
-    });
+    return rawList.map((raw) => enrichPengukuranDenganPrioritas(raw, anak));
 };
 
 // =============================================================================
@@ -129,7 +136,7 @@ export const getRankingAllAnak = async (page = 1, limit = 20) => {
                 jenis_kelamin: row.jenis_kelamin,
                 nama_orang_tua: row.nama_orang_tua,
                 no_hp_orang_tua: row.no_hp_orang_tua,
-                skor_akhir: saw.skor_akhir,
+                skor_saw: saw.skor_akhir,
                 calculated_at: row.created_at,
                 tanggal_ukur: row.tanggal_ukur,
                 berat_badan: parseFloat(row.berat_badan),
@@ -145,7 +152,7 @@ export const getRankingAllAnak = async (page = 1, limit = 20) => {
     );
 
     // Sort dari prioritas pemantauan tertinggi
-    ranked.sort((a, b) => b.skor_akhir - a.skor_akhir);
+    ranked.sort((a, b) => b.skor_saw - a.skor_saw);
     const offset = (page - 1) * limit;
     return {
         items: ranked.slice(offset, offset + limit),
@@ -174,7 +181,7 @@ export const getDetailSAW = async (pengukuran_id) => {
     return {
         pengukuran_id: pengukuran.id,
         anak_id: pengukuran.anak_id,
-        skor_akhir: saw.skor_akhir,
+        skor_saw: saw.skor_akhir,
         kategori_prioritas: saw.kategori_prioritas,
         detail: saw.detail,
     };

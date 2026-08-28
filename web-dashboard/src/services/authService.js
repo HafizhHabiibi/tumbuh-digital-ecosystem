@@ -32,3 +32,9 @@ export const changePassword = async (password_lama, password_baru) => {
     });
     return res.data;
 };
+
+export const getProfile = async (role) => {
+    const endpoint = role === "puskesmas" ? "/puskesmas/profile" : "/kader/profile";
+    const res = await api.get(endpoint);
+    return res.data;
+};

@@ -28,7 +28,7 @@
         <!-- ─── Error ────────────────────────────────────────────── -->
         <Transition name="slide-down">
             <div
-                v-if="kaderStore.error.orangTuaList"
+                v-if="kaderStore.error.orangTuaList || kaderStore.error.deleteOrangTua"
                 class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm"
                 style="
                     background: #fef2f2;
@@ -41,7 +41,7 @@
                     class="pi pi-exclamation-circle flex-shrink-0"
                     aria-hidden="true"
                 />
-                <span>{{ kaderStore.error.orangTuaList }}</span>
+                <span>{{ kaderStore.error.orangTuaList || kaderStore.error.deleteOrangTua }}</span>
             </div>
         </Transition>
 
@@ -229,34 +229,59 @@
                             </td>
                             <!-- Aksi -->
                             <td class="px-4 py-3">
-                                <button
-                                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
-                                    style="
-                                        background: var(--color-green-100);
-                                        color: var(--color-green-700);
-                                    "
-                                    :aria-label="`Lihat detail ${ot.nama_lengkap}`"
-                                    @click="lihatDetail(ot.id)"
-                                >
-                                    <i
-                                        class="pi pi-eye text-xs"
-                                        aria-hidden="true"
-                                    />
-                                    Detail
-                                </button>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <button
+                                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                                        style="
+                                            background: var(--color-green-100);
+                                            color: var(--color-green-700);
+                                        "
+                                        :aria-label="`Lihat detail ${ot.nama_lengkap}`"
+                                        @click="lihatDetail(ot.id)"
+                                    >
+                                        <i class="pi pi-eye text-xs" aria-hidden="true" />
+                                        Detail
+                                    </button>
+                                    <button
+                                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors bg-amber-100 text-amber-700"
+                                        :aria-label="`Edit ${ot.nama_lengkap}`"
+                                        @click="openEditForm(ot)"
+                                    >
+                                        <i class="pi pi-pencil text-xs" aria-hidden="true" />
+                                        Edit
+                                    </button>
+                                    <button
+                                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors bg-red-100 text-red-700 disabled:opacity-60"
+                                        :aria-label="`Hapus ${ot.nama_lengkap}`"
+                                        :disabled="deletingOrangTuaId === ot.id"
+                                        @click="hapusOrangTua(ot)"
+                                    >
+                                        <i
+                                            :class="deletingOrangTuaId === ot.id ? 'pi pi-spin pi-spinner' : 'pi pi-trash'"
+                                            class="text-xs"
+                                            aria-hidden="true"
+                                        />
+                                        Hapus
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
+            <PaginationControls
+                :pagination="kaderStore.pagination.orangTua"
+                :loading="kaderStore.loading.orangTuaList"
+                @change-page="changePage"
+            />
         </div>
 
-        <!-- ─── Dialog Form Tambah Orang Tua ────────────────────── -->
+        <!-- ─── Dialog Form Orang Tua ───────────────────────────── -->
         <Dialog
             v-model:visible="showForm"
             modal
-            :closable="!kaderStore.loading.createOrangTua"
-            header="Tambah Orang Tua"
+            :closable="!formLoading"
+            :header="editingOrangTua ? 'Edit Orang Tua' : 'Tambah Orang Tua'"
             :style="{ width: '480px', maxWidth: '95vw' }"
             :pt="{
                 header: {
@@ -265,8 +290,11 @@
             }"
         >
             <FormOrangTua
-                :loading="kaderStore.loading.createOrangTua"
-                :error="kaderStore.error.createOrangTua"
+                :key="editingOrangTua?.id || 'create'"
+                :mode="editingOrangTua ? 'edit' : 'create'"
+                :initial-data="editingOrangTua"
+                :loading="formLoading"
+                :error="formError"
                 @submit="handleSubmit"
                 @cancel="closeForm"
             />
@@ -280,12 +308,25 @@ import { useRouter } from "vue-router";
 import { useKaderStore } from "@/stores/kaderStore";
 import { Dialog } from "primevue";
 import FormOrangTua from "@/components/forms/FormOrangTua.vue";
+import PaginationControls from "@/components/ui/PaginationControls.vue";
 
 const router = useRouter();
 const kaderStore = useKaderStore();
 
 const search = ref("");
 const showForm = ref(false);
+const editingOrangTua = ref(null);
+const deletingOrangTuaId = ref(null);
+const formLoading = computed(() =>
+    editingOrangTua.value
+        ? kaderStore.loading.updateOrangTua
+        : kaderStore.loading.createOrangTua,
+);
+const formError = computed(() =>
+    editingOrangTua.value
+        ? kaderStore.error.updateOrangTua
+        : kaderStore.error.createOrangTua,
+);
 
 /* ── Filter pencarian ────────────────────────────────────────────── */
 const filteredList = computed(() => {
@@ -317,16 +358,25 @@ const avatarColor = (nama) => {
 
 /* ── Dialog ──────────────────────────────────────────────────────── */
 const openForm = () => {
+    editingOrangTua.value = null;
     kaderStore.resetCreateOrangTua();
+    showForm.value = true;
+};
+const openEditForm = (orangTua) => {
+    kaderStore.resetUpdateOrangTua();
+    editingOrangTua.value = { ...orangTua };
     showForm.value = true;
 };
 const closeForm = () => {
     showForm.value = false;
+    editingOrangTua.value = null;
 };
 
 /* ── Submit form ─────────────────────────────────────────────────── */
 const handleSubmit = async (payload) => {
-    const success = await kaderStore.createOrangTua(payload);
+    const success = editingOrangTua.value
+        ? await kaderStore.updateOrangTua(editingOrangTua.value.id, payload)
+        : await kaderStore.createOrangTua(payload);
     if (success) closeForm();
 };
 
@@ -335,7 +385,26 @@ const lihatDetail = (id) => {
     router.push({ name: "KaderDetailOrangTua", params: { id } });
 };
 
-onMounted(() => kaderStore.fetchAllOrangTua());
+const hapusOrangTua = async (orangTua) => {
+    kaderStore.resetDeleteOrangTua();
+    const confirmed = window.confirm(
+        `Hapus ${orangTua.nama_lengkap} beserta akun loginnya? Data hanya dapat dihapus jika belum memiliki anak.`,
+    );
+    if (!confirmed) return;
+
+    deletingOrangTuaId.value = orangTua.id;
+    await kaderStore.deleteOrangTua(orangTua.id);
+    deletingOrangTuaId.value = null;
+};
+
+const changePage = (page) => kaderStore.fetchAllOrangTua({ page });
+
+onMounted(() =>
+    Promise.all([
+        kaderStore.fetchAllOrangTua(),
+        kaderStore.fetchOrangTuaOptions(),
+    ]),
+);
 </script>
 
 <style scoped>

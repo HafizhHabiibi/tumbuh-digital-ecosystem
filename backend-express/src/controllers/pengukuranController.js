@@ -185,10 +185,11 @@ export const getDetailPengukuran = async (req, res) => {
             return error(res, "Data pengukuran tidak ditemukan", 404);
         }
 
-        const enriched = pengukuranService.enrichPengukuran(raw, {
-            tanggal_lahir: raw.tanggal_lahir,
-            jenis_kelamin: raw.jenis_kelamin,
-        });
+        const enriched =
+            pengukuranService.enrichPengukuranDenganPrioritas(raw, {
+                tanggal_lahir: raw.tanggal_lahir,
+                jenis_kelamin: raw.jenis_kelamin,
+            });
 
         return success(res, enriched, "Detail pengukuran berhasil diambil");
     } catch (err) {

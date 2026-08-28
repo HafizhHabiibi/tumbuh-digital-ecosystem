@@ -34,7 +34,7 @@
         </Transition>
 
         <!-- ─── Ringkasan status ─────────────────────────────────── -->
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
             <div
                 v-for="(label, key) in LABEL_STATUS"
                 :key="key"
@@ -157,7 +157,9 @@
                                 Orang Tua
                             </th>
                             <th class="th-cell">Status</th>
-                            <th class="th-cell hidden md:table-cell">Risiko</th>
+                            <th class="th-cell hidden md:table-cell">
+                                Prioritas
+                            </th>
                             <th class="th-cell hidden lg:table-cell">
                                 Skor SAW
                             </th>
@@ -214,11 +216,11 @@
                                 <StatusBadge type="rujukan" :value="r.status" />
                             </td>
 
-                            <!-- Risiko -->
+                            <!-- Prioritas pemantauan -->
                             <td class="px-4 py-3 hidden md:table-cell">
                                 <StatusBadge
-                                    type="risiko"
-                                    :value="r.kategori_risiko"
+                                    type="prioritas"
+                                    :value="r.kategori_prioritas"
                                 />
                             </td>
 
@@ -228,9 +230,7 @@
                                 style="color: var(--color-text-body)"
                             >
                                 {{
-                                    r.skor_akhir
-                                        ? parseFloat(r.skor_akhir).toFixed(4)
-                                        : "—"
+                                    formatSkor(r.skor_saw)
                                 }}
                             </td>
 
@@ -285,6 +285,11 @@
                     </tbody>
                 </table>
             </div>
+            <PaginationControls
+                :pagination="rujukanStore.pagination"
+                :loading="rujukanStore.loading.fetchAll"
+                @change-page="changePage"
+            />
         </div>
 
         <!-- ─── Dialog Detail ────────────────────────────────────── -->
@@ -340,6 +345,7 @@ import { useRujukanStore, LABEL_STATUS } from "@/stores/rujukanStore";
 import StatusBadge from "@/components/ui/StatusBadge.vue";
 import RujukanDetailCard from "@/components/cards/RujukanDetailCard.vue";
 import FormUpdateStatus from "@/components/forms/FormUpdateStatus.vue";
+import PaginationControls from "@/components/ui/PaginationControls.vue";
 
 const rujukanStore = useRujukanStore();
 
@@ -358,17 +364,13 @@ const tabOptions = [
 /* ── Warna status ────────────────────────────────────────────────── */
 const warnaHex = {
     diajukan: "#2563eb",
-    diterima: "#15803d",
-    dalam_penanganan: "#d97706",
+    ditangani: "#d97706",
     selesai: "#6b7280",
-    ditolak: "#dc2626",
 };
 const warnaBg = {
     diajukan: "#dbeafe",
-    diterima: "#dcfce7",
-    dalam_penanganan: "#fef3c7",
+    ditangani: "#fef3c7",
     selesai: "#f3f4f6",
-    ditolak: "#fee2e2",
 };
 
 /* ── Filter list ─────────────────────────────────────────────────── */
@@ -399,6 +401,9 @@ const formatTanggal = (tgl) =>
         year: "numeric",
     });
 
+const formatSkor = (value) =>
+    value === null || value === undefined ? "—" : Number(value).toFixed(4);
+
 /* ── Detail ──────────────────────────────────────────────────────── */
 const lihatDetail = async (id) => {
     showDetail.value = true;
@@ -428,10 +433,12 @@ const handleKlikCard = (key) => {
     } else {
         filterStatus.value = key;
         // Auto switch tab sesuai status
-        const statusArsip = ["selesai", "ditolak"];
+        const statusArsip = ["selesai"];
         activeTab.value = statusArsip.includes(key) ? "arsip" : "aktif";
     }
 };
+
+const changePage = (page) => rujukanStore.fetchAllRujukan({ page });
 
 onMounted(() => rujukanStore.fetchAllRujukan());
 </script>

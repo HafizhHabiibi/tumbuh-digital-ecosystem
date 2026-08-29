@@ -34,6 +34,9 @@ class ApiConstants {
   static const String daftarAnak = '/orang-tua/anak';
   static String detailAnak(String id) => '/orang-tua/anak/$id';
 
+  // Laporan
+  static String laporanAnak(String id) => '/laporan/anak/$id';
+
   // Pengukuran
   static String pengukuranAnak(String id) => '/orang-tua/anak/$id/pengukuran';
   static String insightPengukuran(int id) => '/pengukuran/$id/insight';

@@ -6,15 +6,27 @@ import '../../../shared/widgets/loading_widget.dart';
 import '../../../shared/widgets/empty_state_widget.dart';
 import '../../../shared/widgets/status_badge_widget.dart';
 import '../../../core/constant/app_constants.dart';
+import '../../../core/utils/error_utils.dart';
 import '../../../core/utils/format_utils.dart';
+import '../../laporan/data/laporan_service.dart';
+import '../../laporan/providers/laporan_provider.dart';
 
-class DetailAnakScreen extends ConsumerWidget {
+class DetailAnakScreen extends ConsumerStatefulWidget {
   final String anakId;
 
   const DetailAnakScreen({super.key, required this.anakId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DetailAnakScreen> createState() => _DetailAnakScreenState();
+}
+
+class _DetailAnakScreenState extends ConsumerState<DetailAnakScreen> {
+  bool _isDownloading = false;
+
+  String get anakId => widget.anakId;
+
+  @override
+  Widget build(BuildContext context) {
     final detailAsync = ref.watch(detailAnakProvider(anakId));
 
     return Scaffold(
@@ -176,7 +188,7 @@ class DetailAnakScreen extends ConsumerWidget {
                     // ── Menu Fitur ──────────
                     _buildSectionTitle('Fitur'),
                     const SizedBox(height: 12),
-                    _buildFiturMenu(context),
+                    _buildFiturMenu(context, anak.nama),
                     const SizedBox(height: 16),
                   ],
                 ),
@@ -253,7 +265,7 @@ class DetailAnakScreen extends ConsumerWidget {
 
   // ── Fitur Menu ────────────────────────────────
 
-  Widget _buildFiturMenu(BuildContext context) {
+  Widget _buildFiturMenu(BuildContext context, String namaAnak) {
     final menus = [
       _FiturItem(
         icon: Icons.monitor_weight_outlined,
@@ -287,6 +299,15 @@ class DetailAnakScreen extends ConsumerWidget {
         bgColor: const Color(0xFFFEF3C7),
         onTap: () => context.push('/anak/$anakId/rujukan'),
       ),
+      _FiturItem(
+        icon: Icons.picture_as_pdf_outlined,
+        label: 'Unduh Laporan',
+        subtitle: 'Simpan ringkasan pertumbuhan dalam PDF',
+        color: const Color(0xFFB91C1C),
+        bgColor: const Color(0xFFFEE2E2),
+        isLoading: _isDownloading,
+        onTap: _isDownloading ? null : () => _downloadLaporan(namaAnak),
+      ),
     ];
 
     return Container(
@@ -319,11 +340,17 @@ class DetailAnakScreen extends ConsumerWidget {
                       fontWeight: FontWeight.w600,
                     )),
                 subtitle: Text(menu.subtitle, style: AppTextStyles.caption),
-                trailing: const Icon(
-                  Icons.arrow_forward_ios,
-                  size: 14,
-                  color: AppColors.textSecondary,
-                ),
+                trailing: menu.isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(
+                        Icons.arrow_forward_ios,
+                        size: 14,
+                        color: AppColors.textSecondary,
+                      ),
               ),
               if (!isLast) const Divider(height: 1, color: AppColors.divider),
             ],
@@ -331,6 +358,47 @@ class DetailAnakScreen extends ConsumerWidget {
         }).toList(),
       ),
     );
+  }
+
+  Future<void> _downloadLaporan(String namaAnak) async {
+    setState(() => _isDownloading = true);
+    try {
+      final result =
+          await ref.read(laporanServiceProvider).downloadLaporanAnak(anakId);
+      if (!mounted) return;
+      _showMessage(
+        'Laporan $namaAnak berhasil disimpan sebagai ${result.fileName}',
+        AppColors.primary,
+      );
+    } on LaporanDownloadCancelled {
+      if (mounted) {
+        _showMessage('Penyimpanan laporan dibatalkan', AppColors.textSecondary);
+      }
+    } catch (error) {
+      if (mounted) {
+        _showMessage(
+          ErrorUtils.getCleanErrorMessage(error),
+          AppColors.statusBurukText,
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isDownloading = false);
+    }
+  }
+
+  void _showMessage(String message, Color color) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: color,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      );
   }
 }
 
@@ -354,7 +422,8 @@ class _FiturItem {
   final String subtitle;
   final Color color;
   final Color bgColor;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
+  final bool isLoading;
 
   const _FiturItem({
     required this.icon,
@@ -363,5 +432,6 @@ class _FiturItem {
     required this.color,
     required this.bgColor,
     required this.onTap,
+    this.isLoading = false,
   });
 }

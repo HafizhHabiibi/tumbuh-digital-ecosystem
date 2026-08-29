@@ -50,8 +50,5 @@ test("schema menyimpan data_payload pada notification_outbox", () => {
     const outbox = schema.slice(schema.indexOf("CREATE TABLE IF NOT EXISTS notification_outbox"));
 
     assert.match(outbox, /data_payload JSON DEFAULT NULL/);
-    assert.match(
-        outbox,
-        /ALTER TABLE notification_outbox\s+ADD COLUMN IF NOT EXISTS data_payload/,
-    );
+    assert.doesNotMatch(outbox, /ALTER TABLE notification_outbox/);
 });

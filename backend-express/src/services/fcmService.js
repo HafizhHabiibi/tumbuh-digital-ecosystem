@@ -39,6 +39,46 @@ const initFirebase = () => {
 
 initFirebase();
 
+export const buildNotificationData = (
+    tipe,
+    referensi_id = null,
+    metadata = {},
+) => {
+    const data = { tipe: String(tipe) };
+    const referenceKeys = {
+        rujukan: "rujukan_id",
+        jadwal: "jadwal_id",
+        pengukuran: "pengukuran_id",
+    };
+    const referenceKey = referenceKeys[tipe];
+    if (referenceKey && referensi_id !== null && referensi_id !== undefined) {
+        data[referenceKey] = String(referensi_id);
+    }
+    if (metadata.anak_id) {
+        data.anak_id = String(metadata.anak_id);
+    }
+    return data;
+};
+
+export const normalizeNotificationData = (payload) => {
+    if (!payload) return {};
+    try {
+        const parsed = typeof payload === "string"
+            ? JSON.parse(payload)
+            : payload;
+        if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+            return {};
+        }
+        return Object.fromEntries(
+            Object.entries(parsed)
+                .filter(([, value]) => value !== null && value !== undefined)
+                .map(([key, value]) => [key, String(value)]),
+        );
+    } catch {
+        return {};
+    }
+};
+
 const dispatchOutboxItem = async (outboxId) => {
     if (!initialized) {
         return { success: false, reason: "not_configured" };
@@ -58,7 +98,7 @@ const dispatchOutboxItem = async (outboxId) => {
     }
 
     const [rows] = await db.query(
-        `SELECT id, orang_tua_id, fcm_token, judul, pesan, attempts
+        `SELECT id, orang_tua_id, fcm_token, judul, pesan, data_payload, attempts
         FROM notification_outbox WHERE id = ?`,
         [outboxId],
     );
@@ -69,6 +109,7 @@ const dispatchOutboxItem = async (outboxId) => {
         await admin.messaging().send({
             token: item.fcm_token,
             notification: { title: item.judul, body: item.pesan },
+            data: normalizeNotificationData(item.data_payload),
         });
         await db.query(
             `UPDATE notification_outbox
@@ -107,6 +148,7 @@ export const sendNotification = async (
     pesan,
     tipe,
     referensi_id = null,
+    metadata = {},
 ) => {
     const conn = await db.getConnection();
     let transactionOpen = false;
@@ -118,6 +160,11 @@ export const sendNotification = async (
             [orang_tua_id],
         );
         const fcm_token = rows[0]?.fcm_token;
+        const dataPayload = buildNotificationData(
+            tipe,
+            referensi_id,
+            metadata,
+        );
 
         const [notificationResult] = await conn.query(
             `INSERT INTO notifikasi
@@ -138,14 +185,15 @@ export const sendNotification = async (
         if (fcm_token) {
             const [outboxResult] = await conn.query(
                 `INSERT INTO notification_outbox
-                (notification_id, orang_tua_id, fcm_token, judul, pesan)
-                VALUES (?, ?, ?, ?, ?)`,
+                (notification_id, orang_tua_id, fcm_token, judul, pesan, data_payload)
+                VALUES (?, ?, ?, ?, ?, ?)`,
                 [
                     notificationResult.insertId,
                     orang_tua_id,
                     fcm_token,
                     judul,
                     pesan,
+                    JSON.stringify(dataPayload),
                 ],
             );
             outboxId = outboxResult.insertId;

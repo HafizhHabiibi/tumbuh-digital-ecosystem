@@ -26,7 +26,7 @@ class ProfilScreen extends ConsumerWidget {
           icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => context.pop(),
         ),
-        title: Text('Profil', style: AppTextStyles.heading3),
+        title: const Text('Profil', style: AppTextStyles.heading3),
       ),
       body: profilAsync.when(
         loading: () => const ShimmerDetail(),
@@ -55,7 +55,7 @@ class ProfilScreen extends ConsumerWidget {
               const SizedBox(height: 24),
 
               // ── Versi App ─────────────────
-              Text(
+              const Text(
                 'Versi ${AppConstants.appVersion}',
                 style: AppTextStyles.caption,
               ),
@@ -273,8 +273,8 @@ class ProfilScreen extends ConsumerWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
-        title: Text('Logout', style: AppTextStyles.heading3),
-        content: Text(
+        title: const Text('Logout', style: AppTextStyles.heading3),
+        content: const Text(
           'Apakah Anda yakin ingin keluar dari aplikasi?',
           style: AppTextStyles.body,
         ),
@@ -398,9 +398,9 @@ class _UbahPasswordSheetState extends ConsumerState<_UbahPasswordSheet> {
               ),
               const SizedBox(height: 16),
 
-              Text('Ubah Password', style: AppTextStyles.heading2),
+              const Text('Ubah Password', style: AppTextStyles.heading2),
               const SizedBox(height: 4),
-              Text(
+              const Text(
                 'Masukkan password lama dan password baru',
                 style: AppTextStyles.bodySecondary,
               ),
@@ -471,7 +471,7 @@ class _UbahPasswordSheetState extends ConsumerState<_UbahPasswordSheet> {
                   ),
                   child: Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.error_outline,
                         color: AppColors.statusBurukText,
                         size: 18,
@@ -498,7 +498,8 @@ class _UbahPasswordSheetState extends ConsumerState<_UbahPasswordSheet> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
-                    disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.6),
+                    disabledBackgroundColor:
+                        AppColors.primary.withValues(alpha: 0.6),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),

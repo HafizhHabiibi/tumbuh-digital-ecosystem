@@ -1,9 +1,44 @@
 import 'package:flutter/material.dart';
 import '../../core/constant/app_constants.dart';
 
+String formatStatusAntropometri(String status) {
+  switch (status.toLowerCase()) {
+    case 'berat_badan_sangat_kurang':
+      return 'BB Sangat Kurang';
+    case 'berat_badan_kurang':
+      return 'BB Kurang';
+    case 'berat_badan_normal':
+      return 'BB Normal';
+    case 'risiko_berat_badan_lebih':
+      return 'Risiko BB Lebih';
+    case 'sangat_pendek':
+      return 'Sangat Pendek';
+    case 'pendek':
+      return 'Pendek';
+    case 'normal':
+      return 'Normal';
+    case 'tinggi':
+      return 'Tinggi';
+    case 'gizi_buruk':
+      return 'Gizi Buruk';
+    case 'gizi_kurang':
+      return 'Gizi Kurang';
+    case 'gizi_baik':
+      return 'Gizi Baik';
+    case 'risiko_gizi_lebih':
+      return 'Risiko Gizi Lebih';
+    case 'gizi_lebih':
+      return 'Gizi Lebih';
+    case 'obesitas':
+      return 'Obesitas';
+    default:
+      return status;
+  }
+}
+
 enum StatusType {
-  statusGizi,
-  kategoriRisiko,
+  statusAntropometri,
+  kategoriPrioritas,
   statusRujukan,
   jenisKelamin,
   jenisPemberian,
@@ -43,10 +78,10 @@ class StatusBadge extends StatelessWidget {
 
   String _getLabel() {
     switch (type) {
-      case StatusType.statusGizi:
-        return _labelStatusGizi();
-      case StatusType.kategoriRisiko:
-        return _labelKategoriRisiko();
+      case StatusType.statusAntropometri:
+        return _labelStatusAntropometri();
+      case StatusType.kategoriPrioritas:
+        return _labelKategoriPrioritas();
       case StatusType.statusRujukan:
         return _labelStatusRujukan();
       case StatusType.jenisKelamin:
@@ -56,29 +91,18 @@ class StatusBadge extends StatelessWidget {
     }
   }
 
-  String _labelStatusGizi() {
-    switch (label.toLowerCase()) {
-      case 'normal':
-        return 'Normal';
-      case 'kurang':
-        return 'Kurang';
-      case 'buruk':
-        return 'Buruk';
-      case 'lebih':
-        return 'Lebih';
-      default:
-        return label;
-    }
+  String _labelStatusAntropometri() {
+    return formatStatusAntropometri(label);
   }
 
-  String _labelKategoriRisiko() {
+  String _labelKategoriPrioritas() {
     switch (label.toLowerCase()) {
       case 'rendah':
-        return 'Risiko Rendah';
+        return 'Prioritas Rendah';
       case 'sedang':
-        return 'Risiko Sedang';
+        return 'Prioritas Sedang';
       case 'tinggi':
-        return 'Risiko Tinggi';
+        return 'Prioritas Tinggi';
       default:
         return label;
     }
@@ -103,14 +127,18 @@ class StatusBadge extends StatelessWidget {
 
   String _labelJenisPemberian() {
     switch (label.toLowerCase()) {
-      case 'imunisasi':
-        return 'Imunisasi';
-      case 'vitamin_a':
-        return 'Vitamin A';
+      case 'vitamin_a_merah':
+        return 'Vitamin A Merah';
+      case 'vitamin_a_biru':
+        return 'Vitamin A Biru';
       case 'obat_cacing':
         return 'Obat Cacing';
-      case 'pmt':
-        return 'PMT';
+      case 'pmt_biskuit':
+        return 'PMT Biskuit';
+      case 'pmt_susu':
+        return 'PMT Susu';
+      case 'pmt_lainnya':
+        return 'PMT Lainnya';
       default:
         return label;
     }
@@ -120,10 +148,10 @@ class StatusBadge extends StatelessWidget {
 
   (Color, Color) _getColors() {
     switch (type) {
-      case StatusType.statusGizi:
-        return _colorsStatusGizi();
-      case StatusType.kategoriRisiko:
-        return _colorsKategoriRisiko();
+      case StatusType.statusAntropometri:
+        return _colorsStatusAntropometri();
+      case StatusType.kategoriPrioritas:
+        return _colorsKategoriPrioritas();
       case StatusType.statusRujukan:
         return _colorsStatusRujukan();
       case StatusType.jenisKelamin:
@@ -135,22 +163,32 @@ class StatusBadge extends StatelessWidget {
     }
   }
 
-  (Color, Color) _colorsStatusGizi() {
+  (Color, Color) _colorsStatusAntropometri() {
     switch (label.toLowerCase()) {
+      case 'berat_badan_normal':
       case 'normal':
+      case 'gizi_baik':
         return (AppColors.statusNormalText, AppColors.statusNormalBg);
-      case 'kurang':
+      case 'berat_badan_kurang':
+      case 'pendek':
+      case 'gizi_kurang':
+      case 'risiko_berat_badan_lebih':
+      case 'risiko_gizi_lebih':
         return (AppColors.statusKurangText, AppColors.statusKurangBg);
-      case 'buruk':
+      case 'berat_badan_sangat_kurang':
+      case 'sangat_pendek':
+      case 'gizi_buruk':
+      case 'obesitas':
         return (AppColors.statusBurukText, AppColors.statusBurukBg);
-      case 'lebih':
+      case 'tinggi':
+      case 'gizi_lebih':
         return (AppColors.statusLebihText, AppColors.statusLebihBg);
       default:
         return (AppColors.textSecondary, AppColors.border);
     }
   }
 
-  (Color, Color) _colorsKategoriRisiko() {
+  (Color, Color) _colorsKategoriPrioritas() {
     switch (label.toLowerCase()) {
       case 'rendah':
         return (AppColors.risikoRendahText, AppColors.risikoRendahBg);
@@ -182,13 +220,14 @@ class StatusBadge extends StatelessWidget {
 
   (Color, Color) _colorsJenisPemberian() {
     switch (label.toLowerCase()) {
-      case 'imunisasi':
-        return (AppColors.imunisasiText, AppColors.imunisasiBg);
-      case 'vitamin_a':
+      case 'vitamin_a_merah':
+      case 'vitamin_a_biru':
         return (AppColors.vitaminAText, AppColors.vitaminABg);
       case 'obat_cacing':
         return (AppColors.obatCacingText, AppColors.obatCacingBg);
-      case 'pmt':
+      case 'pmt_biskuit':
+      case 'pmt_susu':
+      case 'pmt_lainnya':
         return (AppColors.pmtText, AppColors.pmtBg);
       default:
         return (AppColors.textSecondary, AppColors.border);

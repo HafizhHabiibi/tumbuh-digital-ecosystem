@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/navigation/notification_navigation.dart';
 import '../providers/notifikasi_provider.dart';
 import '../../../shared/models/notifikasi_model.dart';
 import '../../../shared/widgets/loading_widget.dart';
@@ -58,7 +59,7 @@ class _NotifikasiScreenState extends ConsumerState<NotifikasiScreen> {
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Notifikasi', style: AppTextStyles.heading3),
+          const Text('Notifikasi', style: AppTextStyles.heading3),
           if (state.belumDibaca > 0)
             Text(
               '${state.belumDibaca} belum dibaca',
@@ -201,9 +202,22 @@ class _NotifikasiScreenState extends ConsumerState<NotifikasiScreen> {
         return false; // Tidak benar-benar dismiss
       },
       child: GestureDetector(
-        onTap: () {
+        onTap: () async {
           if (!sudahDibaca) {
-            ref.read(notifikasiProvider.notifier).bacaNotifikasi(notifikasi.id);
+            await ref
+                .read(notifikasiProvider.notifier)
+                .bacaNotifikasi(notifikasi.id);
+          }
+          if (!mounted) return;
+          final path = NotificationNavigation.path(
+            tipe: notifikasi.tipe,
+            anakId: notifikasi.anakId,
+            rujukanId: notifikasi.rujukanId,
+            jadwalId: notifikasi.jadwalId,
+            pengukuranId: notifikasi.pengukuranId,
+          );
+          if (path != '/notifikasi') {
+            context.push(path);
           }
         },
         child: AnimatedContainer(
@@ -310,6 +324,8 @@ class _NotifikasiScreenState extends ConsumerState<NotifikasiScreen> {
         return Icons.calendar_month_outlined;
       case 'rujukan':
         return Icons.local_hospital_outlined;
+      case 'pengukuran':
+        return Icons.monitor_weight_outlined;
       case 'pengingat':
         return Icons.alarm_outlined;
       default:
@@ -323,6 +339,8 @@ class _NotifikasiScreenState extends ConsumerState<NotifikasiScreen> {
         return AppColors.imunisasiText;
       case 'rujukan':
         return AppColors.statusBurukText;
+      case 'pengukuran':
+        return AppColors.primary;
       case 'pengingat':
         return AppColors.vitaminAText;
       default:
@@ -336,6 +354,8 @@ class _NotifikasiScreenState extends ConsumerState<NotifikasiScreen> {
         return AppColors.imunisasiBg;
       case 'rujukan':
         return AppColors.statusBurukBg;
+      case 'pengukuran':
+        return AppColors.primarySurface;
       case 'pengingat':
         return AppColors.vitaminABg;
       default:

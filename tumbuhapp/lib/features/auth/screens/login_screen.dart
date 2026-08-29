@@ -80,7 +80,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Text(
+                      const Text(
                         'Pantau tumbuh kembang si kecil',
                         style: AppTextStyles.bodySecondary,
                       ),
@@ -91,9 +91,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: 48),
 
                 // ── Form ───────────────────────
-                Text('Masuk', style: AppTextStyles.heading2),
+                const Text('Masuk', style: AppTextStyles.heading2),
                 const SizedBox(height: 4),
-                Text(
+                const Text(
                   'Silakan masuk dengan akun Anda',
                   style: AppTextStyles.bodySecondary,
                 ),
@@ -141,8 +141,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                   ),
                   validator: (val) {
-                    if (val == null || val.isEmpty)
+                    if (val == null || val.isEmpty) {
                       return 'Password wajib diisi';
+                    }
                     if (val.length < 6) return 'Password minimal 6 karakter';
                     return null;
                   },
@@ -177,7 +178,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     child: Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.error_outline,
                           color: AppColors.statusBurukText,
                           size: 18,

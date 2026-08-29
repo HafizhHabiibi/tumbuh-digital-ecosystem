@@ -272,6 +272,7 @@ CREATE TABLE IF NOT EXISTS notification_outbox (
     fcm_token VARCHAR(512) NOT NULL,
     judul VARCHAR(255) NOT NULL,
     pesan TEXT NOT NULL,
+    data_payload JSON DEFAULT NULL,
     status ENUM('pending', 'processing', 'sent', 'failed') NOT NULL DEFAULT 'pending',
     attempts TINYINT UNSIGNED NOT NULL DEFAULT 0,
     available_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -283,3 +284,6 @@ CREATE TABLE IF NOT EXISTS notification_outbox (
     FOREIGN KEY (orang_tua_id) REFERENCES orang_tua(id) ON DELETE CASCADE,
     INDEX idx_outbox_pending (status, available_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+ALTER TABLE notification_outbox
+    ADD COLUMN IF NOT EXISTS data_payload JSON DEFAULT NULL AFTER pesan;

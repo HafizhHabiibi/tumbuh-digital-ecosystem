@@ -81,7 +81,8 @@ class WhoStandards {
     };
 
     for (final row in list) {
-      final double h = double.tryParse((row['panjang'] ?? row['tinggi']).toString()) ?? 0.0;
+      final double h =
+          double.tryParse((row['panjang'] ?? row['tinggi']).toString()) ?? 0.0;
       if (h < minHeight || h > maxHeight) continue;
 
       // Sample every 0.5 cm to ensure smooth lines and efficient rendering

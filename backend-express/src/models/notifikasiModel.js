@@ -12,8 +12,14 @@ export const findByOrangTua = async (orang_tua_id, page = 1, limit = 20) => {
             n.sent_at,
             n.rujukan_id,
             n.jadwal_id,
-            n.pengukuran_id
+            n.pengukuran_id,
+            COALESCE(pengukuran_notif.anak_id, pengukuran_rujukan.anak_id) AS anak_id
         FROM notifikasi n
+        LEFT JOIN pengukuran pengukuran_notif
+            ON pengukuran_notif.id = n.pengukuran_id
+        LEFT JOIN rujukan r ON r.id = n.rujukan_id
+        LEFT JOIN pengukuran pengukuran_rujukan
+            ON pengukuran_rujukan.id = r.pengukuran_id
         WHERE n.orang_tua_id = ?
         ORDER BY n.sent_at DESC
         LIMIT ? OFFSET ?`,

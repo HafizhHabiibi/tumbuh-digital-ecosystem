@@ -27,7 +27,7 @@ class RiwayatPengukuranScreen extends ConsumerWidget {
           icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => context.pop(),
         ),
-        title: Text('Riwayat Pengukuran', style: AppTextStyles.heading3),
+        title: const Text('Riwayat Pengukuran', style: AppTextStyles.heading3),
       ),
       body: riwayatAsync.when(
         loading: () => const ShimmerList(itemCount: 5, itemHeight: 100),
@@ -102,8 +102,8 @@ class RiwayatPengukuranScreen extends ConsumerWidget {
                   ],
                 ),
                 StatusBadge(
-                  label: pengukuran.statusGizi,
-                  type: StatusType.statusGizi,
+                  label: pengukuran.statusBbtb,
+                  type: StatusType.statusAntropometri,
                 ),
               ],
             ),
@@ -143,7 +143,7 @@ class RiwayatPengukuranScreen extends ConsumerWidget {
                   child: _buildMetric(
                     icon: Icons.analytics_outlined,
                     label: 'Skor SAW',
-                    value: pengukuran.skorAkhir.toStringAsFixed(2),
+                    value: pengukuran.skorSaw.toStringAsFixed(2),
                   ),
                 ),
               ],
@@ -155,8 +155,8 @@ class RiwayatPengukuranScreen extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 StatusBadge(
-                  label: pengukuran.kategoriRisiko,
-                  type: StatusType.kategoriRisiko,
+                  label: pengukuran.kategoriPrioritas,
+                  type: StatusType.kategoriPrioritas,
                 ),
                 Row(
                   children: [

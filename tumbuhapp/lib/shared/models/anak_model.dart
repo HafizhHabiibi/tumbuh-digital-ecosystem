@@ -3,7 +3,7 @@ class AnakModel {
   final String nama;
   final String jenisKelamin;
   final String tanggalLahir;
-  final String noKk;
+  final String nik;
   final String createdAt;
 
   // Hanya ada di detail anak
@@ -17,7 +17,7 @@ class AnakModel {
     required this.nama,
     required this.jenisKelamin,
     required this.tanggalLahir,
-    required this.noKk,
+    required this.nik,
     required this.createdAt,
     this.orangTuaId,
     this.namaOrangTua,
@@ -31,7 +31,7 @@ class AnakModel {
       nama: json['nama'] ?? '',
       jenisKelamin: json['jenis_kelamin'] ?? '',
       tanggalLahir: json['tanggal_lahir'] ?? '',
-      noKk: json['no_kk'] ?? '',
+      nik: json['nik'] ?? '',
       createdAt: json['created_at'] ?? '',
       orangTuaId: json['orang_tua_id'],
       namaOrangTua: json['nama_orang_tua'],

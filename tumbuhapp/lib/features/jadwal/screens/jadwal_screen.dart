@@ -37,7 +37,7 @@ class _JadwalScreenState extends ConsumerState<JadwalScreen> {
           icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => context.pop(),
         ),
-        title: Text('Jadwal Posyandu', style: AppTextStyles.heading3),
+        title: const Text('Jadwal Posyandu', style: AppTextStyles.heading3),
       ),
       body: _buildContent(state),
     );
@@ -187,7 +187,7 @@ class _JadwalScreenState extends ConsumerState<JadwalScreen> {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.access_time_outlined,
                       size: 14,
                       color: AppColors.textSecondary,
@@ -278,7 +278,7 @@ class _JadwalScreenState extends ConsumerState<JadwalScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Lokasi', style: AppTextStyles.caption),
+                    const Text('Lokasi', style: AppTextStyles.caption),
                     const SizedBox(height: 2),
                     Text(jadwal.lokasi, style: AppTextStyles.body),
                   ],
@@ -303,7 +303,7 @@ class _JadwalScreenState extends ConsumerState<JadwalScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Keterangan', style: AppTextStyles.caption),
+                      const Text('Keterangan', style: AppTextStyles.caption),
                       const SizedBox(height: 2),
                       Text(
                         jadwal.keterangan!,

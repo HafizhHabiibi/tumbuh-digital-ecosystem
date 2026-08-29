@@ -23,7 +23,8 @@ class AppColors {
   // Primary App
   static const Color primary = Color(0xFF008F24);
   static const Color primaryDark = Color(0xFF006E1C);
-  static const Color primarySurface = Color(0xFFE8F5E9); // Soft light green for accents
+  static const Color primarySurface =
+      Color(0xFFE8F5E9); // Soft light green for accents
 
   // ── Status Gizi ──────────────────────────────
   static const Color statusNormalText = Color(0xFF15803D);

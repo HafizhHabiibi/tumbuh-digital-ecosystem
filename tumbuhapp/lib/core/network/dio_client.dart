@@ -1,4 +1,6 @@
 import 'package:dio/dio.dart';
+
+import '../auth/auth_session_controller.dart';
 import '../constant/app_constants.dart';
 import '../constant/api_constants.dart';
 import '../utils/storage_utils.dart';
@@ -28,113 +30,179 @@ class DioClient {
       ),
     );
 
-    dio.interceptors.add(_AuthInterceptor());
+    dio.interceptors.add(AuthInterceptor(
+      dio: dio,
+      getAccessToken: StorageUtils.getAccessToken,
+      getRefreshToken: StorageUtils.getRefreshToken,
+      saveAccessToken: StorageUtils.saveAccessToken,
+      saveRefreshToken: StorageUtils.saveRefreshToken,
+      clearStorage: StorageUtils.clearAll,
+      refreshDioFactory: _createRefreshDio,
+      onSessionExpired: AuthSessionController.instance.notifyExpired,
+    ));
 
     return dio;
   }
+
+  static Dio _createRefreshDio() {
+    return Dio(BaseOptions(
+      baseUrl: ApiConstants.baseUrl,
+      connectTimeout: const Duration(milliseconds: AppConstants.connectTimeout),
+      receiveTimeout: const Duration(milliseconds: AppConstants.receiveTimeout),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    ));
+  }
 }
 
-class _AuthInterceptor extends Interceptor {
-  // ── Setiap Request → Attach Token ─────────────
+class AuthInterceptor extends Interceptor {
+  static const _retriedKey = 'auth_retried';
+
+  final Dio dio;
+  final Future<String?> Function() getAccessToken;
+  final Future<String?> Function() getRefreshToken;
+  final Future<void> Function(String token) saveAccessToken;
+  final Future<void> Function(String token) saveRefreshToken;
+  final Future<void> Function() clearStorage;
+  final Dio Function() refreshDioFactory;
+  final void Function() onSessionExpired;
+
+  Future<_TokenPair?>? _refreshInFlight;
+  bool _expirationNotified = false;
+
+  AuthInterceptor({
+    required this.dio,
+    required this.getAccessToken,
+    required this.getRefreshToken,
+    required this.saveAccessToken,
+    required this.saveRefreshToken,
+    required this.clearStorage,
+    required this.refreshDioFactory,
+    required this.onSessionExpired,
+  });
 
   @override
   Future<void> onRequest(
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    final token = await StorageUtils.getAccessToken();
-    if (token != null) {
+    final token = await getAccessToken();
+    if (token != null && token.isNotEmpty) {
+      _expirationNotified = false;
       options.headers['Authorization'] = 'Bearer $token';
     }
     handler.next(options);
   }
-
-  // ── Response Sukses → Lanjut ──────────────────
-
-  @override
-  void onResponse(Response response, ResponseInterceptorHandler handler) {
-    handler.next(response);
-  }
-
-  // ── Error Handler ─────────────────────────────
 
   @override
   Future<void> onError(
     DioException err,
     ErrorInterceptorHandler handler,
   ) async {
-    final statusCode = err.response?.statusCode;
+    if (err.response?.statusCode == 401) {
+      final options = err.requestOptions;
+      final alreadyRetried = options.extra[_retriedKey] == true;
 
-    // Token expired / tidak valid → coba refresh token sebelum logout
-    if (statusCode == 401) {
-      final refreshToken = await StorageUtils.getRefreshToken();
-      if (refreshToken != null) {
-        try {
-          // Buat instance Dio baru khusus untuk refresh agar tidak memicu interceptor auth
-          final dioRefresh = Dio(BaseOptions(
-            baseUrl: ApiConstants.baseUrl,
-            connectTimeout: const Duration(milliseconds: AppConstants.connectTimeout),
-            receiveTimeout: const Duration(milliseconds: AppConstants.receiveTimeout),
-          ));
+      if (!alreadyRetried) {
+        final currentAccessToken = await getAccessToken();
+        final sentAuthorization = options.headers['Authorization'];
 
-          final response = await dioRefresh.post(
-            ApiConstants.refresh,
-            data: {'refresh_token': refreshToken},
-          );
-
-          final data = response.data;
-          String? newToken;
-          if (data is Map) {
-            if (data['data'] != null && data['data']['token'] != null) {
-              newToken = data['data']['token'] as String;
-            } else if (data['token'] != null) {
-              newToken = data['token'] as String;
-            }
+        if (currentAccessToken != null &&
+            currentAccessToken.isNotEmpty &&
+            sentAuthorization != 'Bearer $currentAccessToken') {
+          try {
+            final response = await _retry(options, currentAccessToken);
+            return handler.resolve(response);
+          } on DioException catch (retryError) {
+            return handler.reject(retryError);
           }
+        }
 
-          if (newToken != null && newToken.isNotEmpty) {
-            await StorageUtils.saveAccessToken(newToken);
-
-            // Update header request lama
-            final options = err.requestOptions;
-            options.headers['Authorization'] = 'Bearer $newToken';
-
-            // Retry request lama dengan instance Dio utama
-            final retryResponse = await DioClient.instance.fetch(options);
-            return handler.resolve(retryResponse);
+        final tokens = await _refreshOnce();
+        if (tokens != null) {
+          try {
+            final response = await _retry(options, tokens.accessToken);
+            return handler.resolve(response);
+          } on DioException catch (retryError) {
+            return handler.reject(retryError);
           }
-        } catch (_) {
-          // Jika refresh gagal, lanjut logout
         }
       }
 
-      // Jika refresh token null atau gagal, hapus semua data dan logout
-      await StorageUtils.clearAll();
-      // Navigasi ke login akan dihandle oleh go_router redirect
+      await _expireSession();
     }
 
-    final message = _parseErrorMessage(err);
-    final customErr = err.copyWith(
-      error: message,
-    );
-
-    handler.next(customErr);
+    handler.next(err.copyWith(error: _parseErrorMessage(err)));
   }
 
-  // ── Parse Pesan Error dari Backend ────────────
+  Future<Response<dynamic>> _retry(
+    RequestOptions options,
+    String accessToken,
+  ) {
+    options.headers['Authorization'] = 'Bearer $accessToken';
+    options.extra[_retriedKey] = true;
+    return dio.fetch(options);
+  }
+
+  Future<_TokenPair?> _refreshOnce() {
+    final activeRefresh = _refreshInFlight;
+    if (activeRefresh != null) return activeRefresh;
+
+    final refresh = _performRefresh();
+    _refreshInFlight = refresh;
+    return refresh.whenComplete(() {
+      if (identical(_refreshInFlight, refresh)) {
+        _refreshInFlight = null;
+      }
+    });
+  }
+
+  Future<_TokenPair?> _performRefresh() async {
+    final refreshToken = await getRefreshToken();
+    if (refreshToken == null || refreshToken.isEmpty) return null;
+
+    try {
+      final response = await refreshDioFactory().post(
+        ApiConstants.refresh,
+        data: {'refresh_token': refreshToken},
+      );
+      final responseData = response.data;
+      if (responseData is! Map || responseData['data'] is! Map) return null;
+
+      final data = responseData['data'] as Map;
+      final accessToken = data['token'];
+      final newRefreshToken = data['refresh_token'];
+      if (accessToken is! String ||
+          accessToken.isEmpty ||
+          newRefreshToken is! String ||
+          newRefreshToken.isEmpty) {
+        return null;
+      }
+
+      await saveAccessToken(accessToken);
+      await saveRefreshToken(newRefreshToken);
+      _expirationNotified = false;
+      return _TokenPair(accessToken);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _expireSession() async {
+    if (_expirationNotified) return;
+    _expirationNotified = true;
+    await clearStorage();
+    onSessionExpired();
+  }
 
   String _parseErrorMessage(DioException err) {
-    try {
-      final data = err.response?.data;
+    final data = err.response?.data;
+    if (data is Map && data['message'] != null) {
+      return data['message'].toString();
+    }
 
-      // Format response error dari Express kita:
-      // { "message": "Email atau password salah" }
-      if (data is Map && data['message'] != null) {
-        return data['message'].toString();
-      }
-    } catch (_) {}
-
-    // Fallback berdasarkan jenis error
     switch (err.type) {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.receiveTimeout:
@@ -144,6 +212,7 @@ class _AuthInterceptor extends Interceptor {
       case DioExceptionType.badResponse:
         final code = err.response?.statusCode;
         if (code == 400) return 'Permintaan tidak valid';
+        if (code == 401) return 'Sesi berakhir, silakan login kembali';
         if (code == 403) return 'Akses ditolak';
         if (code == 404) return 'Data tidak ditemukan';
         if (code == 429) return 'Terlalu banyak percobaan, coba lagi nanti';
@@ -153,4 +222,10 @@ class _AuthInterceptor extends Interceptor {
         return 'Terjadi kesalahan, coba lagi';
     }
   }
+}
+
+class _TokenPair {
+  final String accessToken;
+
+  const _TokenPair(this.accessToken);
 }

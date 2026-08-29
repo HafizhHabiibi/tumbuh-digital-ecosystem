@@ -42,7 +42,7 @@ class _RiwayatPemberianScreenState
           icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => context.pop(),
         ),
-        title: Text('Riwayat Pemberian', style: AppTextStyles.heading3),
+        title: const Text('Riwayat Pemberian', style: AppTextStyles.heading3),
       ),
       body: Column(
         children: [
@@ -289,7 +289,7 @@ class _RiwayatPemberianScreenState
                 Row(
                   children: [
                     if (item.dosis != null) ...[
-                      Icon(
+                      const Icon(
                         Icons.colorize_outlined,
                         size: 12,
                         color: AppColors.textSecondary,
@@ -304,7 +304,7 @@ class _RiwayatPemberianScreenState
                       ),
                       const SizedBox(width: 12),
                     ],
-                    Icon(
+                    const Icon(
                       Icons.calendar_today_outlined,
                       size: 12,
                       color: AppColors.textSecondary,
@@ -324,7 +324,7 @@ class _RiwayatPemberianScreenState
                 // Dicatat oleh
                 Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.person_outline,
                       size: 12,
                       color: AppColors.textSecondary,

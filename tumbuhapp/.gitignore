@@ -43,3 +43,8 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Local API environment files. Commit only the provided examples.
+/config/development-device.json
+/config/staging.json
+/config/production.json

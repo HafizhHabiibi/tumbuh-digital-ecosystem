@@ -42,3 +42,36 @@ export const emailRateLimit = rateLimit({
         );
     },
 });
+
+export const forgotPasswordIpRateLimit = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req) => ipKeyGenerator(req),
+    handler: (req, res) => {
+        return error(
+            res,
+            "Terlalu banyak permintaan reset password. Coba lagi dalam 15 menit.",
+            429,
+        );
+    },
+});
+
+export const forgotPasswordEmailRateLimit = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 3,
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req) => {
+        const email = req.body?.email?.toLowerCase()?.trim();
+        return email ? `forgot:${email}` : ipKeyGenerator(req);
+    },
+    handler: (req, res) => {
+        return error(
+            res,
+            "Terlalu banyak permintaan reset untuk email ini. Coba lagi dalam 15 menit.",
+            429,
+        );
+    },
+});

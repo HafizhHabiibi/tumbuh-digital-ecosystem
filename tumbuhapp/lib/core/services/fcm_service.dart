@@ -1,10 +1,15 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../navigation/notification_navigation.dart';
 import '../network/dio_client.dart';
 import '../constant/api_constants.dart';
+import '../utils/storage_utils.dart';
 
 /// Top-level background handler — HARUS top-level function (bukan method)
 @pragma('vm:entry-point')
@@ -79,20 +84,20 @@ class FcmService {
     if (initialMessage != null) {
       debugPrint(
           '[FCM] Opened from terminated: ${initialMessage.notification?.title}');
-      _handleNotificationNavigation(initialMessage.data);
+      unawaited(_handleNotificationNavigation(initialMessage.data));
     }
 
     // [7] Handle notification tap saat app di background
     FirebaseMessaging.onMessageOpenedApp.listen((message) {
       debugPrint(
           '[FCM] Opened from background: ${message.notification?.title}');
-      _handleNotificationNavigation(message.data);
+      unawaited(_handleNotificationNavigation(message.data));
     });
 
     // [8] Listen token refresh — kirim token baru ke backend
     _messaging.onTokenRefresh.listen((newToken) {
-      debugPrint('[FCM] Token refreshed: ${newToken.substring(0, 20)}...');
-      _sendTokenToServer(newToken);
+      debugPrint('[FCM] Token refreshed');
+      unawaited(_sendTokenToServer(newToken));
     });
   }
 
@@ -101,7 +106,7 @@ class FcmService {
   static Future<String?> getToken() async {
     try {
       final token = await _messaging.getToken();
-      debugPrint('[FCM] Token: ${token?.substring(0, 20)}...');
+      debugPrint('[FCM] Token tersedia: ${token != null}');
       return token;
     } catch (e) {
       debugPrint('[FCM] Error getting token: $e');
@@ -112,6 +117,7 @@ class FcmService {
   // ── Kirim Token ke Server ─────────────────────
 
   static Future<void> _sendTokenToServer(String token) async {
+    if (!await StorageUtils.isLoggedIn()) return;
     try {
       await DioClient.instance.put(
         ApiConstants.updateFcmToken,
@@ -169,58 +175,38 @@ class FcmService {
     if (response.payload == null || response.payload!.isEmpty) return;
 
     final data = _decodePayload(response.payload!);
-    _handleNotificationNavigation(data);
+    unawaited(_handleNotificationNavigation(data));
   }
 
   // ── Navigasi Berdasarkan Data Notifikasi ──────
 
-  static void _handleNotificationNavigation(Map<String, dynamic> data) {
-    // Tunggu sebentar agar navigator sudah siap
-    Future.delayed(const Duration(milliseconds: 500), () {
-      final navigator = navigatorKey.currentState;
-      if (navigator == null) {
-        debugPrint('[FCM] Navigator belum siap, navigasi dibatalkan');
+  static Future<void> _handleNotificationNavigation(
+    Map<String, dynamic> data,
+  ) async {
+    final path = NotificationNavigation.pathFromData(data);
+    for (var attempt = 0; attempt < 10; attempt++) {
+      final context = navigatorKey.currentContext;
+      if (context != null && context.mounted) {
+        GoRouter.of(context).push(path);
         return;
       }
-
-      final tipe = data['tipe'] as String?;
-
-      switch (tipe) {
-        case 'jadwal':
-          navigator.pushNamed('/jadwal');
-          break;
-        case 'rujukan':
-          final anakId = data['anak_id'] as String?;
-          if (anakId != null) {
-            navigator.pushNamed('/anak/$anakId/rujukan');
-          } else {
-            navigator.pushNamed('/notifikasi');
-          }
-          break;
-        default:
-          // Default: buka halaman notifikasi
-          navigator.pushNamed('/notifikasi');
-          break;
-      }
-    });
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    }
+    debugPrint('[FCM] Router belum siap, navigasi dibatalkan');
   }
 
   // ── Payload Helpers ───────────────────────────
 
-  /// Encode Map<String, dynamic> ke string "key1=val1&key2=val2"
   static String _encodePayload(Map<String, dynamic> data) {
-    return data.entries.map((e) => '${e.key}=${e.value}').join('&');
+    return jsonEncode(data);
   }
 
-  /// Decode string payload kembali ke Map
   static Map<String, dynamic> _decodePayload(String payload) {
-    final map = <String, dynamic>{};
-    for (final pair in payload.split('&')) {
-      final parts = pair.split('=');
-      if (parts.length == 2) {
-        map[parts[0]] = parts[1];
-      }
+    try {
+      final decoded = jsonDecode(payload);
+      return decoded is Map ? Map<String, dynamic>.from(decoded) : {};
+    } catch (_) {
+      return {};
     }
-    return map;
   }
 }

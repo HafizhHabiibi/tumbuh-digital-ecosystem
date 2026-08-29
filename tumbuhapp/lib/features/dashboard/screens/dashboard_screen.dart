@@ -216,7 +216,7 @@ class DashboardScreen extends ConsumerWidget {
           style: AppTextStyles.heading2,
         ),
         const SizedBox(height: 4),
-        Text(
+        const Text(
           'Pantau tumbuh kembang si kecil hari ini',
           style: AppTextStyles.bodySecondary,
         ),
@@ -291,7 +291,8 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildCardAnakBase(BuildContext context, AnakModel anak, PengukuranModel? terakhir) {
+  Widget _buildCardAnakBase(
+      BuildContext context, AnakModel anak, PengukuranModel? terakhir) {
     return GestureDetector(
       onTap: () => context.push('/anak/${anak.id}'),
       child: Container(
@@ -359,9 +360,15 @@ class DashboardScreen extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildMiniStat('Berat Badan', FormatUtils.formatBeratBadan(terakhir.beratBadan)),
-                  _buildMiniStat('Tinggi Badan', FormatUtils.formatTinggiBadan(terakhir.tinggiBadan)),
-                  _buildMiniStat('Status Gizi', terakhir.statusGizi, isBadge: true),
+                  _buildMiniStat('Berat Badan',
+                      FormatUtils.formatBeratBadan(terakhir.beratBadan)),
+                  _buildMiniStat('Tinggi Badan',
+                      FormatUtils.formatTinggiBadan(terakhir.tinggiBadan)),
+                  _buildMiniStat(
+                    'Status BB/TB',
+                    formatStatusAntropometri(terakhir.statusBbtb),
+                    isBadge: true,
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
@@ -443,10 +450,11 @@ class DashboardScreen extends ConsumerWidget {
   // ── Quick Menu ────────────────────────────────
 
   Widget _buildQuickMenuTitle() {
-    return Text('Menu Layanan', style: AppTextStyles.heading3);
+    return const Text('Menu Layanan', style: AppTextStyles.heading3);
   }
 
-  Widget _buildQuickMenu(BuildContext context, WidgetRef ref, AnakModel? selectedAnak) {
+  Widget _buildQuickMenu(
+      BuildContext context, WidgetRef ref, AnakModel? selectedAnak) {
     final anakId = selectedAnak?.id;
 
     void pushAnakRoute(String path) {
@@ -532,7 +540,8 @@ class DashboardScreen extends ConsumerWidget {
             childAspectRatio: 1.35,
           ),
           itemCount: gridMenus.length,
-          itemBuilder: (_, index) => _HoverableMenuItemCard(item: gridMenus[index]),
+          itemBuilder: (_, index) =>
+              _HoverableMenuItemCard(item: gridMenus[index]),
         ),
       ],
     );
@@ -540,22 +549,24 @@ class DashboardScreen extends ConsumerWidget {
 
   // ── AI Insight Section ────────────────────────
 
-  Widget _buildInsightSection(BuildContext context, WidgetRef ref, AnakModel? selectedAnak) {
+  Widget _buildInsightSection(
+      BuildContext context, WidgetRef ref, AnakModel? selectedAnak) {
     if (selectedAnak == null) return const SizedBox.shrink();
 
-    final terakhirAsync = ref.watch(pengukuranTerakhirProvider(selectedAnak.id));
+    final terakhirAsync =
+        ref.watch(pengukuranTerakhirProvider(selectedAnak.id));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
+        const Row(
           children: [
-            const Icon(
+            Icon(
               Icons.auto_awesome,
               color: AppColors.primary,
               size: 20,
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             Text(
               'AI Insight Perkembangan',
               style: AppTextStyles.heading3,
@@ -593,7 +604,7 @@ class DashboardScreen extends ConsumerWidget {
                   children: [
                     Container(
                       padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: AppColors.primarySurface,
                         shape: BoxShape.circle,
                       ),
@@ -701,14 +712,16 @@ class _HoverableMenuItemCardState extends State<_HoverableMenuItemCard> {
           duration: const Duration(milliseconds: 250),
           curve: Curves.easeOutCubic,
           transform: _isHovered
-              ? (Matrix4.identity()..translate(0, -6, 0))
+              ? (Matrix4.identity()..translateByDouble(0, -6, 0, 1))
               : Matrix4.identity(),
           padding: EdgeInsets.all(widget.isFullWidth ? 16 : 14),
           decoration: BoxDecoration(
             color: _isHovered ? Colors.white : AppColors.surface,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: _isHovered ? item.color.withValues(alpha: 0.5) : AppColors.border,
+              color: _isHovered
+                  ? item.color.withValues(alpha: 0.5)
+                  : AppColors.border,
               width: _isHovered ? 1.5 : 1.0,
             ),
             boxShadow: [

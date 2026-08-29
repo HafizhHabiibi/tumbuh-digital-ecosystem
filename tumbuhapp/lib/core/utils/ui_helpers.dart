@@ -38,7 +38,8 @@ class UiHelpers {
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.statusBurukText, width: 2),
+        borderSide:
+            const BorderSide(color: AppColors.statusBurukText, width: 2),
       ),
     );
   }

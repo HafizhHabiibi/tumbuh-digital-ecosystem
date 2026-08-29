@@ -65,7 +65,8 @@ class _GrafikPertumbuhanScreenState
           icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => context.pop(),
         ),
-        title: Text('Grafik Pertumbuhan KMS', style: AppTextStyles.heading3),
+        title:
+            const Text('Grafik Pertumbuhan KMS', style: AppTextStyles.heading3),
         bottom: TabBar(
           controller: _tabController,
           labelColor: AppColors.primary,
@@ -90,7 +91,8 @@ class _GrafikPertumbuhanScreenState
             loading: () => const ShimmerList(itemCount: 3, itemHeight: 200),
             error: (err, _) => ErrorStateWidget(
               message: err.toString(),
-              onRetry: () => ref.refresh(riwayatPengukuranProvider(widget.anakId)),
+              onRetry: () =>
+                  ref.refresh(riwayatPengukuranProvider(widget.anakId)),
             ),
             data: (data) {
               final riwayat = data.riwayat;
@@ -207,7 +209,7 @@ class _GrafikPertumbuhanScreenState
           const SizedBox(height: 16),
 
           // ── Tabel Riwayat ─────────────────
-          Text('Riwayat Data', style: AppTextStyles.heading3),
+          const Text('Riwayat Data', style: AppTextStyles.heading3),
           const SizedBox(height: 12),
           _buildTabel(riwayat, type),
         ],
@@ -256,7 +258,8 @@ class _GrafikPertumbuhanScreenState
       // Tentukan tabel BB/TB (wfl untuk < 2 tahun, wfh untuk >= 2 tahun)
       final latestAge = riwayat.isNotEmpty
           ? _calculateAgeInMonths(anak.tanggalLahir, sorted.last.tanggalUkur)
-          : _calculateAgeInMonths(anak.tanggalLahir, DateTime.now().toIso8601String().substring(0, 10));
+          : _calculateAgeInMonths(anak.tanggalLahir,
+              DateTime.now().toIso8601String().substring(0, 10));
       final useWfl = latestAge < 24;
 
       minX = useWfl ? 45.0 : 65.0;
@@ -308,28 +311,33 @@ class _GrafikPertumbuhanScreenState
     }
 
     if (allReferenceSpots.isNotEmpty) {
-      minY = allReferenceSpots.map((s) => s.y).reduce(math.min) - (type == 'tbu' ? 3.0 : 1.0);
+      minY = allReferenceSpots.map((s) => s.y).reduce(math.min) -
+          (type == 'tbu' ? 3.0 : 1.0);
       if (minY < 0) minY = 0.0;
       if (type == 'tbu' && minY < 30.0) minY = 30.0;
 
-      maxY = allReferenceSpots.map((s) => s.y).reduce(math.max) + (type == 'tbu' ? 5.0 : 2.0);
+      maxY = allReferenceSpots.map((s) => s.y).reduce(math.max) +
+          (type == 'tbu' ? 5.0 : 2.0);
     }
 
     if (dataSpots.isNotEmpty) {
-      final childMinY = dataSpots.map((s) => s.y).reduce(math.min) - (type == 'tbu' ? 3.0 : 1.0);
-      final childMaxY = dataSpots.map((s) => s.y).reduce(math.max) + (type == 'tbu' ? 5.0 : 2.0);
+      final childMinY = dataSpots.map((s) => s.y).reduce(math.min) -
+          (type == 'tbu' ? 3.0 : 1.0);
+      final childMaxY = dataSpots.map((s) => s.y).reduce(math.max) +
+          (type == 'tbu' ? 5.0 : 2.0);
       if (childMinY < minY && childMinY >= 0) minY = childMinY;
       if (childMaxY > maxY) maxY = childMaxY;
     }
 
     // Set Axis Intervals
     final double leftInterval = type == 'tbu' ? 10.0 : 2.0;
-    final double bottomInterval = type == 'bbtb' ? 5.0 : (maxAgeInMonths > 36 ? 6.0 : 3.0);
+    final double bottomInterval =
+        type == 'bbtb' ? 5.0 : (maxAgeInMonths > 36 ? 6.0 : 3.0);
 
     // Build line bars and trace indexes for betweenBarsData shading
     final barDataList = <LineChartBarData>[];
     final betweenBarsList = <BetweenBarsData>[];
-    
+
     int? bbuLowIndex;
     int? bbuHighIndex;
     int? tbuLowIndex;
@@ -374,7 +382,8 @@ class _GrafikPertumbuhanScreenState
         BetweenBarsData(
           fromIndex: bbuLowIndex!,
           toIndex: bbuHighIndex!,
-          color: const Color(0xFF15803D).withValues(alpha: 0.06), // Soft Green (Normal Zone)
+          color: const Color(0xFF15803D)
+              .withValues(alpha: 0.06), // Soft Green (Normal Zone)
         ),
       );
     } else if (type == 'tbu' && tbuLowIndex != null && tbuHighIndex != null) {
@@ -382,15 +391,19 @@ class _GrafikPertumbuhanScreenState
         BetweenBarsData(
           fromIndex: tbuLowIndex!,
           toIndex: tbuHighIndex!,
-          color: const Color(0xFFDC2626).withValues(alpha: 0.05), // Soft Red (Stunting Risk Zone)
+          color: const Color(0xFFDC2626)
+              .withValues(alpha: 0.05), // Soft Red (Stunting Risk Zone)
         ),
       );
-    } else if (type == 'bbtb' && bbtbLowIndex != null && bbtbHighIndex != null) {
+    } else if (type == 'bbtb' &&
+        bbtbLowIndex != null &&
+        bbtbHighIndex != null) {
       betweenBarsList.add(
         BetweenBarsData(
           fromIndex: bbtbLowIndex!,
           toIndex: bbtbHighIndex!,
-          color: const Color(0xFF0EA5E9).withValues(alpha: 0.06), // Soft Sky Blue (Ideal Zone)
+          color: const Color(0xFF0EA5E9)
+              .withValues(alpha: 0.06), // Soft Sky Blue (Ideal Zone)
         ),
       );
     }
@@ -427,11 +440,11 @@ class _GrafikPertumbuhanScreenState
           drawHorizontalLine: true,
           horizontalInterval: leftInterval,
           verticalInterval: bottomInterval,
-          getDrawingHorizontalLine: (value) => FlLine(
+          getDrawingHorizontalLine: (value) => const FlLine(
             color: AppColors.divider,
             strokeWidth: 0.5,
           ),
-          getDrawingVerticalLine: (value) => FlLine(
+          getDrawingVerticalLine: (value) => const FlLine(
             color: AppColors.divider,
             strokeWidth: 0.5,
           ),
@@ -482,7 +495,7 @@ class _GrafikPertumbuhanScreenState
         ),
         borderData: FlBorderData(
           show: true,
-          border: Border(
+          border: const Border(
             bottom: BorderSide(color: AppColors.border),
             left: BorderSide(color: AppColors.border),
           ),
@@ -699,9 +712,9 @@ class _GrafikPertumbuhanScreenState
           // Header tabel
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: AppColors.primarySurface,
-              borderRadius: const BorderRadius.only(
+              borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
               ),
@@ -799,8 +812,8 @@ class _GrafikPertumbuhanScreenState
                       Expanded(
                         child: Center(
                           child: StatusBadge(
-                            label: p.statusGizi,
-                            type: StatusType.statusGizi,
+                            label: p.statusForIndicator(type),
+                            type: StatusType.statusAntropometri,
                           ),
                         ),
                       ),
@@ -876,16 +889,16 @@ class _GrafikPertumbuhanScreenState
     if (type == 'bbu') {
       if (z == -3.0) return const Color(0xFFDC2626); // Red (BGM)
       if (z == -2.0) return const Color(0xFFD97706); // Orange
-      if (z == 0.0) return const Color(0xFF15803D);  // Green (Median)
-      if (z == 2.0) return const Color(0xFFD97706);  // Orange
+      if (z == 0.0) return const Color(0xFF15803D); // Green (Median)
+      if (z == 2.0) return const Color(0xFFD97706); // Orange
     } else if (type == 'tbu') {
       if (z == -3.0) return const Color(0xFFDC2626); // Red (Sangat Pendek)
       if (z == -2.0) return const Color(0xFFD97706); // Orange (Pendek)
-      if (z == 0.0) return const Color(0xFF15803D);  // Green (Normal)
+      if (z == 0.0) return const Color(0xFF15803D); // Green (Normal)
     } else if (type == 'bbtb') {
       if (z == -2.0) return const Color(0xFFD97706); // Orange (Kurus)
-      if (z == 0.0) return const Color(0xFF0EA5E9);  // Sky Blue (Ideal)
-      if (z == 2.0) return const Color(0xFF6366F1);  // Indigo (Gemuk)
+      if (z == 0.0) return const Color(0xFF0EA5E9); // Sky Blue (Ideal)
+      if (z == 2.0) return const Color(0xFF6366F1); // Indigo (Gemuk)
     }
     return const Color(0xFF94A3B8);
   }

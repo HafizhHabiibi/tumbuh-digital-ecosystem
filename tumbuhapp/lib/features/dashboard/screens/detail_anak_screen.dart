@@ -7,7 +7,6 @@ import '../../../shared/widgets/empty_state_widget.dart';
 import '../../../shared/widgets/status_badge_widget.dart';
 import '../../../core/constant/app_constants.dart';
 import '../../../core/utils/format_utils.dart';
-import '../../../router/app_router.dart';
 
 class DetailAnakScreen extends ConsumerWidget {
   final String anakId;
@@ -44,150 +43,149 @@ class DetailAnakScreen extends ConsumerWidget {
         ),
         data: (anak) => CustomScrollView(
           slivers: [
-              // ── App Bar ─────────────────────
-              SliverAppBar(
-                expandedHeight: 200,
-                pinned: true,
-                backgroundColor: AppColors.primary,
-                leading: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  onPressed: () => context.pop(),
-                ),
-                flexibleSpace: FlexibleSpaceBar(
-                  background: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          AppColors.primary,
-                          AppColors.primary.withValues(alpha: 0.8),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
+            // ── App Bar ─────────────────────
+            SliverAppBar(
+              expandedHeight: 200,
+              pinned: true,
+              backgroundColor: AppColors.primary,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () => context.pop(),
+              ),
+              flexibleSpace: FlexibleSpaceBar(
+                background: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.primary,
+                        AppColors.primary.withValues(alpha: 0.8),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                    child: SafeArea(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 56, 16, 16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            // Avatar inisial
-                            Row(
-                              children: [
-                                Container(
-                                  width: 56,
-                                  height: 56,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.2),
-                                    borderRadius: BorderRadius.circular(28),
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      anak.nama.isNotEmpty
-                                          ? anak.nama[0].toUpperCase()
-                                          : '?',
-                                      style: AppTextStyles.heading1.copyWith(
-                                        color: Colors.white,
-                                      ),
+                  ),
+                  child: SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 56, 16, 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          // Avatar inisial
+                          Row(
+                            children: [
+                              Container(
+                                width: 56,
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(28),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    anak.nama.isNotEmpty
+                                        ? anak.nama[0].toUpperCase()
+                                        : '?',
+                                    style: AppTextStyles.heading1.copyWith(
+                                      color: Colors.white,
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        anak.nama,
-                                        style: AppTextStyles.heading2.copyWith(
-                                          color: Colors.white,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      anak.nama,
+                                      style: AppTextStyles.heading2.copyWith(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        Text(
+                                          FormatUtils.hitungUsia(
+                                              anak.tanggalLahir),
+                                          style: AppTextStyles.body.copyWith(
+                                            color: Colors.white
+                                                .withValues(alpha: 0.8),
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Row(
-                                        children: [
-                                          Text(
-                                            FormatUtils.hitungUsia(
-                                                anak.tanggalLahir),
-                                            style: AppTextStyles.body.copyWith(
-                                              color:
-                                                  Colors.white.withValues(alpha: 0.8),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          StatusBadge(
-                                            label: anak.jenisKelamin,
-                                            type: StatusType.jenisKelamin,
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
+                                        const SizedBox(width: 8),
+                                        StatusBadge(
+                                          label: anak.jenisKelamin,
+                                          type: StatusType.jenisKelamin,
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                          ],
-                        ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
                   ),
                 ),
               ),
+            ),
 
-              // ── Content ─────────────────────
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // ── Info Dasar ──────────
-                      _buildSectionTitle('Informasi Dasar'),
-                      const SizedBox(height: 12),
-                      _buildInfoCard([
-                        _InfoItem(
-                          icon: Icons.cake_outlined,
-                          label: 'Tanggal Lahir',
-                          value: FormatUtils.formatTanggal(anak.tanggalLahir),
-                        ),
-                        _InfoItem(
-                          icon: Icons.badge_outlined,
-                          label: 'No. KK',
-                          value: anak.noKk,
-                        ),
-                        _InfoItem(
-                          icon: Icons.person_outline,
-                          label: 'Orang Tua',
-                          value: anak.namaOrangTua ?? '-',
-                        ),
-                        _InfoItem(
-                          icon: Icons.phone_outlined,
-                          label: 'No. HP',
-                          value: anak.noHpOrangTua ?? '-',
-                        ),
-                        _InfoItem(
-                          icon: Icons.location_on_outlined,
-                          label: 'Alamat',
-                          value: anak.alamatOrangTua ?? '-',
-                        ),
-                      ]),
-                      const SizedBox(height: 24),
+            // ── Content ─────────────────────
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ── Info Dasar ──────────
+                    _buildSectionTitle('Informasi Dasar'),
+                    const SizedBox(height: 12),
+                    _buildInfoCard([
+                      _InfoItem(
+                        icon: Icons.cake_outlined,
+                        label: 'Tanggal Lahir',
+                        value: FormatUtils.formatTanggal(anak.tanggalLahir),
+                      ),
+                      _InfoItem(
+                        icon: Icons.badge_outlined,
+                        label: 'NIK',
+                        value: anak.nik,
+                      ),
+                      _InfoItem(
+                        icon: Icons.person_outline,
+                        label: 'Orang Tua',
+                        value: anak.namaOrangTua ?? '-',
+                      ),
+                      _InfoItem(
+                        icon: Icons.phone_outlined,
+                        label: 'No. HP',
+                        value: anak.noHpOrangTua ?? '-',
+                      ),
+                      _InfoItem(
+                        icon: Icons.location_on_outlined,
+                        label: 'Alamat',
+                        value: anak.alamatOrangTua ?? '-',
+                      ),
+                    ]),
+                    const SizedBox(height: 24),
 
-                      // ── Menu Fitur ──────────
-                      _buildSectionTitle('Fitur'),
-                      const SizedBox(height: 12),
-                      _buildFiturMenu(context),
-                      const SizedBox(height: 16),
-                    ],
-                  ),
+                    // ── Menu Fitur ──────────
+                    _buildSectionTitle('Fitur'),
+                    const SizedBox(height: 12),
+                    _buildFiturMenu(context),
+                    const SizedBox(height: 16),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-      );
+      ),
+    );
   }
 
   // ── Section Title ─────────────────────────────

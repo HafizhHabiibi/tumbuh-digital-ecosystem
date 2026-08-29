@@ -8,10 +8,14 @@ class PengukuranModel {
   final double zscoreBbu;
   final double zscoreTbu;
   final double zscoreBbtb;
-  final String statusGizi;
+  final double zscoreImtu;
+  final String statusBbu;
+  final String statusTbu;
+  final String statusBbtb;
+  final String statusImtu;
   final String createdAt;
-  final double skorAkhir;
-  final String kategoriRisiko;
+  final double skorSaw;
+  final String kategoriPrioritas;
 
   PengukuranModel({
     required this.id,
@@ -23,10 +27,14 @@ class PengukuranModel {
     required this.zscoreBbu,
     required this.zscoreTbu,
     required this.zscoreBbtb,
-    required this.statusGizi,
+    required this.zscoreImtu,
+    required this.statusBbu,
+    required this.statusTbu,
+    required this.statusBbtb,
+    required this.statusImtu,
     required this.createdAt,
-    required this.skorAkhir,
-    required this.kategoriRisiko,
+    required this.skorSaw,
+    required this.kategoriPrioritas,
   });
 
   factory PengukuranModel.fromJson(Map<String, dynamic> json) {
@@ -44,10 +52,29 @@ class PengukuranModel {
       zscoreBbu: double.tryParse(json['zscore_bbu'].toString()) ?? 0,
       zscoreTbu: double.tryParse(json['zscore_tbu'].toString()) ?? 0,
       zscoreBbtb: double.tryParse(json['zscore_bbtb'].toString()) ?? 0,
-      statusGizi: json['status_gizi'] ?? '',
+      zscoreImtu: double.tryParse(json['zscore_imtu'].toString()) ?? 0,
+      statusBbu: json['status_bbu'] ?? '',
+      statusTbu: json['status_tbu'] ?? '',
+      statusBbtb: json['status_bbtb'] ?? '',
+      statusImtu: json['status_imtu'] ?? '',
       createdAt: json['created_at'] ?? '',
-      skorAkhir: double.tryParse(json['skor_akhir'].toString()) ?? 0,
-      kategoriRisiko: json['kategori_risiko'] ?? '',
+      skorSaw: double.tryParse(json['skor_saw'].toString()) ?? 0,
+      kategoriPrioritas: json['kategori_prioritas'] ?? '',
     );
+  }
+
+  String statusForIndicator(String indicator) {
+    switch (indicator) {
+      case 'bbu':
+        return statusBbu;
+      case 'tbu':
+        return statusTbu;
+      case 'bbtb':
+        return statusBbtb;
+      case 'imtu':
+        return statusImtu;
+      default:
+        return '';
+    }
   }
 }

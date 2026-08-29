@@ -93,6 +93,7 @@ export const createRujukan = async (req, res) => {
                 "Silahkan datang pada jam kerja untuk pemeriksaan lebih lanjut.",
                 "rujukan",
                 id,
+                { anak_id },
             )
             .catch((err) => console.error("FCM", err.message));
 
@@ -204,6 +205,7 @@ export const updateStatusRujukan = async (req, res) => {
                 pesanStatus[status] || `Status rujukan diupdate: ${status}`,
                 "rujukan",
                 parseInt(id),
+                { anak_id: rujukan.anak_id },
             )
             .catch((err) => console.error("FCM", err.message));
 

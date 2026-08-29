@@ -105,6 +105,7 @@ export const createPengukuran = async (req, res) => {
                 `Cek detail lengkap di aplikasi.`,
                 "pengukuran",
                 pengukuran_id,
+                { anak_id },
             )
             .catch((err) => console.error("[FCM PENGUKURAN]", err.message));
 

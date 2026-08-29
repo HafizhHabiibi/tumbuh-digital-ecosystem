@@ -5,8 +5,8 @@ class RujukanModel {
   final String? catatanPuskesmas;
   final String createdAt;
   final String? validatedAt;
-  final double skorAkhir;
-  final String kategoriRisiko;
+  final double skorSaw;
+  final String kategoriPrioritas;
   final String? ditanganiOleh;
 
   RujukanModel({
@@ -16,8 +16,8 @@ class RujukanModel {
     this.catatanPuskesmas,
     required this.createdAt,
     this.validatedAt,
-    required this.skorAkhir,
-    required this.kategoriRisiko,
+    required this.skorSaw,
+    required this.kategoriPrioritas,
     this.ditanganiOleh,
   });
 
@@ -29,8 +29,8 @@ class RujukanModel {
       catatanPuskesmas: json['catatan_puskesmas'],
       createdAt: json['created_at'] ?? '',
       validatedAt: json['validated_at'],
-      skorAkhir: double.tryParse(json['skor_akhir'].toString()) ?? 0,
-      kategoriRisiko: json['kategori_risiko'] ?? '',
+      skorSaw: double.tryParse(json['skor_saw'].toString()) ?? 0,
+      kategoriPrioritas: json['kategori_prioritas'] ?? '',
       ditanganiOleh: json['ditangani_oleh'],
     );
   }

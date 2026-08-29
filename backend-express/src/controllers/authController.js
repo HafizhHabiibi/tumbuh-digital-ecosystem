@@ -163,22 +163,29 @@ export const changePassword = async (req, res) => {
     }
 };
 
-export const forgotPassword = async (req, res) => {
+export const buatForgotPassword = ({
+    findByEmail = UserModel.findByEmail,
+    sendResetEmail = mailerService.kirimEmailResetPassword,
+    generateResetTokenFn = generateResetToken,
+    verifyTurnstileFn = verifyTurnstile,
+    getNodeEnv = () => process.env.NODE_ENV,
+} = {}) => async (req, res) => {
     try {
-        const { email, turnstileToken } = req.body;
+        const { email, turnstileToken, platform } = req.body;
 
         if (!email) {
             return error(res, "Email wajib diisi", 400);
         }
 
-        const isDev = process.env.NODE_ENV === "development";
+        const isDev = getNodeEnv() === "development";
+        const isMobile = platform === "mobile";
 
-        if (!isDev) {
+        if (!isDev && !isMobile) {
             if (!turnstileToken) {
                 return error(res, "turnstileToken wajib disertakan", 400);
             }
             try {
-                const ts = await verifyTurnstile(turnstileToken, req.ip);
+                const ts = await verifyTurnstileFn(turnstileToken, req.ip);
                 if (!ts.success || (ts.action && ts.action !== "forgot-password")) {
                     return error(res, "Turnstile verification failed", 400);
                 }
@@ -187,7 +194,7 @@ export const forgotPassword = async (req, res) => {
             }
         }
 
-        const user = await UserModel.findByEmail(email);
+        const user = await findByEmail(email);
 
         if (!user) {
             return success(
@@ -198,8 +205,8 @@ export const forgotPassword = async (req, res) => {
         }
 
         // JWT-based reset token (stateless)
-        const token = generateResetToken(user.id);
-        await mailerService.kirimEmailResetPassword(user.email, token);
+        const token = generateResetTokenFn(user.id);
+        await sendResetEmail(user.email, token);
 
         return success(
             res,
@@ -211,6 +218,8 @@ export const forgotPassword = async (req, res) => {
         return error(res, "Terjadi kesalahan server", 500);
     }
 };
+
+export const forgotPassword = buatForgotPassword();
 
 export const resetPassword = async (req, res) => {
     try {

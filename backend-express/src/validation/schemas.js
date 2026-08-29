@@ -26,6 +26,7 @@ export const forgotPasswordSchema = {
     fields: {
         email,
         turnstileToken: rules.string({ required: false, max: 2048 }),
+        platform: rules.enum(["mobile", "web"], { required: false }),
     },
 };
 

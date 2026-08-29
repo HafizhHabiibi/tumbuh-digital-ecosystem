@@ -49,7 +49,7 @@ class DetailPengukuranScreen extends ConsumerWidget {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Detail Pengukuran', style: AppTextStyles.heading3),
+            const Text('Detail Pengukuran', style: AppTextStyles.heading3),
             Text(
               FormatUtils.formatTanggal(pengukuran.tanggalUkur),
               style: AppTextStyles.caption,
@@ -80,6 +80,12 @@ class DetailPengukuranScreen extends ConsumerWidget {
               zscoreTbu: pengukuran.zscoreTbu,
               zscoreBbtb: pengukuran.zscoreBbtb,
             ),
+            const SizedBox(height: 16),
+
+            // ── Status Antropometri ─────────────
+            _buildSectionTitle('Status Antropometri'),
+            const SizedBox(height: 12),
+            _buildStatusAntropometriCard(pengukuran),
             const SizedBox(height: 16),
 
             // ── SAW Score ──────────────────────
@@ -136,14 +142,14 @@ class DetailPengukuranScreen extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Status Gizi',
+                'Status BB/TB',
                 style: AppTextStyles.body.copyWith(
                   color: Colors.white70,
                 ),
               ),
               StatusBadge(
-                label: pengukuran.statusGizi,
-                type: StatusType.statusGizi,
+                label: pengukuran.statusBbtb,
+                type: StatusType.statusAntropometri,
               ),
             ],
           ),
@@ -174,14 +180,53 @@ class DetailPengukuranScreen extends ConsumerWidget {
               ),
               Expanded(
                 child: _buildRingkasanMetric(
-                  label: 'Kategori',
-                  value: pengukuran.kategoriRisiko,
+                  label: 'Prioritas',
+                  value: pengukuran.kategoriPrioritas,
                   isCapitalized: true,
                 ),
               ),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildStatusAntropometriCard(PengukuranModel pengukuran) {
+    final statuses = [
+      ('BB/U', pengukuran.statusBbu),
+      ('TB/U', pengukuran.statusTbu),
+      ('BB/TB', pengukuran.statusBbtb),
+      ('IMT/U', pengukuran.statusImtu),
+    ];
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Wrap(
+        spacing: 12,
+        runSpacing: 12,
+        children: statuses.map((status) {
+          return SizedBox(
+            width: 132,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(status.$1, style: AppTextStyles.caption),
+                const SizedBox(height: 6),
+                StatusBadge(
+                  label: status.$2,
+                  type: StatusType.statusAntropometri,
+                ),
+              ],
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -314,10 +359,10 @@ class DetailPengukuranScreen extends ConsumerWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Skor Akhir', style: AppTextStyles.caption),
+                  const Text('Skor Akhir', style: AppTextStyles.caption),
                   const SizedBox(height: 4),
                   Text(
-                    pengukuran.skorAkhir.toStringAsFixed(4),
+                    pengukuran.skorSaw.toStringAsFixed(4),
                     style: AppTextStyles.heading2.copyWith(
                       color: AppColors.primary,
                     ),
@@ -325,8 +370,8 @@ class DetailPengukuranScreen extends ConsumerWidget {
                 ],
               ),
               StatusBadge(
-                label: pengukuran.kategoriRisiko,
-                type: StatusType.kategoriRisiko,
+                label: pengukuran.kategoriPrioritas,
+                type: StatusType.kategoriPrioritas,
               ),
             ],
           ),
@@ -336,7 +381,7 @@ class DetailPengukuranScreen extends ConsumerWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
+              const Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('Rendah', style: AppTextStyles.caption),
@@ -348,10 +393,10 @@ class DetailPengukuranScreen extends ConsumerWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: LinearProgressIndicator(
-                  value: pengukuran.skorAkhir.clamp(0.0, 1.0),
+                  value: pengukuran.skorSaw.clamp(0.0, 1.0),
                   backgroundColor: AppColors.border,
                   valueColor: AlwaysStoppedAnimation<Color>(
-                    _getSawColor(pengukuran.kategoriRisiko),
+                    _getSawColor(pengukuran.kategoriPrioritas),
                   ),
                   minHeight: 10,
                 ),
@@ -360,7 +405,7 @@ class DetailPengukuranScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            _getSawDescription(pengukuran.kategoriRisiko),
+            _getSawDescription(pengukuran.kategoriPrioritas),
             style: AppTextStyles.bodySecondary,
             textAlign: TextAlign.center,
           ),

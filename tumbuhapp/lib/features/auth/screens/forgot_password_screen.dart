@@ -82,7 +82,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           ),
         ),
         const SizedBox(height: 24),
-        Text('Email Terkirim!', style: AppTextStyles.heading2),
+        const Text('Email Terkirim!', style: AppTextStyles.heading2),
         const SizedBox(height: 12),
         Text(
           'Link reset password telah dikirim ke\n${_emailController.text.trim()}\n\nSilakan cek inbox atau folder spam Anda.',
@@ -135,9 +135,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           const SizedBox(height: 16),
 
           // ── Header ─────────────────────────
-          Text('Lupa Password', style: AppTextStyles.heading2),
+          const Text('Lupa Password', style: AppTextStyles.heading2),
           const SizedBox(height: 8),
-          Text(
+          const Text(
             'Masukkan email Anda dan kami akan mengirimkan link untuk reset password.',
             style: AppTextStyles.bodySecondary,
           ),
@@ -175,7 +175,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               ),
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.error_outline,
                     color: AppColors.statusBurukText,
                     size: 18,
@@ -202,7 +202,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
-                disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.6),
+                disabledBackgroundColor:
+                    AppColors.primary.withValues(alpha: 0.6),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),

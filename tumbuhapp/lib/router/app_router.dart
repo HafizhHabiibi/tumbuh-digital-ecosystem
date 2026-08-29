@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../features/auth/providers/auth_provider.dart';
@@ -20,6 +21,7 @@ import '../core/services/fcm_service.dart';
 class AppRoutes {
   AppRoutes._();
 
+  static const String splash = '/splash';
   static const String login = '/login';
   static const String forgotPassword = '/forgot-password';
   static const String dashboard = '/dashboard';
@@ -41,21 +43,32 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
   return GoRouter(
     navigatorKey: FcmService.navigatorKey,
-    initialLocation: AppRoutes.login,
+    initialLocation: AppRoutes.splash,
     redirect: (context, state) {
+      final isSplashPage = state.matchedLocation == AppRoutes.splash;
       final isLoggedIn = authState.isLoggedIn;
-      final isLoginPage = state.matchedLocation == AppRoutes.login ||
+      final isAuthPage = state.matchedLocation == AppRoutes.login ||
           state.matchedLocation == AppRoutes.forgotPassword;
 
-      // Belum login & bukan di halaman auth → ke login
-      if (!isLoggedIn && !isLoginPage) return AppRoutes.login;
+      if (authState.status == AuthStatus.initializing) {
+        return isSplashPage ? null : AppRoutes.splash;
+      }
 
-      // Sudah login & masih di halaman login → ke dashboard
-      if (isLoggedIn && isLoginPage) return AppRoutes.dashboard;
+      if (!isLoggedIn && !isAuthPage) return AppRoutes.login;
+
+      if (isLoggedIn && (isAuthPage || isSplashPage)) {
+        return AppRoutes.dashboard;
+      }
 
       return null;
     },
     routes: [
+      GoRoute(
+        path: AppRoutes.splash,
+        builder: (context, state) => const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        ),
+      ),
       // ── Auth ──────────────────────────────
       GoRoute(
         path: AppRoutes.login,

@@ -41,7 +41,7 @@ class _StatusRujukanScreenState extends ConsumerState<StatusRujukanScreen> {
           icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => context.pop(),
         ),
-        title: Text('Status Rujukan', style: AppTextStyles.heading3),
+        title: const Text('Status Rujukan', style: AppTextStyles.heading3),
       ),
       body: _buildContent(state),
     );
@@ -185,22 +185,22 @@ class _StatusRujukanScreenState extends ConsumerState<StatusRujukanScreen> {
 
   Widget _buildStepper(RujukanModel rujukan) {
     final steps = [
-      _StepItem(
+      const _StepItem(
         label: 'Diajukan',
         status: 'diajukan',
         icon: Icons.send_outlined,
       ),
-      _StepItem(
+      const _StepItem(
         label: 'Diterima',
         status: 'diterima',
         icon: Icons.check_circle_outline,
       ),
-      _StepItem(
+      const _StepItem(
         label: 'Penanganan',
         status: 'dalam_penanganan',
         icon: Icons.medical_services_outlined,
       ),
-      _StepItem(
+      const _StepItem(
         label: 'Selesai',
         status: 'selesai',
         icon: Icons.task_alt_outlined,
@@ -301,7 +301,7 @@ class _StatusRujukanScreenState extends ConsumerState<StatusRujukanScreen> {
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: AppColors.rujukanDitolakText),
             ),
-            child: Icon(
+            child: const Icon(
               Icons.cancel_outlined,
               size: 16,
               color: AppColors.rujukanDitolakText,
@@ -388,7 +388,7 @@ class _StatusRujukanScreenState extends ConsumerState<StatusRujukanScreen> {
             icon: Icons.analytics_outlined,
             label: 'Skor SAW',
             value:
-                '${rujukan.skorAkhir.toStringAsFixed(4)} (${rujukan.kategoriRisiko})',
+                '${rujukan.skorSaw.toStringAsFixed(4)} (${rujukan.kategoriPrioritas})',
           ),
         ],
       ),

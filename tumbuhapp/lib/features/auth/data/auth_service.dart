@@ -1,10 +1,25 @@
+import 'package:dio/dio.dart';
+
 import '../../../core/network/dio_client.dart';
 import '../../../core/constant/api_constants.dart';
 import '../../../core/utils/storage_utils.dart';
 import '../../../shared/models/user_model.dart';
 
 class AuthService {
-  final _dio = DioClient.instance;
+  final Dio _dio;
+  final Future<void> Function(String token) _saveAccessToken;
+  final Future<void> Function(String token) _saveRefreshToken;
+  final Future<void> Function() _clearStorage;
+
+  AuthService({
+    Dio? dio,
+    Future<void> Function(String token)? saveAccessToken,
+    Future<void> Function(String token)? saveRefreshToken,
+    Future<void> Function()? clearStorage,
+  })  : _dio = dio ?? DioClient.instance,
+        _saveAccessToken = saveAccessToken ?? StorageUtils.saveAccessToken,
+        _saveRefreshToken = saveRefreshToken ?? StorageUtils.saveRefreshToken,
+        _clearStorage = clearStorage ?? StorageUtils.clearAll;
 
   // ── Login ─────────────────────────────────────
 
@@ -18,6 +33,7 @@ class AuthService {
       data: {
         'email': email,
         'password': password,
+        'platform': 'mobile',
         if (fcmToken != null) 'fcm_token': fcmToken,
       },
     );
@@ -25,8 +41,8 @@ class AuthService {
     final data = response.data['data'];
 
     // Simpan token ke secure storage
-    await StorageUtils.saveAccessToken(data['token']);
-    await StorageUtils.saveRefreshToken(data['refresh_token']);
+    await _saveAccessToken(data['token']);
+    await _saveRefreshToken(data['refresh_token']);
 
     // Return profil user
     return UserModel.fromJson(data['user']['profil']);
@@ -37,7 +53,10 @@ class AuthService {
   Future<String> forgotPassword({required String email}) async {
     final response = await _dio.post(
       ApiConstants.forgotPassword,
-      data: {'email': email},
+      data: {
+        'email': email,
+        'platform': 'mobile',
+      },
     );
     return response.data['message'];
   }
@@ -58,9 +77,24 @@ class AuthService {
     return response.data['message'];
   }
 
+  // ── Restore Session ───────────────────────────
+
+  Future<UserModel> getCurrentUser() async {
+    final response = await _dio.get(ApiConstants.profil);
+    final data = response.data['data'];
+    if (data is! Map) {
+      throw const FormatException('Format profil pengguna tidak valid');
+    }
+    return UserModel.fromJson(Map<String, dynamic>.from(data));
+  }
+
   // ── Logout ────────────────────────────────────
 
   Future<void> logout() async {
-    await StorageUtils.clearAll();
+    try {
+      await _dio.post(ApiConstants.logout);
+    } finally {
+      await _clearStorage();
+    }
   }
 }

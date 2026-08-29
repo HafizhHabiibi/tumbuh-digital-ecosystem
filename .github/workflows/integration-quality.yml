@@ -1,0 +1,85 @@
+name: Integration Quality
+
+on:
+  pull_request:
+    paths:
+      - "backend-express/**"
+      - "tumbuhapp/**"
+      - ".github/workflows/integration-quality.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "backend-express/**"
+      - "tumbuhapp/**"
+      - ".github/workflows/integration-quality.yml"
+
+concurrency:
+  group: integration-quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend-express
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend-express/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run backend tests
+        run: npm test
+
+  mobile:
+    name: Flutter quality gate
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tumbuhapp
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.44.2
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Analyze source
+        run: flutter analyze
+
+      - name: Run Flutter tests
+        run: flutter test
+
+      - name: Build debug APK
+        run: >-
+          flutter build apk --debug
+          --dart-define-from-file=config/development-emulator.json

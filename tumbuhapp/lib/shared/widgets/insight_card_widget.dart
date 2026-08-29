@@ -61,9 +61,9 @@ class _InsightCardState extends State<InsightCard> {
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: AppColors.primarySurface,
-        borderRadius: const BorderRadius.only(
+        borderRadius: BorderRadius.only(
           topLeft: Radius.circular(16),
           topRight: Radius.circular(16),
         ),
@@ -120,14 +120,14 @@ class _InsightCardState extends State<InsightCard> {
   // ── Loading State ─────────────────────────────
 
   Widget _buildLoadingState() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
+    return const Padding(
+      padding: EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const SizedBox(
+              SizedBox(
                 width: 16,
                 height: 16,
                 child: CircularProgressIndicator(
@@ -135,18 +135,18 @@ class _InsightCardState extends State<InsightCard> {
                   strokeWidth: 2,
                 ),
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: 10),
               Text(
                 'Sedang menganalisis data anak...',
                 style: AppTextStyles.bodySecondary,
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           ShimmerCard(height: 16),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           ShimmerCard(height: 16),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           ShimmerCard(height: 16, width: 200),
         ],
       ),
@@ -156,8 +156,8 @@ class _InsightCardState extends State<InsightCard> {
   // ── Empty State ───────────────────────────────
 
   Widget _buildEmptyState() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
+    return const Padding(
+      padding: EdgeInsets.all(16),
       child: Row(
         children: [
           Icon(
@@ -165,7 +165,7 @@ class _InsightCardState extends State<InsightCard> {
             color: AppColors.textSecondary,
             size: 18,
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           Expanded(
             child: Text(
               'Insight belum tersedia untuk pengukuran ini.',
@@ -188,7 +188,8 @@ class _InsightCardState extends State<InsightCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Preview — tampil hanya jika tidak expanded
-          if (sections.isNotEmpty && !_isExpanded) _buildPreview(sections.first),
+          if (sections.isNotEmpty && !_isExpanded)
+            _buildPreview(sections.first),
 
           // Detail — tampil saat expanded
           if (_isExpanded) ...[
@@ -291,7 +292,9 @@ class _InsightCardState extends State<InsightCard> {
       // Tidak ada format section → tampilkan sebagai satu blok
       sections.add({
         'title': 'Insight',
-        'content': cleanTeks.replaceAllMapped(RegExp(r'\*\*(.+?)\*\*'), (m) => m[1] ?? '').trim(),
+        'content': cleanTeks
+            .replaceAllMapped(RegExp(r'\*\*(.+?)\*\*'), (m) => m[1] ?? '')
+            .trim(),
       });
       return sections;
     }
@@ -300,9 +303,9 @@ class _InsightCardState extends State<InsightCard> {
       sections.add({
         'title': match.group(1)?.trim() ?? '',
         'content': (match.group(2) ?? '')
-                .replaceAllMapped(RegExp(r'\*\*(.+?)\*\*'), (m) => m[1] ?? '')
-                .replaceAll(RegExp(r'^\d+\.\s', multiLine: true), '• ')
-                .trim(),
+            .replaceAllMapped(RegExp(r'\*\*(.+?)\*\*'), (m) => m[1] ?? '')
+            .replaceAll(RegExp(r'^\d+\.\s', multiLine: true), '• ')
+            .trim(),
       });
     }
 

@@ -9,6 +9,7 @@ import '../features/dashboard/screens/detail_anak_screen.dart';
 import '../features/pengukuran/screens/riwayat_pengukuran_screen.dart';
 import '../features/pengukuran/screens/detail_pengukuran_screen.dart';
 import '../features/pengukuran/screens/grafik_pertumbuhan_screen.dart';
+import '../features/conversational_ai/screens/conversational_ai_screen.dart';
 import '../features/pemberian/screens/riwayat_pemberian_screen.dart';
 import '../features/rujukan/screens/status_rujukan_screen.dart';
 import '../features/notifikasi/screens/notifikasi_screen.dart';
@@ -28,12 +29,25 @@ class AppRoutes {
   static const String detailAnak = '/anak/:anakId';
   static const String riwayatPengukuran = '/anak/:anakId/pengukuran';
   static const String detailPengukuran = '/pengukuran/:pengukuranId';
+  static const String chatPengukuran = '/pengukuran/:pengukuranId/chat';
   static const String grafikPertumbuhan = '/anak/:anakId/grafik';
   static const String riwayatPemberian = '/anak/:anakId/pemberian';
   static const String statusRujukan = '/anak/:anakId/rujukan';
   static const String notifikasi = '/notifikasi';
   static const String jadwal = '/jadwal';
   static const String profil = '/profil';
+
+  static String chatPengukuranLocation(
+    int pengukuranId, {
+    String? tanggalPengukuran,
+  }) {
+    return Uri(
+      path: '/pengukuran/$pengukuranId/chat',
+      queryParameters: tanggalPengukuran == null || tanggalPengukuran.isEmpty
+          ? null
+          : {'tanggal': tanggalPengukuran},
+    ).toString();
+  }
 }
 
 // ── Router Provider ───────────────────────────
@@ -115,6 +129,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             state.pathParameters['pengukuranId']!,
           );
           return DetailPengukuranScreen(pengukuranId: pengukuranId);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.chatPengukuran,
+        name: 'conversationalAi',
+        builder: (context, state) {
+          final pengukuranId = int.parse(
+            state.pathParameters['pengukuranId']!,
+          );
+          return ConversationalAiScreen(
+            pengukuranId: pengukuranId,
+            tanggalPengukuran: state.uri.queryParameters['tanggal'],
+            onOpenLatestMeasurement: () => context.go(AppRoutes.dashboard),
+          );
         },
       ),
       GoRoute(

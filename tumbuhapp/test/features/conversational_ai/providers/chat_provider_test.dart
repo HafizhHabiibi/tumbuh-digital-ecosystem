@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tumbuhapp/features/conversational_ai/data/chat_service.dart';
 import 'package:tumbuhapp/features/conversational_ai/models/chat_models.dart';
@@ -20,11 +22,13 @@ ChatConversation _conversation({
   List<ChatMessage> messages = const [],
   bool hasMore = false,
   int? nextBeforeId,
+  bool isActive = true,
+  InsightStatus insightStatus = InsightStatus.completed,
 }) {
   return ChatConversation(
     pengukuranId: 12,
-    isActive: true,
-    insightStatus: InsightStatus.completed,
+    isActive: isActive,
+    insightStatus: insightStatus,
     insightText: 'Insight awal',
     messages: messages,
     pagination: ChatPagination(
@@ -38,7 +42,9 @@ class _FakeGateway implements ChatGateway {
   ChatConversation history = _conversation();
   ChatExchange? result;
   ChatApiException? nextError;
+  Completer<ChatExchange>? sendCompleter;
   final List<String> sentIds = [];
+  final List<String> sentMessages = [];
   final List<int?> cursors = [];
 
   @override
@@ -58,14 +64,77 @@ class _FakeGateway implements ChatGateway {
     required String message,
   }) async {
     sentIds.add(clientMessageId);
+    sentMessages.add(message);
     final error = nextError;
     nextError = null;
     if (error != null) throw error;
+    final completer = sendCompleter;
+    if (completer != null) return completer.future;
     return result!;
   }
 }
 
 void main() {
+  test('memuat conversation awal dan menyimpan draft', () async {
+    final gateway = _FakeGateway()
+      ..history = _conversation(
+        messages: [_message(21, ChatRole.orangTua)],
+      );
+    final notifier = ChatNotifier(pengukuranId: 12, gateway: gateway);
+
+    notifier.updateDraft('Apa arti hasil ini?');
+    await notifier.load();
+
+    expect(notifier.state.draft, 'Apa arti hasil ini?');
+    expect(notifier.state.conversation?.messages, hasLength(1));
+    expect(notifier.state.isActiveMode, isTrue);
+    expect(notifier.state.isReadOnly, isFalse);
+    expect(gateway.cursors, [null]);
+  });
+
+  test('membuat optimistic bubble lalu menggantinya dengan exchange backend',
+      () async {
+    final completer = Completer<ChatExchange>();
+    final gateway = _FakeGateway()..sendCompleter = completer;
+    final notifier = ChatNotifier(
+      pengukuranId: 12,
+      gateway: gateway,
+      messageIdGenerator: () => 'uuid-optimistic',
+    );
+    await notifier.load();
+    notifier.updateDraft('Apa contoh protein?');
+
+    final send = notifier.sendDraft();
+
+    final optimistic = notifier.state.conversation!.messages.single;
+    expect(optimistic.id, -1);
+    expect(optimistic.clientMessageId, 'uuid-optimistic');
+    expect(optimistic.sendStatus, ChatSendStatus.sending);
+    expect(notifier.state.draft, isEmpty);
+    expect(notifier.state.isSending, isTrue);
+
+    completer.complete(
+      ChatExchange(
+        userMessage: _message(31, ChatRole.orangTua),
+        assistantMessage: _message(32, ChatRole.assistant),
+        idempotent: false,
+      ),
+    );
+    await send;
+
+    expect(
+      notifier.state.conversation?.messages.map((message) => message.id),
+      [31, 32],
+    );
+    expect(
+      notifier.state.conversation?.messages
+          .every((message) => message.sendStatus == ChatSendStatus.sent),
+      isTrue,
+    );
+    expect(notifier.state.pendingMessage, isNull);
+    expect(notifier.state.isSending, isFalse);
+  });
+
   test(
       'retry jaringan menggunakan UUID yang sama lalu menambahkan satu exchange',
       () async {
@@ -79,7 +148,7 @@ void main() {
         'Provider sementara tidak tersedia',
         statusCode: 503,
       );
-    final controller = ChatController(
+    final controller = ChatNotifier(
       pengukuranId: 12,
       gateway: gateway,
       messageIdGenerator: () => 'uuid-tetap',
@@ -91,6 +160,10 @@ void main() {
     expect(controller.state.pendingMessage?.clientMessageId, 'uuid-tetap');
     expect(controller.state.errorMessage, isNotNull);
     expect(controller.state.canSend, isFalse);
+    expect(
+      controller.state.conversation?.messages.single.sendStatus,
+      ChatSendStatus.failed,
+    );
 
     await controller.retryPending();
 
@@ -107,7 +180,7 @@ void main() {
         statusCode: 400,
         code: 'CHAT_PII_DETECTED',
       );
-    final controller = ChatController(
+    final controller = ChatNotifier(
       pengukuranId: 12,
       gateway: gateway,
       messageIdGenerator: () => 'uuid-pii',
@@ -118,6 +191,11 @@ void main() {
 
     expect(controller.state.errorCode, 'CHAT_PII_DETECTED');
     expect(controller.state.pendingMessage, isNull);
+    expect(controller.state.canSend, isTrue);
+    expect(
+      controller.state.conversation?.messages.single.sendStatus,
+      ChatSendStatus.failed,
+    );
     await controller.retryPending();
     expect(gateway.sentIds, ['uuid-pii']);
   });
@@ -129,7 +207,7 @@ void main() {
         hasMore: true,
         nextBeforeId: 31,
       );
-    final controller = ChatController(pengukuranId: 12, gateway: gateway);
+    final controller = ChatNotifier(pengukuranId: 12, gateway: gateway);
 
     await controller.load();
     gateway.history = _conversation(
@@ -146,5 +224,48 @@ void main() {
       controller.state.conversation?.messages.map((message) => message.id),
       [29, 30, 31],
     );
+  });
+
+  test('mencegah double tap selama request masih aktif', () async {
+    final completer = Completer<ChatExchange>();
+    final gateway = _FakeGateway()..sendCompleter = completer;
+    var generatedIds = 0;
+    final notifier = ChatNotifier(
+      pengukuranId: 12,
+      gateway: gateway,
+      messageIdGenerator: () => 'uuid-${++generatedIds}',
+    );
+    await notifier.load();
+
+    final firstSend = notifier.sendMessage('Pesan pertama');
+    await notifier.sendMessage('Pesan kedua');
+
+    expect(gateway.sentIds, ['uuid-1']);
+    expect(gateway.sentMessages, ['Pesan pertama']);
+    expect(generatedIds, 1);
+
+    completer.complete(
+      ChatExchange(
+        userMessage: _message(31, ChatRole.orangTua),
+        assistantMessage: _message(32, ChatRole.assistant),
+        idempotent: false,
+      ),
+    );
+    await firstSend;
+  });
+
+  test('pengukuran lama berada dalam mode read-only dan menolak pengiriman',
+      () async {
+    final gateway = _FakeGateway()..history = _conversation(isActive: false);
+    final notifier = ChatNotifier(pengukuranId: 12, gateway: gateway);
+
+    await notifier.load();
+    await notifier.sendMessage('Tidak boleh terkirim');
+
+    expect(notifier.state.isReadOnly, isTrue);
+    expect(notifier.state.isActiveMode, isFalse);
+    expect(notifier.state.canSend, isFalse);
+    expect(gateway.sentIds, isEmpty);
+    expect(notifier.state.conversation?.messages, isEmpty);
   });
 }

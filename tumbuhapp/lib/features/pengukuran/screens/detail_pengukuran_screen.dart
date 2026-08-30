@@ -6,8 +6,10 @@ import '../../../shared/models/pengukuran_model.dart';
 import '../../../shared/widgets/status_badge_widget.dart';
 import '../../../shared/widgets/zscore_card_widget.dart';
 import '../../../shared/widgets/insight_card_widget.dart';
+import '../../conversational_ai/widgets/chat_entry_card.dart';
 import '../../../core/constant/app_constants.dart';
 import '../../../core/utils/format_utils.dart';
+import '../../../router/app_router.dart';
 
 class DetailPengukuranScreen extends ConsumerWidget {
   final int pengukuranId;
@@ -106,6 +108,16 @@ class DetailPengukuranScreen extends ConsumerWidget {
               errorMessage: insightState.errorMessage,
               onRefresh: () =>
                   ref.read(insightProvider(pengukuranId).notifier).refresh(),
+            ),
+            const SizedBox(height: 12),
+            ChatEntryCard(
+              insightStatus: insightState.insight?.status,
+              onPressed: () => context.push(
+                AppRoutes.chatPengukuranLocation(
+                  pengukuranId,
+                  tanggalPengukuran: pengukuran.tanggalUkur,
+                ),
+              ),
             ),
             const SizedBox(height: 16),
           ],

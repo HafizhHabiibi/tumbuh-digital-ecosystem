@@ -79,6 +79,7 @@ export const buatChatService = (dependencies = {}) => {
     }) => {
         const startedAt = nowFn();
         let providerUsed = false;
+        let reservation = null;
         try {
             const normalizedClientId = validateClientMessageId(clientMessageId);
             const evaluation = guardInput(message);
@@ -99,29 +100,42 @@ export const buatChatService = (dependencies = {}) => {
                 );
             }
 
-            const existing = await repository.findExchangeByClientMessageId(
-                pengukuranId,
-                normalizedClientId,
-            );
-            if (existing) {
-                if (existing.user_message.content !== evaluation.message) {
+            try {
+                reservation = await repository.reserveExchange({
+                    pengukuranId,
+                    clientMessageId: normalizedClientId,
+                    userContent: evaluation.message,
+                });
+            } catch (error) {
+                if (error?.code === "CHAT_CLIENT_MESSAGE_ID_CONFLICT") {
                     throw new ChatServiceError(
                         "client_message_id sudah digunakan untuk pesan yang berbeda",
                         "CHAT_IDEMPOTENCY_CONFLICT",
                         409,
+                        { cause: error },
                     );
                 }
-                if (existing.assistant_message) {
-                    const result = { ...existing, idempotent: true };
-                    observability.recordChatSuccess({
-                        requestId,
-                        responseType: existing.assistant_message.response_type,
-                        idempotent: true,
-                        providerUsed: false,
-                        durationMs: nowFn() - startedAt,
-                    });
-                    return result;
-                }
+                throw error;
+            }
+
+            if (reservation.status === "completed") {
+                const result = { ...reservation.exchange, idempotent: true };
+                observability.recordChatSuccess({
+                    requestId,
+                    responseType:
+                        reservation.exchange.assistant_message.response_type,
+                    idempotent: true,
+                    providerUsed: false,
+                    durationMs: nowFn() - startedAt,
+                });
+                return result;
+            }
+            if (reservation.status === "processing") {
+                throw new ChatServiceError(
+                    "Pesan yang sama sedang diproses",
+                    "CHAT_REQUEST_PROCESSING",
+                    409,
+                );
             }
 
             let response;
@@ -135,35 +149,14 @@ export const buatChatService = (dependencies = {}) => {
                 };
             }
 
-            let saved;
-            try {
-                saved = await repository.saveExchange({
-                    pengukuranId,
-                    clientMessageId: normalizedClientId,
-                    userContent: evaluation.message,
-                    assistantContent: response.answer,
-                    responseType: response.response_type,
-                });
-            } catch (error) {
-                if (error?.code === "CHAT_CLIENT_MESSAGE_ID_CONFLICT") {
-                    throw new ChatServiceError(
-                        "client_message_id sudah digunakan pada percakapan lain",
-                        "CHAT_IDEMPOTENCY_CONFLICT",
-                        409,
-                        { cause: error },
-                    );
-                }
-                throw error;
-            }
-            if (saved.user_message.content !== evaluation.message) {
-                throw new ChatServiceError(
-                    "client_message_id sudah digunakan untuk pesan yang berbeda",
-                    "CHAT_IDEMPOTENCY_CONFLICT",
-                    409,
-                );
-            }
-            const { reused, ...exchange } = saved;
-            const result = { ...exchange, idempotent: Boolean(reused) };
+            const exchange = await repository.completeExchange({
+                userMessage: reservation.userMessage,
+                requestToken: reservation.requestToken,
+                assistantContent: response.answer,
+                responseType: response.response_type,
+            });
+            reservation = null;
+            const result = { ...exchange, idempotent: false };
             observability.recordChatSuccess({
                 requestId,
                 responseType: result.assistant_message.response_type,
@@ -173,6 +166,16 @@ export const buatChatService = (dependencies = {}) => {
             });
             return result;
         } catch (error) {
+            if (reservation?.status === "reserved") {
+                try {
+                    await repository.releaseReservation({
+                        userMessageId: reservation.userMessage.id,
+                        requestToken: reservation.requestToken,
+                    });
+                } catch {
+                    // Lease tetap memiliki expiry agar dapat dipulihkan.
+                }
+            }
             observability.recordChatFailure({
                 requestId,
                 code: error?.code || error?.name,

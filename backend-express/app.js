@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { pathToFileURL } from "node:url";
 import { validateEnvironment } from "./src/config.js";
 import db from "./src/database/connection.js";
+import { checkReadiness } from "./src/services/healthService.js";
 import { processPendingNotifications } from "./src/services/fcmService.js";
 import {
     INSIGHT_PROCESSING_CONFIG,
@@ -42,17 +43,22 @@ app.get("/api/health/live", (req, res) => {
 });
 
 app.get("/api/health/ready", async (req, res) => {
-    try {
-        await db.query("SELECT 1");
-        res.json({ success: true, message: "Service siap", data: null });
-    } catch (err) {
-        console.error(`[${req.id}] Readiness gagal: ${err.message}`);
-        res.status(503).json({
-            success: false,
-            message: "Service belum siap",
-            data: null,
+    const readiness = await checkReadiness();
+    if (readiness.ready) {
+        return res.json({
+            success: true,
+            message: "Service dan fitur AI siap",
+            data: readiness.components,
         });
     }
+
+    const reason = readiness.error?.message || readiness.components.ai;
+    console.error(`[${req.id}] Readiness gagal: ${reason}`);
+    return res.status(503).json({
+        success: false,
+        message: "Service belum siap",
+        data: readiness.components,
+    });
 });
 
 app.use("/api/auth", authRoutes);

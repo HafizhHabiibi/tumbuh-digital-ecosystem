@@ -10,9 +10,12 @@
         "dev": "nodemon app.js",
         "test": "node --test",
         "db:setup": "node src/database/setup-database.js",
+        "db:migrate:chat-reservation": "node scripts/migrate-chat-reservation.js",
         "seed:generate": "node src/database/seeder/generate-seeder.js",
         "seed:run": "node src/database/seeder/run-seeder.js",
-        "report:preview": "node scripts/generate-laporan-preview.js"
+        "report:preview": "node scripts/generate-laporan-preview.js",
+        "ai:smoke": "node scripts/smoke-test-gemini.js",
+        "ai:smoke:e2e": "node scripts/smoke-test-chat-e2e.js"
     },
     "dependencies": {
         "axios": "^1.20.0",

@@ -30,6 +30,35 @@ CHAT_RATE_LIMIT_MAX=10
 `GEMINI_API_KEY` tetap didukung untuk satu key. Nilai model dapat diganti tanpa
 mengubah source code.
 
+Konfigurasi numerik Gemini divalidasi ketika proses backend dimulai. Endpoint
+`GET /api/health/ready` juga memeriksa database dan ketersediaan key tanpa
+menampilkan nilai key. Readiness mengembalikan komponen berikut:
+
+```json
+{
+  "database": "ready",
+  "ai": "ready",
+  "ai_model": "gemini-3.6-flash"
+}
+```
+
+Nilai `ai` dapat berupa `ready`, `not_configured`, atau `unavailable`. Jalankan
+smoke test provider dengan konteks sintetis tanpa data pengguna setelah
+memasang atau merotasi key:
+
+```bash
+npm run ai:smoke
+```
+
+Untuk memverifikasi alur lengkap bearer auth, endpoint chat, database, Gemini,
+persistence, dan retry idempotent menggunakan data sintetis, jalankan:
+
+```bash
+npm run ai:smoke:e2e
+```
+
+Smoke test E2E menghapus kembali exchange sintetis yang dibuatnya.
+
 Rate limit default adalah 10 pengiriman pesan per orang tua dalam 5 menit.
 Pembacaan riwayat tidak mengurangi kuota pengiriman pesan.
 
@@ -121,11 +150,16 @@ Content-Type: application/json
 Ketentuan:
 
 - `client_message_id` wajib berupa UUID yang dibuat frontend untuk setiap pesan;
+- aplikasi mobile menggunakan UUIDv7 agar konsisten dengan ID domain dan dapat
+  diurutkan berdasarkan waktu pembuatan;
 - gunakan kembali UUID yang sama ketika melakukan retry request yang sama;
 - jangan gunakan UUID yang sama untuk isi pesan berbeda;
 - panjang pesan 2 sampai 1.000 karakter; dan
 - pesan baru hanya dapat dikirim untuk pengukuran terbaru dengan insight awal
   yang sudah tersedia.
+- pesan yang memuat email, NIK, nomor telepon, ID internal, atau penyebutan
+  eksplisit nama/alamat pribadi ditolak sebelum disimpan atau dikirim ke
+  Gemini.
 
 Pesan baru mengembalikan HTTP `201`. Retry dengan UUID dan isi yang sama
 mengembalikan pasangan pesan lama dengan HTTP `200` dan `idempotent: true`.
@@ -174,6 +208,21 @@ Nilai `response_type`:
 | `429` | Batas pengiriman pesan terlampaui |
 | `503` | Provider AI sementara tidak tersedia |
 
+Penolakan data pribadi menggunakan HTTP `400` dengan kode yang aman untuk UI:
+
+```json
+{
+  "success": false,
+  "message": "Hapus nama, NIK, nomor telepon, email, alamat, atau ID pribadi dari pertanyaan",
+  "data": { "code": "CHAT_PII_DETECTED" }
+}
+```
+
+Request concurrent dengan `client_message_id` yang sama menerima HTTP `409`
+dengan kode `CHAT_REQUEST_PROCESSING`. Setelah request pertama selesai, retry
+dengan UUID dan isi yang sama mengembalikan exchange tersimpan. Kode
+`CHAT_IDEMPOTENCY_CONFLICT` bersifat terminal dan tidak boleh dicoba ulang.
+
 Untuk status `409` karena insight belum siap, frontend dapat tetap menggunakan
 endpoint insight yang sudah ada dan mengaktifkan input chat setelah
 `insight_status` menjadi `completed`.
@@ -198,6 +247,9 @@ ID orang tua, nilai Z-score mentah, atau skor SAW. Hanya kategori hasil backend,
 data pengukuran yang diperlukan, insight awal, dan maksimal 10 pesan terakhir
 dari pengukuran yang sama yang digunakan.
 
+Pesan baru juga diperiksa sebelum persistence dan provider call. Pengguna perlu
+menghapus data pribadi apabila menerima kode `CHAT_PII_DETECTED`.
+
 Audit operasional dicetak sebagai log terstruktur berprefix `[AI_AUDIT]`. Log
 tidak memuat isi pesan ataupun identitas pengguna. Metrik penggunaan disimpan
 di memori proses dan akan kembali nol ketika server dimulai ulang. Tidak ada
@@ -210,5 +262,12 @@ Sistem menggunakan satu tabel `chat_messages` yang terhubung langsung dengan
 menjadi batas satu sesi percakapan. `reply_to_message_id` menghubungkan satu
 balasan assistant dengan satu pesan orang tua.
 
-Karena database proyek dibuat fresh, jalankan skema terbaru melalui proses setup
-database proyek. Tidak diperlukan migration untuk data testing lama.
+Untuk database fresh, jalankan skema terbaru melalui proses setup database
+proyek sehingga migration tambahan tidak diperlukan.
+
+Untuk database lokal yang sudah aktif sebelum reservasi idempotensi ditambahkan,
+jalankan migration eksplisit berikut satu kali:
+
+```bash
+npm run db:migrate:chat-reservation
+```

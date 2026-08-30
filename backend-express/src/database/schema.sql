@@ -124,16 +124,20 @@ CREATE TABLE IF NOT EXISTS chat_messages (
         'out_of_scope',
         'medical_advice_refused'
     ) DEFAULT NULL,
+    request_status ENUM('processing', 'completed') DEFAULT NULL,
+    request_token CHAR(36) DEFAULT NULL,
+    request_expires_at DATETIME DEFAULT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (pengukuran_id) REFERENCES pengukuran(id) ON DELETE CASCADE,
     FOREIGN KEY (reply_to_message_id) REFERENCES chat_messages(id) ON DELETE CASCADE,
     UNIQUE KEY unique_chat_client_message (client_message_id),
     UNIQUE KEY unique_chat_reply (reply_to_message_id),
     INDEX idx_chat_messages_history (pengukuran_id, created_at, id),
+    INDEX idx_chat_request_lease (request_status, request_expires_at),
     CONSTRAINT chk_chat_message_metadata CHECK (
-        (role = 'orang_tua' AND client_message_id IS NOT NULL AND reply_to_message_id IS NULL AND response_type IS NULL)
+        (role = 'orang_tua' AND client_message_id IS NOT NULL AND reply_to_message_id IS NULL AND response_type IS NULL AND request_status IS NOT NULL)
         OR
-        (role = 'assistant' AND client_message_id IS NULL AND reply_to_message_id IS NOT NULL AND response_type IS NOT NULL)
+        (role = 'assistant' AND client_message_id IS NULL AND reply_to_message_id IS NOT NULL AND response_type IS NOT NULL AND request_status IS NULL AND request_token IS NULL AND request_expires_at IS NULL)
     )
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

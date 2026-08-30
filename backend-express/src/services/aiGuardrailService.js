@@ -75,6 +75,37 @@ const ALLOWED_TOPIC_PATTERNS = Object.freeze([
     /\b(insight|penjelasan|jelaskan|maksud|kenapa|mengapa|bagaimana)\b/i,
 ]);
 
+const PERSONAL_DATA_PATTERNS = Object.freeze([
+    {
+        type: "email",
+        pattern: /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i,
+    },
+    {
+        type: "nik",
+        // NIK Indonesia terdiri dari 16 digit. Separator ringan ikut
+        // dideteksi agar penulisan dengan spasi atau tanda hubung tetap aman.
+        pattern: /(?<!\d)(?:\d[\s.-]?){15}\d(?!\d)/,
+    },
+    {
+        type: "nomor_telepon",
+        pattern: /(?<!\d)(?:\+62|62|0)[\s.-]?8(?:[\s.-]?\d){7,12}(?!\d)/,
+    },
+    {
+        type: "id_internal",
+        pattern:
+            /\b[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/i,
+    },
+    {
+        type: "nama",
+        pattern: /\b(nama saya|nama anak saya|anak saya bernama|nama lengkap)\b/i,
+    },
+    {
+        type: "alamat",
+        pattern:
+            /\b(alamat (?:saya|kami|rumah|anak)|(?:rt|rw)\s*\d{1,3}\b)/i,
+    },
+]);
+
 const UNSAFE_OUTPUT_PATTERNS = Object.freeze([
     {
         code: "AI_DIAGNOSIS_CLAIM",
@@ -110,6 +141,11 @@ const UNSAFE_OUTPUT_PATTERNS = Object.freeze([
 
 export const containsPromptInjection = (text) =>
     PROMPT_INJECTION_PATTERNS.some((pattern) => pattern.test(text));
+
+export const detectPersonalData = (text) =>
+    PERSONAL_DATA_PATTERNS
+        .filter(({ pattern }) => pattern.test(text))
+        .map(({ type }) => type);
 
 export const sanitizeChatInput = (value) => {
     if (typeof value !== "string") {
@@ -154,6 +190,14 @@ const deterministicAnswer = (responseType) => {
 
 export const evaluateChatInput = (value) => {
     const message = sanitizeChatInput(value);
+    const personalData = detectPersonalData(message);
+
+    if (personalData.length > 0) {
+        throw new ChatInputValidationError(
+            "Hapus nama, NIK, nomor telepon, email, alamat, atau ID pribadi dari pertanyaan",
+            "CHAT_PII_DETECTED",
+        );
+    }
 
     if (containsPromptInjection(message)) {
         return {

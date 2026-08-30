@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+
 import '../../../core/network/dio_client.dart';
 import '../../../core/constant/api_constants.dart';
 import '../../../shared/models/pengukuran_model.dart';
@@ -5,8 +7,14 @@ import '../../../shared/models/anak_model.dart';
 import '../../../shared/models/insight_model.dart';
 import '../../../shared/models/pengukuran_response.dart';
 
-class PengukuranService {
-  final _dio = DioClient.instance;
+abstract interface class InsightGateway {
+  Future<InsightModel> getInsight(int pengukuranId);
+}
+
+class PengukuranService implements InsightGateway {
+  final Dio _dio;
+
+  PengukuranService({Dio? dio}) : _dio = dio ?? DioClient.instance;
 
   // ── Riwayat Pengukuran ────────────────────────
 
@@ -24,16 +32,17 @@ class PengukuranService {
 
   // ── Insight Pengukuran ────────────────────────
 
-  Future<InsightModel?> getInsight(int pengukuranId) async {
-    try {
-      final response = await _dio.get(
-        ApiConstants.insightPengukuran(pengukuranId),
-      );
-      final data = response.data['data'];
-      if (data == null) return null;
-      return InsightModel.fromJson(data);
-    } catch (_) {
-      return null;
+  @override
+  Future<InsightModel> getInsight(int pengukuranId) async {
+    final response = await _dio.get(
+      ApiConstants.insightPengukuran(pengukuranId),
+    );
+    final body = response.data;
+    if (body is! Map || body['data'] is! Map) {
+      throw const FormatException('Respons insight tidak valid');
     }
+    return InsightModel.fromJson(
+      Map<String, dynamic>.from(body['data'] as Map),
+    );
   }
 }

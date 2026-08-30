@@ -161,3 +161,60 @@ test("penyimpanan exchange dilakukan atomik dalam satu transaksi", async () => {
     assert.equal(calls[4], "release");
     assert.equal(calls.includes("rollback"), false);
 });
+
+test("reservasi request dibuat sebelum balasan assistant", async () => {
+    const calls = [];
+    const connection = {
+        beginTransaction: async () => calls.push("begin"),
+        query: async (sql, params) => {
+            calls.push({ sql, params });
+            if (/SELECT[\s\S]+FOR UPDATE/.test(sql)) return [[]];
+            return [{ insertId: 40 }];
+        },
+        commit: async () => calls.push("commit"),
+        rollback: async () => calls.push("rollback"),
+        release: () => calls.push("release"),
+    };
+    const model = buatChatModel({ getConnection: async () => connection });
+
+    const reservation = await model.reserveExchange({
+        pengukuranId: 12,
+        clientMessageId: "018f0000-0000-7000-8000-000000000001",
+        userContent: "Apa variasi makanannya?",
+    });
+
+    assert.equal(reservation.status, "reserved");
+    assert.equal(reservation.userMessage.id, 40);
+    assert.match(calls[2].sql, /request_status, request_token/);
+    assert.match(calls[2].sql, /'processing'/);
+    assert.equal(calls.includes("rollback"), false);
+});
+
+test("penyelesaian reservasi menyimpan assistant dan menandai completed", async () => {
+    const calls = [];
+    const connection = {
+        beginTransaction: async () => calls.push("begin"),
+        query: async (sql, params) => {
+            calls.push({ sql, params });
+            if (/SELECT id FROM chat_messages/.test(sql)) return [[{ id: 40 }]];
+            if (/INSERT INTO chat_messages/.test(sql)) return [{ insertId: 41 }];
+            return [{ affectedRows: 1 }];
+        },
+        commit: async () => calls.push("commit"),
+        rollback: async () => calls.push("rollback"),
+        release: () => calls.push("release"),
+    };
+    const model = buatChatModel({ getConnection: async () => connection });
+
+    const result = await model.completeExchange({
+        userMessage: { id: 40, content: "Pertanyaan" },
+        requestToken: "lease-1",
+        assistantContent: "Jawaban aman",
+        responseType: "answered",
+    });
+
+    assert.equal(result.assistant_message.id, 41);
+    assert.match(calls[2].sql, /reply_to_message_id/);
+    assert.match(calls[3].sql, /request_status = 'completed'/);
+    assert.equal(calls.includes("rollback"), false);
+});

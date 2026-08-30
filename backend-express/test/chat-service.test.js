@@ -18,18 +18,29 @@ const makeService = (options) =>
 
 const makeRepository = () => {
     const saved = [];
+    const reservations = [];
+    const released = [];
     return {
         saved,
-        findExchangeByClientMessageId: async () => null,
-        saveExchange: async (exchange) => {
-            saved.push(exchange);
+        reservations,
+        released,
+        reserveExchange: async (exchange) => {
+            reservations.push(exchange);
             return {
-                user_message: {
+                status: "reserved",
+                requestToken: "lease-1",
+                userMessage: {
                     id: 1,
                     client_message_id: exchange.clientMessageId,
                     role: "orang_tua",
                     content: exchange.userContent,
                 },
+            };
+        },
+        completeExchange: async (exchange) => {
+            saved.push(exchange);
+            return {
+                user_message: exchange.userMessage,
                 assistant_message: {
                     id: 2,
                     role: "assistant",
@@ -38,6 +49,7 @@ const makeRepository = () => {
                 },
             };
         },
+        releaseReservation: async (reservation) => released.push(reservation),
     };
 };
 
@@ -115,8 +127,38 @@ test("pesan aman memanggil Gemini lalu menyimpan pasangan pesan", async () => {
     assert.equal(generateCalls.length, 1);
     assert.equal(generateCalls[0][1], "Bagaimana pola makannya?");
     assert.equal(repository.saved.length, 1);
-    assert.equal(repository.saved[0].userContent, "Bagaimana pola makannya?");
+    assert.equal(repository.reservations[0].userContent, "Bagaimana pola makannya?");
     assert.equal(result.idempotent, false);
+});
+
+test("data pribadi ditolak sebelum context, Gemini, dan database", async () => {
+    const repository = makeRepository();
+    let contextCalled = false;
+    let generateCalled = false;
+    const service = makeService({
+        repository,
+        contextLoader: async () => {
+            contextCalled = true;
+            return context;
+        },
+        generate: async () => {
+            generateCalled = true;
+        },
+    });
+
+    await assert.rejects(
+        service.sendMessage({
+            pengukuranId: 10,
+            orangTuaId: "orang-tua-1",
+            clientMessageId,
+            message: "Email saya ibu@example.com, bagaimana hasilnya?",
+        }),
+        (error) => error.code === "CHAT_PII_DETECTED" && error.status === undefined,
+    );
+
+    assert.equal(contextCalled, false);
+    assert.equal(generateCalled, false);
+    assert.equal(repository.saved.length, 0);
 });
 
 test("service mencatat metadata hasil tanpa meneruskan isi pesan ke observability", async () => {
@@ -182,18 +224,21 @@ test("penolakan deterministik disimpan tanpa memanggil Gemini", async () => {
 
 test("retry idempotent mengembalikan exchange lama tanpa Gemini dan tanpa insert", async () => {
     const repository = makeRepository();
-    repository.findExchangeByClientMessageId = async () => ({
-        user_message: {
-            id: 5,
-            client_message_id: clientMessageId,
-            role: "orang_tua",
-            content: "Bagaimana pola makannya?",
-        },
-        assistant_message: {
-            id: 6,
-            role: "assistant",
-            content: "Variasikan lauknya.",
-            response_type: "answered",
+    repository.reserveExchange = async () => ({
+        status: "completed",
+        exchange: {
+            user_message: {
+                id: 5,
+                client_message_id: clientMessageId,
+                role: "orang_tua",
+                content: "Bagaimana pola makannya?",
+            },
+            assistant_message: {
+                id: 6,
+                role: "assistant",
+                content: "Variasikan lauknya.",
+                response_type: "answered",
+            },
         },
     });
     let generateCalled = false;
@@ -219,10 +264,11 @@ test("retry idempotent mengembalikan exchange lama tanpa Gemini dan tanpa insert
 
 test("idempotency key yang dipakai untuk isi berbeda ditolak", async () => {
     const repository = makeRepository();
-    repository.findExchangeByClientMessageId = async () => ({
-        user_message: { content: "Pesan sebelumnya" },
-        assistant_message: { content: "Jawaban sebelumnya" },
-    });
+    repository.reserveExchange = async () => {
+        const error = new Error("conflict");
+        error.code = "CHAT_CLIENT_MESSAGE_ID_CONFLICT";
+        throw error;
+    };
     const service = makeService({
         repository,
         contextLoader: async () => context,
@@ -237,6 +283,81 @@ test("idempotency key yang dipakai untuk isi berbeda ditolak", async () => {
         }),
         (error) => error instanceof ChatServiceError && error.code === "CHAT_IDEMPOTENCY_CONFLICT" && error.status === 409,
     );
+});
+
+test("request concurrent dengan UUID sama hanya memanggil Gemini sekali", async () => {
+    const repository = makeRepository();
+    let reservationActive = false;
+    repository.reserveExchange = async (input) => {
+        if (reservationActive) return { status: "processing" };
+        reservationActive = true;
+        return {
+            status: "reserved",
+            requestToken: "lease-concurrent",
+            userMessage: {
+                id: 7,
+                client_message_id: input.clientMessageId,
+                role: "orang_tua",
+                content: input.userContent,
+            },
+        };
+    };
+    let releaseGenerate;
+    const generateGate = new Promise((resolve) => {
+        releaseGenerate = resolve;
+    });
+    let generateCalls = 0;
+    const service = makeService({
+        repository,
+        contextLoader: async () => context,
+        generate: async () => {
+            generateCalls += 1;
+            await generateGate;
+            return { response_type: "answered", answer: "Jawaban aman." };
+        },
+    });
+    const payload = {
+        pengukuranId: 10,
+        orangTuaId: "orang-tua-1",
+        clientMessageId,
+        message: "Bagaimana pola makannya?",
+    };
+
+    const first = service.sendMessage(payload);
+    await new Promise((resolve) => setImmediate(resolve));
+    const second = service.sendMessage(payload);
+    await assert.rejects(
+        second,
+        (error) => error.code === "CHAT_REQUEST_PROCESSING" && error.status === 409,
+    );
+    releaseGenerate();
+    await first;
+
+    assert.equal(generateCalls, 1);
+    assert.equal(repository.saved.length, 1);
+});
+
+test("kegagalan provider melepas reservasi agar UUID dapat dicoba ulang", async () => {
+    const repository = makeRepository();
+    const service = makeService({
+        repository,
+        contextLoader: async () => context,
+        generate: async () => {
+            throw new Error("provider gagal");
+        },
+    });
+
+    await assert.rejects(service.sendMessage({
+        pengukuranId: 10,
+        orangTuaId: "orang-tua-1",
+        clientMessageId,
+        message: "Bagaimana pola makannya?",
+    }));
+
+    assert.deepEqual(repository.released, [{
+        userMessageId: 1,
+        requestToken: "lease-1",
+    }]);
 });
 
 test("pengukuran lama, insight belum siap, dan UUID tidak valid ditolak", async () => {

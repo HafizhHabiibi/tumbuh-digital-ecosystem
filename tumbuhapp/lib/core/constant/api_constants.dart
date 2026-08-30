@@ -41,6 +41,9 @@ class ApiConstants {
   static String pengukuranAnak(String id) => '/orang-tua/anak/$id/pengukuran';
   static String insightPengukuran(int id) => '/pengukuran/$id/insight';
 
+  // Conversational AI
+  static String chatPengukuran(int id) => '/orang-tua/pengukuran/$id/chat';
+
   // Pemberian
   static String pemberianAnak(String id) => '/orang-tua/anak/$id/pemberian';
 

@@ -17,6 +17,9 @@ dependencies:
     # HTTP Client
     dio: ^5.7.0
 
+    # Idempotency key chat (UUIDv7)
+    uuid: ^4.6.0
+
     # Simpan laporan PDF melalui dialog native
     file_saver: ^0.4.0
 

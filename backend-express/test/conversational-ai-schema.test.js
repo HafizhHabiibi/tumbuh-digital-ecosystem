@@ -74,6 +74,16 @@ test("metadata pesan membedakan input orang tua dan keluaran assistant", () => {
         /FOREIGN KEY \(reply_to_message_id\) REFERENCES chat_messages\(id\) ON DELETE CASCADE/,
     );
     assert.match(definition, /UNIQUE KEY unique_chat_reply \(reply_to_message_id\)/);
+    assert.match(
+        definition,
+        /request_status ENUM\('processing', 'completed'\)/,
+    );
+    assert.match(definition, /request_token CHAR\(36\)/);
+    assert.match(definition, /request_expires_at DATETIME/);
+    assert.match(
+        definition,
+        /INDEX idx_chat_request_lease \(request_status, request_expires_at\)/,
+    );
     assert.match(definition, /role ENUM\('orang_tua', 'assistant'\) NOT NULL/);
     assert.match(
         definition,

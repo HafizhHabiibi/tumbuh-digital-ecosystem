@@ -657,17 +657,17 @@ class DashboardScreen extends ConsumerWidget {
             }
 
             // Jika ada pengukuran terakhir, fetch insight-nya
-            final insightAsync = ref.watch(insightProvider(terakhir.id));
+            final insightState = ref.watch(insightProvider(terakhir.id));
 
-            return insightAsync.when(
-              loading: () => const InsightCard(isLoading: true),
-              error: (err, _) => const InsightCard(),
-              data: (insight) {
-                return InsightCard(
-                  insightTeks: insight?.insightTeks,
-                  createdAt: insight?.createdAt,
-                );
-              },
+            return InsightCard(
+              insightTeks: insightState.insight?.insightTeks,
+              createdAt: insightState.insight?.insightGeneratedAt,
+              status: insightState.insight?.status,
+              isLoading: insightState.isLoading || insightState.isPolling,
+              pollingTimedOut: insightState.pollingTimedOut,
+              errorMessage: insightState.errorMessage,
+              onRefresh: () =>
+                  ref.read(insightProvider(terakhir.id).notifier).refresh(),
             );
           },
         ),

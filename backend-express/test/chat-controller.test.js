@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import { GeminiClientError } from "../src/integrations/geminiClient.js";
 import { buatChatController } from "../src/controllers/chatController.js";
+import { ChatInputValidationError } from "../src/services/aiGuardrailService.js";
 import { ChatServiceError } from "../src/services/chatService.js";
 
 const buatResponse = () => ({
@@ -101,4 +102,29 @@ test("controller memetakan error domain dan provider tanpa membocorkan detail", 
     assert.equal(resNotFound.statusCode, 404);
     assert.equal(resUnavailable.statusCode, 503);
     assert.doesNotMatch(resUnavailable.body.message, /key|rahasia/i);
+});
+
+test("controller mengembalikan kode aman untuk penolakan data pribadi", async () => {
+    const controller = buatChatController({
+        sendMessage: async () => {
+            throw new ChatInputValidationError(
+                "Hapus data pribadi dari pertanyaan",
+                "CHAT_PII_DETECTED",
+            );
+        },
+    });
+    const res = buatResponse();
+
+    await controller.postMessage({
+        validatedParams: { id: 1 },
+        body: { client_message_id: "uuid", message: "pesan" },
+        orangTua: { id: "orang-tua-1" },
+    }, res);
+
+    assert.equal(res.statusCode, 400);
+    assert.deepEqual(res.body, {
+        success: false,
+        message: "Hapus data pribadi dari pertanyaan",
+        data: { code: "CHAT_PII_DETECTED" },
+    });
 });

@@ -9,6 +9,7 @@ import { buatChatService } from "../src/services/chatService.js";
 const IDS = {
     answered: "018f0000-0000-7000-8000-000000000001",
     medical: "018f0000-0000-7000-8000-000000000002",
+    pii: "018f0000-0000-7000-8000-000000000004",
 };
 
 test("alur HTTP menjalankan guardrail, Gemini, persistence, idempotensi, dan history", async () => {
@@ -38,17 +39,25 @@ test("alur HTTP menjalankan guardrail, Gemini, persistence, idempotensi, dan his
             hasMore: false,
             nextBeforeId: null,
         }),
-        findExchangeByClientMessageId: async (measurementId, clientId) =>
-            measurementId === 12 ? exchanges.get(clientId) || null : null,
-        saveExchange: async (data) => {
-            const exchange = {
-                reused: false,
-                user_message: {
+        reserveExchange: async (data) => {
+            const existing = exchanges.get(data.clientMessageId);
+            if (existing) {
+                return { status: "completed", exchange: existing };
+            }
+            return {
+                status: "reserved",
+                requestToken: `lease-${data.clientMessageId}`,
+                userMessage: {
                     id: nextId++,
                     client_message_id: data.clientMessageId,
                     role: "orang_tua",
                     content: data.userContent,
                 },
+            };
+        },
+        completeExchange: async (data) => {
+            const exchange = {
+                user_message: data.userMessage,
                 assistant_message: {
                     id: nextId++,
                     role: "assistant",
@@ -56,9 +65,10 @@ test("alur HTTP menjalankan guardrail, Gemini, persistence, idempotensi, dan his
                     response_type: data.responseType,
                 },
             };
-            exchanges.set(data.clientMessageId, exchange);
+            exchanges.set(data.userMessage.client_message_id, exchange);
             return exchange;
         },
+        releaseReservation: async () => {},
     };
     const contextLoader = async (id, owner) =>
         id === 12 && owner === "orang-tua-1"
@@ -128,6 +138,16 @@ test("alur HTTP menjalankan guardrail, Gemini, persistence, idempotensi, dan his
             "medical_advice_refused",
         );
         assert.equal(geminiCalls, 1);
+
+        const pii = await post(
+            IDS.pii,
+            "Email saya ibu@example.com, bagaimana hasilnya?",
+        );
+        const piiBody = await pii.json();
+        assert.equal(pii.status, 400);
+        assert.equal(piiBody.data.code, "CHAT_PII_DETECTED");
+        assert.equal(geminiCalls, 1);
+        assert.equal(exchanges.has(IDS.pii), false);
 
         const history = await fetch(`${base}/12/chat`);
         const historyBody = await history.json();

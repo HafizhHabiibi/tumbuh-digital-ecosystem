@@ -6,6 +6,7 @@ import {
     CHAT_INPUT_LIMITS,
     ChatInputValidationError,
     containsPromptInjection,
+    detectPersonalData,
     evaluateChatInput,
     sanitizeChatInput,
     validateChatModelResponse,
@@ -33,6 +34,53 @@ test("sanitasi input menolak tipe, pesan kosong, dan pesan terlalu panjang", () 
         () => sanitizeChatInput("x".repeat(CHAT_INPUT_LIMITS.maxCharacters + 1)),
         (error) => error.code === "CHAT_MESSAGE_TOO_LONG",
     );
+});
+
+test("detektor menemukan data pribadi tanpa mengembalikan nilainya", () => {
+    const cases = [
+        ["Email saya ibu@example.com", "email"],
+        ["NIK anak 3201010101870001", "nik"],
+        ["Hubungi saya di +62 812-3456-7890", "nomor_telepon"],
+        ["ID anak 018f0000-0000-7000-8000-000000000001", "id_internal"],
+        ["Nama anak saya Budi", "nama"],
+        ["Alamat rumah kami RT 01 RW 05", "alamat"],
+    ];
+
+    for (const [message, expectedType] of cases) {
+        const detected = detectPersonalData(message);
+        assert.ok(detected.includes(expectedType), message);
+        assert.equal(JSON.stringify(detected).includes("Budi"), false);
+        assert.equal(JSON.stringify(detected).includes("320101"), false);
+    }
+});
+
+test("pesan berisi data pribadi ditolak sebelum evaluasi topik", () => {
+    const messages = [
+        "Menu apa untuk anak dengan NIK 3201010101870001?",
+        "Jawab melalui email ibu@example.com",
+        "Nomor saya 0812-3456-7890, bagaimana hasilnya?",
+        "Nama anak saya Budi, apa menu proteinnya?",
+        "Alamat rumah saya RT 02 RW 03, bagaimana sanitasinya?",
+    ];
+
+    for (const message of messages) {
+        assert.throws(
+            () => evaluateChatInput(message),
+            (error) =>
+                error instanceof ChatInputValidationError &&
+                error.code === "CHAT_PII_DETECTED" &&
+                !error.message.includes("3201010101870001"),
+            message,
+        );
+    }
+});
+
+test("angka edukatif biasa tidak dianggap sebagai data pribadi", () => {
+    const result = evaluateChatInput(
+        "Apakah protein boleh diberikan 2 kali sehari untuk anak usia 24 bulan?",
+    );
+
+    assert.equal(result.allowed, true);
 });
 
 test("topik makanan, aktivitas, kebersihan, dan hasil pengukuran diterima", () => {

@@ -17,7 +17,7 @@ class DetailPengukuranScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final pengukuran = ref.watch(selectedPengukuranProvider);
-    final insightAsync = ref.watch(insightProvider(pengukuranId));
+    final insightState = ref.watch(insightProvider(pengukuranId));
 
     // Kalau selectedPengukuranProvider null (akses langsung via URL)
     if (pengukuran == null) {
@@ -97,13 +97,15 @@ class DetailPengukuranScreen extends ConsumerWidget {
             // ── AI Insight ─────────────────────
             _buildSectionTitle('AI Insight'),
             const SizedBox(height: 12),
-            insightAsync.when(
-              loading: () => const InsightCard(isLoading: true),
-              error: (_, __) => const InsightCard(),
-              data: (insight) => InsightCard(
-                insightTeks: insight?.insightTeks,
-                createdAt: insight?.createdAt,
-              ),
+            InsightCard(
+              insightTeks: insightState.insight?.insightTeks,
+              createdAt: insightState.insight?.insightGeneratedAt,
+              status: insightState.insight?.status,
+              isLoading: insightState.isLoading || insightState.isPolling,
+              pollingTimedOut: insightState.pollingTimedOut,
+              errorMessage: insightState.errorMessage,
+              onRefresh: () =>
+                  ref.read(insightProvider(pengukuranId).notifier).refresh(),
             ),
             const SizedBox(height: 16),
           ],

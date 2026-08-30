@@ -9,10 +9,18 @@ import { error, success } from "../utils/response.js";
 
 const handleChatError = (res, err) => {
     if (err instanceof ChatInputValidationError) {
-        return error(res, err.message, 400);
+        return res.status(400).json({
+            success: false,
+            message: err.message,
+            data: { code: err.code },
+        });
     }
     if (err instanceof ChatServiceError) {
-        return error(res, err.message, err.status);
+        return res.status(err.status).json({
+            success: false,
+            message: err.message,
+            data: { code: err.code },
+        });
     }
     if (err instanceof GeminiClientError) {
         return res.status(503).json({

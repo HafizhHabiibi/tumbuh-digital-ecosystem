@@ -1,18 +1,27 @@
 import 'package:flutter/material.dart';
 import '../../core/constant/app_constants.dart';
 import '../../core/utils/format_utils.dart';
+import '../models/insight_model.dart';
 import 'loading_widget.dart';
 
 class InsightCard extends StatefulWidget {
   final String? insightTeks;
   final String? createdAt;
   final bool isLoading;
+  final InsightStatus? status;
+  final bool pollingTimedOut;
+  final String? errorMessage;
+  final VoidCallback? onRefresh;
 
   const InsightCard({
     super.key,
     this.insightTeks,
     this.createdAt,
     this.isLoading = false,
+    this.status,
+    this.pollingTimedOut = false,
+    this.errorMessage,
+    this.onRefresh,
   });
 
   @override
@@ -45,9 +54,29 @@ class _InsightCardState extends State<InsightCard> {
           _buildHeader(),
 
           // ── Content ───────────────────────
-          if (widget.isLoading)
+          if (widget.errorMessage != null)
+            _buildMessageState(
+              icon: Icons.wifi_off_outlined,
+              message: widget.errorMessage!,
+              actionLabel: 'Coba lagi',
+            )
+          else if (widget.status == InsightStatus.failed)
+            _buildMessageState(
+              icon: Icons.error_outline,
+              message: 'Insight belum dapat tersedia saat ini.',
+              actionLabel: 'Periksa kembali',
+            )
+          else if (widget.pollingTimedOut)
+            _buildMessageState(
+              icon: Icons.schedule_outlined,
+              message: 'Analisis masih berlangsung lebih lama dari biasanya.',
+              actionLabel: 'Periksa kembali',
+            )
+          else if (widget.isLoading ||
+              widget.status == InsightStatus.pending ||
+              widget.status == InsightStatus.processing)
             _buildLoadingState()
-          else if (widget.insightTeks == null)
+          else if (widget.insightTeks == null || widget.insightTeks!.isEmpty)
             _buildEmptyState()
           else
             _buildContent(),
@@ -172,6 +201,38 @@ class _InsightCardState extends State<InsightCard> {
               style: AppTextStyles.bodySecondary,
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMessageState({
+    required IconData icon,
+    required String message,
+    required String actionLabel,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: AppColors.textSecondary, size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(message, style: AppTextStyles.bodySecondary),
+              ),
+            ],
+          ),
+          if (widget.onRefresh != null) ...[
+            const SizedBox(height: 12),
+            TextButton.icon(
+              onPressed: widget.onRefresh,
+              icon: const Icon(Icons.refresh, size: 18),
+              label: Text(actionLabel),
+            ),
+          ],
         ],
       ),
     );

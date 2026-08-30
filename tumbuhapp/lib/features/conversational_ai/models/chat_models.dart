@@ -111,6 +111,7 @@ class ChatPagination {
 
 class ChatConversation {
   final int pengukuranId;
+  final int latestPengukuranId;
   final bool isActive;
   final InsightStatus insightStatus;
   final String? insightText;
@@ -119,6 +120,7 @@ class ChatConversation {
 
   const ChatConversation({
     required this.pengukuranId,
+    required this.latestPengukuranId,
     required this.isActive,
     required this.insightStatus,
     required this.insightText,
@@ -135,6 +137,10 @@ class ChatConversation {
     final pagination = _map(json['pagination'], 'pagination');
     return ChatConversation(
       pengukuranId: _requiredInt(json['pengukuran_id'], 'pengukuran_id'),
+      latestPengukuranId: _requiredInt(
+        json['latest_pengukuran_id'],
+        'latest_pengukuran_id',
+      ),
       isActive: json['is_active'] == true,
       insightStatus: InsightStatus.fromJson(json['insight_status']),
       insightText: json['insight_teks']?.toString(),
@@ -153,6 +159,7 @@ class ChatConversation {
   }) {
     return ChatConversation(
       pengukuranId: pengukuranId,
+      latestPengukuranId: latestPengukuranId,
       isActive: isActive,
       insightStatus: insightStatus,
       insightText: insightText,

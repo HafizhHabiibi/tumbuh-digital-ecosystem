@@ -27,6 +27,7 @@ ChatConversation _conversation({
 }) {
   return ChatConversation(
     pengukuranId: 12,
+    latestPengukuranId: 12,
     isActive: isActive,
     insightStatus: insightStatus,
     insightText: 'Insight awal',

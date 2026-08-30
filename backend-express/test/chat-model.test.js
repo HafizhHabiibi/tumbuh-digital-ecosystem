@@ -35,6 +35,7 @@ test("riwayat chat dapat membaca pengukuran lama selama masih milik orang tua", 
             id: 11,
             insight_teks: "Insight lama",
             insight_status: "completed",
+            latest_pengukuran_id: 12,
             is_latest: 0,
         }]];
     }));
@@ -45,8 +46,10 @@ test("riwayat chat dapat membaca pengukuran lama selama masih milik orang tua", 
     );
 
     assert.equal(result.is_latest, 0);
+    assert.equal(result.latest_pengukuran_id, 12);
     assert.match(captured.sql, /a\.orang_tua_id = \?/);
     assert.match(captured.sql, /AS is_latest/);
+    assert.match(captured.sql, /AS latest_pengukuran_id/);
     assert.deepEqual(captured.params, [11, "orang-tua-1"]);
 });
 

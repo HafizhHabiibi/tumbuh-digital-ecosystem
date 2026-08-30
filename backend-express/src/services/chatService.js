@@ -59,6 +59,7 @@ export const buatChatService = (dependencies = {}) => {
         });
         return {
             pengukuran_id: measurement.id,
+            latest_pengukuran_id: measurement.latest_pengukuran_id,
             is_active: Boolean(measurement.is_latest),
             insight_status: measurement.insight_status,
             insight_teks: measurement.insight_teks,

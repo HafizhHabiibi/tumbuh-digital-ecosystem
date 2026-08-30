@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tumbuhapp/core/constant/app_constants.dart';
+import 'package:tumbuhapp/core/network/dio_client.dart';
 import 'package:tumbuhapp/features/conversational_ai/data/chat_service.dart';
 import 'package:tumbuhapp/features/conversational_ai/models/chat_models.dart';
 
@@ -52,6 +53,93 @@ class _TransportErrorAdapter implements HttpClientAdapter {
   void close({bool force = false}) {}
 }
 
+class _RefreshFlowChatAdapter implements HttpClientAdapter {
+  final List<String?> authorizations = [];
+  final List<Map<String, dynamic>> payloads = [];
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    authorizations.add(options.headers['Authorization']?.toString());
+    payloads.add(Map<String, dynamic>.from(options.data as Map));
+
+    if (authorizations.length == 1) {
+      return ResponseBody.fromString(
+        jsonEncode({
+          'success': false,
+          'message': 'Token kedaluwarsa',
+          'data': {'code': 'CHAT_UNAUTHORIZED'},
+        }),
+        401,
+        headers: {
+          Headers.contentTypeHeader: [Headers.jsonContentType],
+        },
+      );
+    }
+
+    return ResponseBody.fromString(
+      jsonEncode({
+        'success': true,
+        'data': {
+          'user_message': _message(
+            id: 31,
+            role: 'orang_tua',
+            clientMessageId: payloads.last['client_message_id']?.toString(),
+          ),
+          'assistant_message': _message(
+            id: 32,
+            role: 'assistant',
+            replyToMessageId: 31,
+            responseType: 'answered',
+          ),
+          'idempotent': false,
+        },
+      }),
+      201,
+      headers: {
+        Headers.contentTypeHeader: [Headers.jsonContentType],
+      },
+    );
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
+class _RefreshTokenAdapter implements HttpClientAdapter {
+  int calls = 0;
+  Object? payload;
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    calls += 1;
+    payload = options.data;
+    return ResponseBody.fromString(
+      jsonEncode({
+        'success': true,
+        'data': {
+          'token': 'access-baru',
+          'refresh_token': 'refresh-baru',
+        },
+      }),
+      200,
+      headers: {
+        Headers.contentTypeHeader: [Headers.jsonContentType],
+      },
+    );
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
 Dio _dio(_JsonAdapter adapter) {
   return Dio(BaseOptions(baseUrl: 'http://localhost:3000/api'))
     ..httpClientAdapter = adapter;
@@ -83,6 +171,7 @@ void main() {
         'success': true,
         'data': {
           'pengukuran_id': 12,
+          'latest_pengukuran_id': 12,
           'is_active': true,
           'insight_status': 'completed',
           'insight_teks': 'Insight awal',
@@ -113,6 +202,7 @@ void main() {
       'before_id': 50,
     });
     expect(result.canSend, isTrue);
+    expect(result.latestPengukuranId, 12);
     expect(result.messages, hasLength(2));
     expect(result.messages.last.role, ChatRole.assistant);
     expect(result.messages.last.responseType, ChatResponseType.answered);
@@ -160,6 +250,54 @@ void main() {
     });
     expect(result.idempotent, isTrue);
     expect(result.assistantMessage.replyToMessageId, 31);
+  });
+
+  test('POST chat 401 me-refresh token lalu mengulang payload dengan UUID sama',
+      () async {
+    const clientMessageId = '018f0000-0000-7000-8000-000000000001';
+    var accessToken = 'access-lama';
+    var refreshToken = 'refresh-lama';
+    var storageCleared = false;
+    var expirationNotifications = 0;
+    final chatAdapter = _RefreshFlowChatAdapter();
+    final refreshAdapter = _RefreshTokenAdapter();
+    final refreshDio = Dio(BaseOptions(baseUrl: 'http://localhost:3000/api'))
+      ..httpClientAdapter = refreshAdapter;
+    final dio = Dio(BaseOptions(baseUrl: 'http://localhost:3000/api'))
+      ..httpClientAdapter = chatAdapter;
+    dio.interceptors.add(
+      AuthInterceptor(
+        dio: dio,
+        getAccessToken: () async => accessToken,
+        getRefreshToken: () async => refreshToken,
+        saveAccessToken: (token) async => accessToken = token,
+        saveRefreshToken: (token) async => refreshToken = token,
+        clearStorage: () async => storageCleared = true,
+        refreshDioFactory: () => refreshDio,
+        onSessionExpired: () => expirationNotifications += 1,
+      ),
+    );
+
+    final result = await ChatService(dio: dio).sendMessage(
+      pengukuranId: 12,
+      clientMessageId: clientMessageId,
+      message: 'Apa contoh protein?',
+    );
+
+    expect(refreshAdapter.calls, 1);
+    expect(refreshAdapter.payload, {'refresh_token': 'refresh-lama'});
+    expect(accessToken, 'access-baru');
+    expect(refreshToken, 'refresh-baru');
+    expect(chatAdapter.authorizations, [
+      'Bearer access-lama',
+      'Bearer access-baru',
+    ]);
+    expect(chatAdapter.payloads, hasLength(2));
+    expect(chatAdapter.payloads[0], chatAdapter.payloads[1]);
+    expect(chatAdapter.payloads[1]['client_message_id'], clientMessageId);
+    expect(result.userMessage.clientMessageId, clientMessageId);
+    expect(storageCleared, isFalse);
+    expect(expirationNotifications, 0);
   });
 
   test('error PII mempertahankan status, kode, dan pesan backend', () async {

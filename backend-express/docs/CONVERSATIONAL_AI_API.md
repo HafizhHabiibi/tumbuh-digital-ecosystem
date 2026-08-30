@@ -95,6 +95,7 @@ Contoh respons:
   "message": "Percakapan berhasil diambil",
   "data": {
     "pengukuran_id": 12,
+    "latest_pengukuran_id": 12,
     "is_active": true,
     "insight_status": "completed",
     "insight_teks": "**Kondisi Saat Ini**\n...",
@@ -128,7 +129,8 @@ Contoh respons:
 
 `is_active: false` berarti pengukuran tersebut bukan pengukuran terbaru. Riwayat
 dan insight awal tetap dapat ditampilkan, tetapi kolom input chat harus dibuat
-read-only oleh frontend.
+read-only oleh frontend. Gunakan `latest_pengukuran_id` untuk membuka langsung
+detail pengukuran terbaru dari banner mode riwayat.
 
 Untuk memuat halaman sebelumnya, gunakan nilai `next_before_id` sebagai
 `before_id`, lalu letakkan hasilnya sebelum pesan yang sudah tampil.

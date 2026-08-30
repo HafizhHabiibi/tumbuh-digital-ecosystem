@@ -16,6 +16,7 @@ void main() {
   test('conversation membentuk pagination dan status insight bertipe kuat', () {
     final conversation = ChatConversation.fromJson({
       'pengukuran_id': 12,
+      'latest_pengukuran_id': 12,
       'is_active': true,
       'insight_status': 'completed',
       'insight_teks': 'Insight awal',
@@ -24,6 +25,7 @@ void main() {
     });
 
     expect(conversation.insightStatus, InsightStatus.completed);
+    expect(conversation.latestPengukuranId, 12);
     expect(conversation.pagination.hasMore, isTrue);
     expect(conversation.pagination.nextBeforeId, 31);
     expect(conversation.canSend, isTrue);
@@ -58,6 +60,7 @@ void main() {
     expect(
       () => ChatConversation.fromJson({
         'pengukuran_id': 12,
+        'latest_pengukuran_id': 12,
         'is_active': true,
         'insight_status': 'unknown',
         'messages': const [],

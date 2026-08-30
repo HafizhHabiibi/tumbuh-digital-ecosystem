@@ -39,6 +39,14 @@ class _AuthenticatedAuthNotifier extends AuthNotifier {
 }
 
 class _RouterChatGateway implements ChatGateway {
+  final bool isActive;
+  final int latestPengukuranId;
+
+  const _RouterChatGateway({
+    this.isActive = true,
+    this.latestPengukuranId = 12,
+  });
+
   @override
   Future<ChatConversation> getHistory(
     int pengukuranId, {
@@ -47,7 +55,8 @@ class _RouterChatGateway implements ChatGateway {
   }) async {
     return ChatConversation(
       pengukuranId: pengukuranId,
-      isActive: true,
+      latestPengukuranId: latestPengukuranId,
+      isActive: isActive,
       insightStatus: InsightStatus.completed,
       insightText: 'Insight awal',
       messages: const [],
@@ -173,6 +182,7 @@ void main() {
       AppRoutes.chatPengukuran,
       '/pengukuran/:pengukuranId/chat',
     );
+    expect(AppRoutes.detailPengukuranLocation(15), '/pengukuran/15');
   });
 
   testWidgets('router membuka halaman chat langsung berdasarkan ID',
@@ -180,7 +190,7 @@ void main() {
     final container = ProviderContainer(
       overrides: [
         authProvider.overrideWith((ref) => _AuthenticatedAuthNotifier()),
-        chatServiceProvider.overrideWithValue(_RouterChatGateway()),
+        chatServiceProvider.overrideWithValue(const _RouterChatGateway()),
       ],
     );
     addTearDown(container.dispose);
@@ -199,5 +209,38 @@ void main() {
     expect(find.text('Tanya AI'), findsOneWidget);
     expect(find.text('Pengukuran #12'), findsOneWidget);
     expect(find.text('Aktif'), findsOneWidget);
+  });
+
+  testWidgets('tombol riwayat membuka detail pengukuran terbaru',
+      (tester) async {
+    final container = ProviderContainer(
+      overrides: [
+        authProvider.overrideWith((ref) => _AuthenticatedAuthNotifier()),
+        chatServiceProvider.overrideWithValue(
+          const _RouterChatGateway(
+            isActive: false,
+            latestPengukuranId: 15,
+          ),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    final router = container.read(appRouterProvider);
+    addTearDown(router.dispose);
+    router.go('/pengukuran/12/chat');
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp.router(routerConfig: router),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Buka pengukuran terbaru'));
+
+    expect(
+      router.routeInformationProvider.value.uri.path,
+      '/pengukuran/15',
+    );
   });
 }

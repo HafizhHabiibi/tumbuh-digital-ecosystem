@@ -63,6 +63,13 @@ export const buatChatModel = (database = db) => ({
                 p.id,
                 p.insight_teks,
                 p.insight_status,
+                (
+                    SELECT terbaru.id
+                    FROM pengukuran terbaru
+                    WHERE terbaru.anak_id = p.anak_id
+                    ORDER BY terbaru.tanggal_ukur DESC, terbaru.id DESC
+                    LIMIT 1
+                ) AS latest_pengukuran_id,
                 NOT EXISTS (
                     SELECT 1
                     FROM pengukuran terbaru

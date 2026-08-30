@@ -32,11 +32,13 @@ ChatMessage _message(
 
 ChatConversation _conversation({
   bool isActive = true,
+  int latestPengukuranId = 12,
   bool hasMore = false,
   List<ChatMessage> messages = const [],
 }) {
   return ChatConversation(
     pengukuranId: 12,
+    latestPengukuranId: latestPengukuranId,
     isActive: isActive,
     insightStatus: InsightStatus.completed,
     insightText: 'Pertumbuhan anak perlu dipantau secara rutin.',
@@ -77,13 +79,17 @@ class _FakeChatGateway implements ChatGateway {
   }
 }
 
-Widget _app(_FakeChatGateway gateway) {
+Widget _app(
+  _FakeChatGateway gateway, {
+  ValueChanged<int>? onOpenLatestMeasurement,
+}) {
   return ProviderScope(
     overrides: [chatServiceProvider.overrideWithValue(gateway)],
-    child: const MaterialApp(
+    child: MaterialApp(
       home: ConversationalAiScreen(
         pengukuranId: 12,
         tanggalPengukuran: '2026-08-29',
+        onOpenLatestMeasurement: onOpenLatestMeasurement,
       ),
     ),
   );
@@ -179,9 +185,17 @@ void main() {
   testWidgets('mode riwayat menampilkan banner tanpa composer', (tester) async {
     await tester.binding.setSurfaceSize(const Size(360, 800));
     addTearDown(() => tester.binding.setSurfaceSize(null));
-    final gateway = _FakeChatGateway(_conversation(isActive: false));
+    final gateway = _FakeChatGateway(
+      _conversation(isActive: false, latestPengukuranId: 15),
+    );
+    int? openedMeasurementId;
 
-    await tester.pumpWidget(_app(gateway));
+    await tester.pumpWidget(
+      _app(
+        gateway,
+        onOpenLatestMeasurement: (id) => openedMeasurementId = id,
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('Riwayat'), findsOneWidget);
@@ -190,6 +204,8 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Buka pengukuran terbaru'), findsOneWidget);
+    await tester.tap(find.text('Buka pengukuran terbaru'));
+    expect(openedMeasurementId, 15);
     expect(find.byKey(const ValueKey('chat-composer')), findsNothing);
     expect(
       find.text('Jawaban bersifat edukatif dan bukan diagnosis medis.'),

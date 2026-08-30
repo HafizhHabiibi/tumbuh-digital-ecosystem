@@ -57,6 +57,7 @@ test("history milik orang tua mengembalikan status aktif dan pagination", async 
     const repository = makeRepository();
     repository.findMeasurementForOrangTua = async () => ({
         id: 10,
+        latest_pengukuran_id: 12,
         is_latest: 0,
         insight_status: "completed",
         insight_teks: "Insight pengukuran lama.",
@@ -75,6 +76,7 @@ test("history milik orang tua mengembalikan status aktif dan pagination", async 
     });
 
     assert.equal(result.is_active, false);
+    assert.equal(result.latest_pengukuran_id, 12);
     assert.equal(result.insight_teks, "Insight pengukuran lama.");
     assert.equal(result.messages.length, 1);
     assert.deepEqual(result.pagination, {

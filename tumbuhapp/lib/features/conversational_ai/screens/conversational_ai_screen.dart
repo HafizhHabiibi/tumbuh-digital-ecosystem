@@ -10,7 +10,7 @@ import '../providers/chat_provider.dart';
 class ConversationalAiScreen extends ConsumerStatefulWidget {
   final int pengukuranId;
   final String? tanggalPengukuran;
-  final VoidCallback? onOpenLatestMeasurement;
+  final ValueChanged<int>? onOpenLatestMeasurement;
 
   const ConversationalAiScreen({
     super.key,
@@ -111,7 +111,8 @@ class _ConversationalAiScreenState
       children: [
         if (state.isReadOnly)
           _ReadOnlyBanner(
-            onOpenLatest: _openLatestMeasurement,
+            onOpenLatest: () =>
+                _openLatestMeasurement(conversation.latestPengukuranId),
           ),
         Expanded(
           child: RefreshIndicator(
@@ -332,10 +333,10 @@ class _ConversationalAiScreenState
     }
   }
 
-  void _openLatestMeasurement() {
+  void _openLatestMeasurement(int latestPengukuranId) {
     final callback = widget.onOpenLatestMeasurement;
     if (callback != null) {
-      callback();
+      callback(latestPengukuranId);
       return;
     }
     Navigator.of(context).maybePop();

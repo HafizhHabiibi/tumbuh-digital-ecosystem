@@ -37,6 +37,9 @@ class AppRoutes {
   static const String jadwal = '/jadwal';
   static const String profil = '/profil';
 
+  static String detailPengukuranLocation(int pengukuranId) =>
+      '/pengukuran/$pengukuranId';
+
   static String chatPengukuranLocation(
     int pengukuranId, {
     String? tanggalPengukuran,
@@ -141,7 +144,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           return ConversationalAiScreen(
             pengukuranId: pengukuranId,
             tanggalPengukuran: state.uri.queryParameters['tanggal'],
-            onOpenLatestMeasurement: () => context.go(AppRoutes.dashboard),
+            onOpenLatestMeasurement: (latestPengukuranId) => context.go(
+              AppRoutes.detailPengukuranLocation(latestPengukuranId),
+            ),
           );
         },
       ),

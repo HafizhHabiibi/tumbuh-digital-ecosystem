@@ -128,7 +128,7 @@ class _ConversationalAiScreenState
                   dateLabel: _measurementLabel,
                   insightText: conversation.insightText,
                 ),
-                if (state.errorMessage != null) ...[
+                if (state.errorMessage != null && !state.hasComposerError) ...[
                   const SizedBox(height: 12),
                   _ErrorBanner(
                     message: _friendlyError(state),
@@ -205,6 +205,10 @@ class _ConversationalAiScreenState
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              if (state.hasComposerError && state.errorMessage != null) ...[
+                _ComposerError(message: _friendlyError(state)),
+                const SizedBox(height: 8),
+              ],
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -213,7 +217,7 @@ class _ConversationalAiScreenState
                       key: const ValueKey('chat-composer'),
                       controller: _messageController,
                       focusNode: _focusNode,
-                      enabled: state.isActiveMode && !state.isSending,
+                      enabled: state.canSend,
                       minLines: 1,
                       maxLines: 5,
                       maxLength: 1000,
@@ -738,6 +742,36 @@ class _EducationalDisclosure extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _ComposerError extends StatelessWidget {
+  final String message;
+
+  const _ComposerError({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      key: const ValueKey('chat-composer-error'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Icon(
+          Icons.error_outline,
+          size: 16,
+          color: AppColors.statusBurukText,
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            message,
+            style: AppTextStyles.caption.copyWith(
+              color: AppColors.statusBurukText,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

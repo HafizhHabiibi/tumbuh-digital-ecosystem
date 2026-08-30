@@ -15,6 +15,7 @@ class AppConstants {
   // Timeout
   static const int connectTimeout = 30000;
   static const int receiveTimeout = 30000;
+  static const int chatReceiveTimeout = 60000;
 }
 
 class AppColors {

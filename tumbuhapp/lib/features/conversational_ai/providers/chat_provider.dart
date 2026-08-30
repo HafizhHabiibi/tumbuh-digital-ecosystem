@@ -47,6 +47,7 @@ class ChatState {
   final bool isSending;
   final String? errorMessage;
   final String? errorCode;
+  final int? errorStatusCode;
 
   const ChatState({
     this.conversation,
@@ -57,6 +58,7 @@ class ChatState {
     this.isSending = false,
     this.errorMessage,
     this.errorCode,
+    this.errorStatusCode,
   });
 
   bool get canSend =>
@@ -66,6 +68,7 @@ class ChatState {
       !isLoading;
   bool get isReadOnly => conversation != null && !conversation!.isActive;
   bool get isActiveMode => conversation?.canSend == true;
+  bool get hasComposerError => errorStatusCode == 400;
 
   ChatState copyWith({
     ChatConversation? conversation,
@@ -77,6 +80,7 @@ class ChatState {
     bool? isSending,
     String? errorMessage,
     String? errorCode,
+    int? errorStatusCode,
     bool clearError = false,
   }) {
     return ChatState(
@@ -89,6 +93,8 @@ class ChatState {
       isSending: isSending ?? this.isSending,
       errorMessage: clearError ? null : errorMessage ?? this.errorMessage,
       errorCode: clearError ? null : errorCode ?? this.errorCode,
+      errorStatusCode:
+          clearError ? null : errorStatusCode ?? this.errorStatusCode,
     );
   }
 }
@@ -122,6 +128,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
         isLoading: false,
         errorMessage: error.message,
         errorCode: error.code,
+        errorStatusCode: error.statusCode,
       );
     }
   }
@@ -157,6 +164,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
         isLoadingOlder: false,
         errorMessage: error.message,
         errorCode: error.code,
+        errorStatusCode: error.statusCode,
       );
     }
   }
@@ -266,7 +274,27 @@ class ChatNotifier extends StateNotifier<ChatState> {
         clearPendingMessage: !canRetry,
         errorMessage: error.message,
         errorCode: error.code,
+        errorStatusCode: error.statusCode,
       );
+      if (error.code == 'CHAT_INSIGHT_NOT_READY') {
+        await _refreshConversationAfterInsightNotReady(error);
+      }
+    }
+  }
+
+  Future<void> _refreshConversationAfterInsightNotReady(
+    ChatApiException originalError,
+  ) async {
+    try {
+      final conversation = await gateway.getHistory(pengukuranId);
+      state = state.copyWith(
+        conversation: conversation,
+        errorMessage: originalError.message,
+        errorCode: originalError.code,
+        errorStatusCode: originalError.statusCode,
+      );
+    } on ChatApiException {
+      // Pertahankan error POST asli agar pengguna mendapat penyebab yang tepat.
     }
   }
 

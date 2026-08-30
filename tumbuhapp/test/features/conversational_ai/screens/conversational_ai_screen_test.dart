@@ -219,4 +219,69 @@ void main() {
     expect(find.text('Coba lagi'), findsOneWidget);
     expect(find.text('Layanan AI sementara tidak tersedia'), findsOneWidget);
   });
+
+  testWidgets('400 PII ditampilkan dekat composer dan input dapat diperbaiki',
+      (tester) async {
+    final gateway = _FakeChatGateway(_conversation())
+      ..sendError = const ChatApiException(
+        'Hapus data pribadi dari pertanyaan',
+        statusCode: 400,
+        code: 'CHAT_PII_DETECTED',
+      );
+
+    await tester.pumpWidget(_app(gateway));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('chat-composer')),
+      'Nama anak saya adalah data pribadi',
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('send-chat-message')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('chat-composer-error')), findsOneWidget);
+    expect(
+      find.text(
+        'Hapus nama, NIK, nomor telepon, atau informasi pribadi dari '
+        'pertanyaan Anda.',
+      ),
+      findsOneWidget,
+    );
+    expect(
+      tester
+          .widget<TextField>(find.byKey(const ValueKey('chat-composer')))
+          .enabled,
+      isTrue,
+    );
+  });
+
+  testWidgets('429 menonaktifkan input dan mempertahankan tombol retry',
+      (tester) async {
+    final gateway = _FakeChatGateway(_conversation())
+      ..sendError = const ChatApiException(
+        'Terlalu banyak pesan, coba kembali nanti',
+        statusCode: 429,
+        code: 'CHAT_RATE_LIMITED',
+      );
+
+    await tester.pumpWidget(_app(gateway));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('chat-composer')),
+      'Apa yang perlu dipantau?',
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('send-chat-message')));
+    await tester.pumpAndSettle();
+
+    expect(
+        find.text('Terlalu banyak pesan, coba kembali nanti'), findsOneWidget);
+    expect(find.text('Coba lagi'), findsOneWidget);
+    expect(
+      tester
+          .widget<TextField>(find.byKey(const ValueKey('chat-composer')))
+          .enabled,
+      isFalse,
+    );
+  });
 }

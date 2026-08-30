@@ -46,6 +46,7 @@ class _FakeGateway implements ChatGateway {
   final List<String> sentIds = [];
   final List<String> sentMessages = [];
   final List<int?> cursors = [];
+  final List<ChatConversation> historySequence = [];
 
   @override
   Future<ChatConversation> getHistory(
@@ -54,6 +55,7 @@ class _FakeGateway implements ChatGateway {
     int? beforeId,
   }) async {
     cursors.add(beforeId);
+    if (historySequence.isNotEmpty) return historySequence.removeAt(0);
     return history;
   }
 
@@ -267,5 +269,81 @@ void main() {
     expect(notifier.state.canSend, isFalse);
     expect(gateway.sentIds, isEmpty);
     expect(notifier.state.conversation?.messages, isEmpty);
+  });
+
+  test('history tetap dimuat kembali setelah notifier dibuka ulang', () async {
+    final gateway = _FakeGateway()
+      ..history = _conversation(
+        messages: [
+          _message(31, ChatRole.orangTua),
+          _message(32, ChatRole.assistant),
+        ],
+      );
+
+    final first = ChatNotifier(pengukuranId: 12, gateway: gateway);
+    await first.load();
+    final reopened = ChatNotifier(pengukuranId: 12, gateway: gateway);
+    await reopened.load();
+
+    expect(first.state.conversation?.messages, hasLength(2));
+    expect(reopened.state.conversation?.messages, hasLength(2));
+    expect(gateway.cursors, [null, null]);
+  });
+
+  test('409 insight belum siap me-refresh conversation dan menghentikan retry',
+      () async {
+    final gateway = _FakeGateway()
+      ..historySequence.addAll([
+        _conversation(),
+        _conversation(insightStatus: InsightStatus.processing),
+      ])
+      ..nextError = const ChatApiException(
+        'Insight belum siap',
+        statusCode: 409,
+        code: 'CHAT_INSIGHT_NOT_READY',
+      );
+    final notifier = ChatNotifier(
+      pengukuranId: 12,
+      gateway: gateway,
+      messageIdGenerator: () => 'uuid-insight',
+    );
+
+    await notifier.load();
+    await notifier.sendMessage('Bagaimana hasilnya?');
+
+    expect(gateway.cursors, [null, null]);
+    expect(
+        notifier.state.conversation?.insightStatus, InsightStatus.processing);
+    expect(notifier.state.pendingMessage, isNull);
+    expect(notifier.state.errorCode, 'CHAT_INSIGHT_NOT_READY');
+    expect(notifier.state.canSend, isFalse);
+  });
+
+  test('429, 503, timeout, dan offline mempertahankan bubble untuk retry',
+      () async {
+    final failures = [
+      const ChatApiException('Terlalu banyak pesan', statusCode: 429),
+      const ChatApiException('AI tidak tersedia', statusCode: 503),
+      const ChatApiException('Waktu tunggu habis'),
+      const ChatApiException('Tidak ada koneksi internet'),
+    ];
+
+    for (final failure in failures) {
+      final gateway = _FakeGateway()..nextError = failure;
+      final notifier = ChatNotifier(
+        pengukuranId: 12,
+        gateway: gateway,
+        messageIdGenerator: () => 'uuid-retry',
+      );
+      await notifier.load();
+      await notifier.sendMessage('Bagaimana hasilnya?');
+
+      expect(notifier.state.pendingMessage?.clientMessageId, 'uuid-retry');
+      expect(notifier.state.canSend, isFalse);
+      expect(
+        notifier.state.conversation?.messages.single.sendStatus,
+        ChatSendStatus.failed,
+      );
+    }
   });
 }

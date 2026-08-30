@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:tumbuhapp/core/constant/app_constants.dart';
 import 'package:tumbuhapp/features/conversational_ai/data/chat_service.dart';
 import 'package:tumbuhapp/features/conversational_ai/models/chat_models.dart';
 
@@ -27,6 +28,24 @@ class _JsonAdapter implements HttpClientAdapter {
         Headers.contentTypeHeader: [Headers.jsonContentType],
       },
     );
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
+class _TransportErrorAdapter implements HttpClientAdapter {
+  final DioExceptionType type;
+
+  _TransportErrorAdapter(this.type);
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) {
+    throw DioException(requestOptions: options, type: type);
   }
 
   @override
@@ -131,6 +150,10 @@ void main() {
     );
 
     expect(adapter.request?.method, 'POST');
+    expect(
+      adapter.request?.receiveTimeout,
+      const Duration(milliseconds: AppConstants.chatReceiveTimeout),
+    );
     expect(adapter.request?.data, {
       'client_message_id': clientMessageId,
       'message': 'Apa contoh protein?',
@@ -205,5 +228,93 @@ void main() {
 
     expect(conflict.canRetry, isFalse);
     expect(processing.canRetry, isTrue);
+  });
+
+  group('matriks status HTTP', () {
+    final scenarios = <({int status, String code, bool canRetry})>[
+      (status: 400, code: 'CHAT_MESSAGE_TOO_SHORT', canRetry: false),
+      (status: 401, code: 'CHAT_UNAUTHORIZED', canRetry: false),
+      (status: 403, code: 'CHAT_FORBIDDEN', canRetry: false),
+      (status: 404, code: 'CHAT_CONVERSATION_NOT_FOUND', canRetry: false),
+      (status: 409, code: 'CHAT_INSIGHT_NOT_READY', canRetry: false),
+      (status: 409, code: 'CHAT_REQUEST_PROCESSING', canRetry: true),
+      (status: 409, code: 'CHAT_IDEMPOTENCY_CONFLICT', canRetry: false),
+      (status: 429, code: 'CHAT_RATE_LIMITED', canRetry: true),
+      (status: 503, code: 'CHAT_PROVIDER_UNAVAILABLE', canRetry: true),
+    ];
+
+    for (final scenario in scenarios) {
+      test('${scenario.status} ${scenario.code} dipetakan ke kebijakan retry',
+          () async {
+        final adapter = _JsonAdapter(
+          statusCode: scenario.status,
+          body: {
+            'success': false,
+            'message': 'Pesan aman dari backend',
+            'data': {'code': scenario.code},
+          },
+        );
+        final service = ChatService(dio: _dio(adapter));
+
+        await expectLater(
+          service.sendMessage(
+            pengukuranId: 12,
+            clientMessageId: '018f0000-0000-7000-8000-000000000001',
+            message: 'Bagaimana hasilnya?',
+          ),
+          throwsA(
+            isA<ChatApiException>()
+                .having(
+                  (error) => error.statusCode,
+                  'statusCode',
+                  scenario.status,
+                )
+                .having((error) => error.code, 'code', scenario.code)
+                .having(
+                  (error) => error.canRetry,
+                  'canRetry',
+                  scenario.canRetry,
+                ),
+          ),
+        );
+      });
+    }
+  });
+
+  test('timeout dan offline menghasilkan pesan eksplisit serta dapat di-retry',
+      () async {
+    final timeoutService = ChatService(
+      dio: Dio(BaseOptions(baseUrl: 'http://localhost:3000/api'))
+        ..httpClientAdapter =
+            _TransportErrorAdapter(DioExceptionType.receiveTimeout),
+    );
+    final offlineService = ChatService(
+      dio: Dio(BaseOptions(baseUrl: 'http://localhost:3000/api'))
+        ..httpClientAdapter =
+            _TransportErrorAdapter(DioExceptionType.connectionError),
+    );
+
+    Future<void> expectFailure(
+      ChatService service,
+      String messagePart,
+    ) async {
+      await expectLater(
+        service.sendMessage(
+          pengukuranId: 12,
+          clientMessageId: '018f0000-0000-7000-8000-000000000001',
+          message: 'Bagaimana hasilnya?',
+        ),
+        throwsA(
+          isA<ChatApiException>()
+              .having(
+                  (error) => error.message, 'message', contains(messagePart))
+              .having((error) => error.statusCode, 'statusCode', isNull)
+              .having((error) => error.canRetry, 'canRetry', isTrue),
+        ),
+      );
+    }
+
+    await expectFailure(timeoutService, 'Waktu tunggu');
+    await expectFailure(offlineService, 'Tidak ada koneksi internet');
   });
 }

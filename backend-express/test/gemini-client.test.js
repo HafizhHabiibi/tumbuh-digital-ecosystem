@@ -296,10 +296,18 @@ test("client menolak JSON atau struktur keluaran yang tidak valid", async () => 
     );
 });
 
-test("classifier membedakan rate limit dan error fatal", () => {
+test("classifier membedakan rate limit, timeout, dan error fatal", () => {
     const rateLimit = new Error("limited");
     rateLimit.response = { status: 429, headers: {} };
     assert.equal(classifyGeminiError(rateLimit).kind, "rate_limit");
+
+    const timeout = new Error("timeout");
+    timeout.code = "ETIMEDOUT";
+    assert.deepEqual(classifyGeminiError(timeout), {
+        kind: "transient",
+        retryable: true,
+        status: null,
+    });
 
     const badRequest = new Error("bad request");
     badRequest.response = { status: 400 };

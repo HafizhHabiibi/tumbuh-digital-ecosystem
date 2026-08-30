@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/constant/api_constants.dart';
+import '../../../core/constant/app_constants.dart';
 import '../../../core/network/dio_client.dart';
 import '../models/chat_models.dart';
 
@@ -31,9 +32,12 @@ class ChatApiException implements Exception {
   });
 
   bool get canRetry {
-    if (code == 'CHAT_IDEMPOTENCY_CONFLICT') return false;
+    if (code == 'CHAT_IDEMPOTENCY_CONFLICT' ||
+        code == 'CHAT_INSIGHT_NOT_READY') {
+      return false;
+    }
     return statusCode == null ||
-        statusCode == 409 ||
+        code == 'CHAT_REQUEST_PROCESSING' ||
         statusCode == 429 ||
         statusCode == 503 ||
         (statusCode != null && statusCode! >= 500);
@@ -80,6 +84,11 @@ class ChatService implements ChatGateway {
     try {
       final response = await _dio.post(
         ApiConstants.chatPengukuran(pengukuranId),
+        options: Options(
+          receiveTimeout: const Duration(
+            milliseconds: AppConstants.chatReceiveTimeout,
+          ),
+        ),
         data: {
           'client_message_id': clientMessageId,
           'message': message,
@@ -107,8 +116,18 @@ class ChatService implements ChatGateway {
         ? Map<String, dynamic>.from(body['data'] as Map)
         : const <String, dynamic>{};
     final backendMessage = body is Map ? body['message']?.toString() : null;
+    final transportMessage = switch (error.type) {
+      DioExceptionType.connectionTimeout ||
+      DioExceptionType.sendTimeout ||
+      DioExceptionType.receiveTimeout =>
+        'Waktu tunggu percakapan habis, silakan coba lagi',
+      DioExceptionType.connectionError =>
+        'Tidak ada koneksi internet. Pesan belum terkirim.',
+      _ => null,
+    };
     return ChatApiException(
       backendMessage ??
+          transportMessage ??
           error.error?.toString() ??
           error.message ??
           'Percakapan gagal dimuat, silakan coba lagi',

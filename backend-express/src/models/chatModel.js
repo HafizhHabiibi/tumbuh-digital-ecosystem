@@ -50,6 +50,12 @@ const reservationQuery = `${exchangeSelect}
        AND pengguna.role = 'orang_tua'
      FOR UPDATE`;
 
+const RETRYABLE_RESERVATION_ERRORS = new Set([
+    "ER_DUP_ENTRY",
+    "ER_LOCK_DEADLOCK",
+    "ER_LOCK_WAIT_TIMEOUT",
+]);
+
 export const buatChatModel = (database = db) => ({
     async findMeasurementForOrangTua(pengukuranId, orangTuaId) {
         const [rows] = await database.query(
@@ -180,7 +186,7 @@ export const buatChatModel = (database = db) => ({
             Math.max(10, Number(leaseSeconds) || 120),
         );
 
-        for (let attempt = 0; attempt < 2; attempt += 1) {
+        for (let attempt = 0; attempt < 3; attempt += 1) {
             const connection = await database.getConnection();
             try {
                 await connection.beginTransaction();
@@ -255,7 +261,10 @@ export const buatChatModel = (database = db) => ({
                 };
             } catch (error) {
                 await connection.rollback();
-                if (error?.code === "ER_DUP_ENTRY" && attempt === 0) {
+                if (
+                    RETRYABLE_RESERVATION_ERRORS.has(error?.code) &&
+                    attempt < 2
+                ) {
                     continue;
                 }
                 throw error;

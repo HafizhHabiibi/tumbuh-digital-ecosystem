@@ -190,6 +190,59 @@ test("reservasi request dibuat sebelum balasan assistant", async () => {
     assert.equal(calls.includes("rollback"), false);
 });
 
+test("deadlock reservasi concurrent diulang lalu membaca status processing", async () => {
+    const clientMessageId = "018f0000-0000-7000-8000-000000000001";
+    const calls = [];
+    let connectionNumber = 0;
+    const database = {
+        getConnection: async () => {
+            connectionNumber += 1;
+            const current = connectionNumber;
+            return {
+                beginTransaction: async () => calls.push(`begin-${current}`),
+                query: async (sql) => {
+                    if (current === 1) {
+                        if (/FOR UPDATE/.test(sql)) return [[]];
+                        const error = new Error("deadlock");
+                        error.code = "ER_LOCK_DEADLOCK";
+                        throw error;
+                    }
+                    return [[{
+                        user_message_id: 40,
+                        pengukuran_id: 12,
+                        client_message_id: clientMessageId,
+                        user_content: "Apa variasi makanannya?",
+                        request_status: "processing",
+                        request_in_flight: 1,
+                        assistant_message_id: null,
+                    }]];
+                },
+                commit: async () => calls.push(`commit-${current}`),
+                rollback: async () => calls.push(`rollback-${current}`),
+                release: () => calls.push(`release-${current}`),
+            };
+        },
+    };
+    const model = buatChatModel(database);
+
+    const result = await model.reserveExchange({
+        pengukuranId: 12,
+        clientMessageId,
+        userContent: "Apa variasi makanannya?",
+    });
+
+    assert.deepEqual(result, { status: "processing" });
+    assert.equal(connectionNumber, 2);
+    assert.deepEqual(calls, [
+        "begin-1",
+        "rollback-1",
+        "release-1",
+        "begin-2",
+        "commit-2",
+        "release-2",
+    ]);
+});
+
 test("penyelesaian reservasi menyimpan assistant dan menandai completed", async () => {
     const calls = [];
     const connection = {

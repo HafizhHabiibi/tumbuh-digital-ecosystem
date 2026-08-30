@@ -245,6 +245,14 @@ export const getInsight = async (req, res) => {
             );
         }
 
+        if (result.insight_status === "superseded") {
+            return success(
+                res,
+                { insight_status: "superseded", insight_teks: null },
+                "Insight tidak dibuat untuk pengukuran historis ini",
+            );
+        }
+
         if (!result.insight_teks) {
             return success(
                 res,

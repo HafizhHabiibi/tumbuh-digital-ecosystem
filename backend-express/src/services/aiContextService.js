@@ -85,7 +85,7 @@ export const serializeConversationContext = (context) => {
     return [
         "KONTEKS PENGUKURAN TERBARU",
         `Jenis kelamin: ${gender}`,
-        `Usia: ${p.usia_bulan} bulan`,
+        `Usia saat pengukuran: ${p.usia_bulan} bulan`,
         `Pengukuran: BB ${p.berat_badan} kg, TB ${p.tinggi_badan} cm, IMT ${p.nilai_imt}`,
         `BB/U: ${labelStatusAntropometri("bbu", p.status_bbu)}`,
         `TB/U: ${labelStatusAntropometri("tbu", p.status_tbu)}`,

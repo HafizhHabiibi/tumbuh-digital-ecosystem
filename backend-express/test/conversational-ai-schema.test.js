@@ -30,7 +30,7 @@ test("pengukuran memiliki metadata antrean insight yang dapat dipulihkan", () =>
 
     assert.match(
         definition,
-        /insight_status ENUM\('pending', 'processing', 'completed', 'failed'\)/,
+        /insight_status ENUM\('pending', 'processing', 'completed', 'failed', 'superseded'\)/,
     );
     assert.match(definition, /insight_attempts TINYINT UNSIGNED/);
     assert.match(definition, /insight_available_at DATETIME/);

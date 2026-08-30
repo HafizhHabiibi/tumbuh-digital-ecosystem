@@ -2,7 +2,8 @@ enum InsightStatus {
   pending,
   processing,
   completed,
-  failed;
+  failed,
+  superseded;
 
   static InsightStatus fromJson(Object? value) {
     switch (value) {
@@ -14,6 +15,8 @@ enum InsightStatus {
         return InsightStatus.completed;
       case 'failed':
         return InsightStatus.failed;
+      case 'superseded':
+        return InsightStatus.superseded;
       default:
         throw FormatException('Status insight tidak valid: $value');
     }

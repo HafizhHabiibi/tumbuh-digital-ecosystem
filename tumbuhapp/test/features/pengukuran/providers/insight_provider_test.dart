@@ -80,6 +80,22 @@ void main() {
     expect(controller.state.insight?.status, InsightStatus.failed);
   });
 
+  test('superseded menjadi state terminal tanpa polling', () async {
+    final gateway = _FakeGateway([_insight(InsightStatus.superseded)]);
+    final controller = InsightController(
+      pengukuranId: 12,
+      gateway: gateway,
+      delay: (_) async {},
+    );
+
+    await controller.load();
+
+    expect(gateway.calls, 1);
+    expect(controller.state.insight?.status, InsightStatus.superseded);
+    expect(controller.state.isPolling, isFalse);
+    expect(controller.state.pollingTimedOut, isFalse);
+  });
+
   test('network error ditampilkan eksplisit dan tidak menjadi insight kosong',
       () async {
     final gateway = _FakeGateway([Exception('Jaringan terputus')]);

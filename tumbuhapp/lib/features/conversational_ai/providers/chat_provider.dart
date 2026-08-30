@@ -105,6 +105,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
   final ChatMessageIdGenerator messageIdGenerator;
 
   int _nextOptimisticId = -1;
+  bool _isDisposed = false;
 
   ChatNotifier({
     required this.pengukuranId,
@@ -113,17 +114,26 @@ class ChatNotifier extends StateNotifier<ChatState> {
   })  : messageIdGenerator = messageIdGenerator ?? generateChatMessageId,
         super(const ChatState());
 
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
+  }
+
   Future<void> load() async {
+    if (_isDisposed) return;
     if (state.isLoading) return;
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final conversation = await gateway.getHistory(pengukuranId);
+      if (_isDisposed) return;
       state = state.copyWith(
         conversation: conversation,
         isLoading: false,
         clearError: true,
       );
     } on ChatApiException catch (error) {
+      if (_isDisposed) return;
       state = state.copyWith(
         isLoading: false,
         errorMessage: error.message,
@@ -147,6 +157,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
         pengukuranId,
         beforeId: current.nextBeforeId,
       );
+      if (_isDisposed) return;
       final latest = state.conversation;
       if (latest == null) {
         state = state.copyWith(isLoadingOlder: false);
@@ -160,6 +171,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
         isLoadingOlder: false,
       );
     } on ChatApiException catch (error) {
+      if (_isDisposed) return;
       state = state.copyWith(
         isLoadingOlder: false,
         errorMessage: error.message,
@@ -246,6 +258,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
         clientMessageId: pending.clientMessageId,
         message: pending.content,
       );
+      if (_isDisposed) return;
       final current = state.conversation;
       state = state.copyWith(
         conversation: current?.copyWith(
@@ -262,6 +275,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
         clearError: true,
       );
     } on ChatApiException catch (error) {
+      if (_isDisposed) return;
       final canRetry = error.canRetry;
       state = state.copyWith(
         conversation: _replaceLocalMessageStatus(
@@ -287,6 +301,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
   ) async {
     try {
       final conversation = await gateway.getHistory(pengukuranId);
+      if (_isDisposed) return;
       state = state.copyWith(
         conversation: conversation,
         errorMessage: originalError.message,

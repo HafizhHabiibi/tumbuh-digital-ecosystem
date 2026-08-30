@@ -66,6 +66,12 @@ class _InsightCardState extends State<InsightCard> {
               message: 'Insight belum dapat tersedia saat ini.',
               actionLabel: 'Periksa kembali',
             )
+          else if (widget.status == InsightStatus.superseded)
+            _buildMessageState(
+              icon: Icons.history_outlined,
+              message: 'AI Insight tidak dibuat untuk pengukuran historis '
+                  'ini. Silakan lihat insight pada pengukuran terbaru.',
+            )
           else if (widget.pollingTimedOut)
             _buildMessageState(
               icon: Icons.schedule_outlined,
@@ -209,7 +215,7 @@ class _InsightCardState extends State<InsightCard> {
   Widget _buildMessageState({
     required IconData icon,
     required String message,
-    required String actionLabel,
+    String? actionLabel,
   }) {
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -225,7 +231,7 @@ class _InsightCardState extends State<InsightCard> {
               ),
             ],
           ),
-          if (widget.onRefresh != null) ...[
+          if (widget.onRefresh != null && actionLabel != null) ...[
             const SizedBox(height: 12),
             TextButton.icon(
               onPressed: widget.onRefresh,

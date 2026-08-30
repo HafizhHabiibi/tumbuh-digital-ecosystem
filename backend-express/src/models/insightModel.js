@@ -117,7 +117,19 @@ export const buatInsightModel = (database = db) => ({
                 p.insight_teks,
                 p.insight_status,
                 p.insight_generated_at,
-                p.created_at
+                p.created_at,
+                NOT EXISTS (
+                    SELECT 1
+                    FROM pengukuran terbaru
+                    WHERE terbaru.anak_id = p.anak_id
+                      AND (
+                          terbaru.tanggal_ukur > p.tanggal_ukur
+                          OR (
+                              terbaru.tanggal_ukur = p.tanggal_ukur
+                              AND terbaru.id > p.id
+                          )
+                      )
+                ) AS is_latest
              FROM pengukuran p
              JOIN anak a ON a.id = p.anak_id
              WHERE p.id = ? AND a.orang_tua_id = ?`,

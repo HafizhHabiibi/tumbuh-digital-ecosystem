@@ -42,6 +42,7 @@ test("prompt insight tidak mengirim Z-Score mentah", () => {
 
     assert.doesNotMatch(prompt, /z-?score/i);
     assert.doesNotMatch(prompt, /-1\.2|-2\.1|0\.1|0\.2/);
+    assert.match(prompt, /Usia saat pengukuran: 24 bulan/);
     assert.match(prompt, /Kategori TB\/U: lebih pendek/);
     assert.match(prompt, /Prioritas pemantauan SAW: sedang/);
 });
@@ -96,6 +97,8 @@ test("generateInsightContent memakai client terinjeksi dan menghasilkan teks", a
     assert.match(result.insight_teks, /pemantauan rutin/);
     assert.equal(typeof request.validate, "function");
     assert.equal(request.maxOutputTokens, 1024);
+    assert.match(request.systemInstruction, /usia anak saat pengukuran/);
+    assert.match(request.systemInstruction, /bukan usia anak saat ini/);
 });
 
 const chatContext = {
@@ -122,6 +125,7 @@ test("prompt chat membawa insight dan history tanpa identitas atau Z-Score", () 
     const prompt = susunPromptChat(chatContext, "Bagaimana variasinya?");
 
     assert.match(prompt, /Insight awal: Pertahankan/);
+    assert.match(prompt, /Usia saat pengukuran: 24 bulan/);
     assert.match(prompt, /orang_tua: Apa contoh proteinnya/);
     assert.match(prompt, /PERTANYAAN ORANG TUA SAAT INI/);
     assert.doesNotMatch(prompt, /z-?score|nik|nama anak/i);
@@ -152,4 +156,6 @@ test("generateChatContent memakai schema dan validator guardrail", async () => {
     assert.equal(result.model, "gemini-3.6-flash");
     assert.equal(request.maxOutputTokens, 512);
     assert.equal(request.responseSchema.type, "OBJECT");
+    assert.match(request.systemInstruction, /usia anak saat pengukuran/);
+    assert.match(request.systemInstruction, /bukan usia anak saat ini/);
 });

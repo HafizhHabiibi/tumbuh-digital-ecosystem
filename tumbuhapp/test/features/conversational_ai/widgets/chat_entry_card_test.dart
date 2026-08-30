@@ -125,6 +125,38 @@ void main() {
     });
   }
 
+  testWidgets('status superseded menjelaskan chat historis tidak tersedia',
+      (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ChatEntryCard(
+            insightStatus: InsightStatus.superseded,
+            onPressed: () {},
+          ),
+        ),
+      ),
+    );
+
+    expect(
+      find.text(
+        'Percakapan tidak tersedia karena AI Insight tidak dibuat untuk '
+        'pengukuran historis ini.',
+      ),
+      findsOneWidget,
+    );
+    expect(
+      tester
+          .widget<FilledButton>(
+            find.byKey(const ValueKey('open-conversational-ai')),
+          )
+          .onPressed,
+      isNull,
+    );
+    expect(find.text('Percakapan tersedia setelah insight selesai.'),
+        findsNothing);
+  });
+
   test('lokasi chat mendukung navigasi dengan tanggal dan deep link ID', () {
     expect(
       AppRoutes.chatPengukuranLocation(

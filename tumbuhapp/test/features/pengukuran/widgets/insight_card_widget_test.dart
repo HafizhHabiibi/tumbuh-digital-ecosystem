@@ -39,4 +39,24 @@ void main() {
     expect(find.text('Insight belum tersedia untuk pengukuran ini.'),
         findsNothing);
   });
+
+  testWidgets('menampilkan pengukuran historis tanpa refresh', (tester) async {
+    var refreshed = false;
+    await tester.pumpWidget(
+      _app(InsightCard(
+        status: InsightStatus.superseded,
+        onRefresh: () => refreshed = true,
+      )),
+    );
+
+    expect(
+      find.text(
+        'AI Insight tidak dibuat untuk pengukuran historis ini. '
+        'Silakan lihat insight pada pengukuran terbaru.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Periksa kembali'), findsNothing);
+    expect(refreshed, isFalse);
+  });
 }

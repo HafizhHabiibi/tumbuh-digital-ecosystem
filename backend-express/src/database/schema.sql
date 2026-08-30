@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS pengukuran (
     lingkar_lengan DECIMAL(5,2) DEFAULT NULL,
     -- AI-generated content (non-deterministic, disimpan karena tidak bisa direproduksi)
     insight_teks TEXT DEFAULT NULL,
-    insight_status ENUM('pending', 'processing', 'completed', 'failed') NOT NULL DEFAULT 'pending',
+    insight_status ENUM('pending', 'processing', 'completed', 'failed', 'superseded') NOT NULL DEFAULT 'pending',
     insight_attempts TINYINT UNSIGNED NOT NULL DEFAULT 0,
     -- Dipakai sebagai jadwal retry atau batas lease ketika sedang diproses.
     insight_available_at DATETIME DEFAULT CURRENT_TIMESTAMP,

@@ -116,6 +116,8 @@ test("serializer menjelaskan kategori tanpa nilai Z-Score atau identitas", () =>
     );
 
     assert.match(serialized, /KONTEKS PENGUKURAN TERBARU/);
+    assert.match(serialized, /Usia saat pengukuran: 24 bulan/);
+    assert.doesNotMatch(serialized, /\nUsia: 24 bulan/);
     assert.match(serialized, /BB\/U: berat badan normal/);
     assert.match(serialized, /TB\/U:/);
     assert.doesNotMatch(serialized, /z-?score/i);

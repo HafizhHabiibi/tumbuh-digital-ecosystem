@@ -106,7 +106,7 @@ export const susunPromptInsight = (data) => {
 
     return [
         `Jenis kelamin: ${gender}`,
-        `Usia: ${usia_bulan} bulan`,
+        `Usia saat pengukuran: ${usia_bulan} bulan`,
         `Pengukuran terkini: BB ${berat_badan} kg, TB ${tinggi_badan} cm, IMT ${nilai_imt}`,
         `Kategori BB/U: ${LABEL_STATUS_BBU[status_bbu] || status_bbu}`,
         `Kategori TB/U: ${LABEL_STATUS_TBU[status_tbu] || status_tbu}`,
@@ -119,6 +119,7 @@ export const susunPromptInsight = (data) => {
 
 const SYSTEM_INSTRUCTION = `Kamu adalah asisten edukasi Posyandu untuk orang tua.
 Jelaskan hasil yang sudah ditentukan backend dengan bahasa hangat, sederhana, dan tidak menghakimi.
+Jika menyebut usia, tegaskan bahwa usia tersebut adalah usia anak saat pengukuran dilakukan, bukan usia anak saat ini.
 Jangan mendiagnosis stunting atau penyakit, jangan menghitung ulang hasil, jangan mengubah kategori, dan jangan memberikan obat, dosis, terapi, atau keputusan klinis.
 Berikan tepat tiga tips praktis yang terbatas pada makanan, pola makan, aktivitas, stimulasi, kebersihan, sanitasi, atau pemantauan rutin.
 Jangan menyatakan bahwa pengukuran kader tidak dapat dipercaya.`;
@@ -142,6 +143,7 @@ export const generateInsightContent = async (data, options = {}) => {
 
 const CHAT_SYSTEM_INSTRUCTION = `Kamu adalah asisten edukasi Posyandu untuk orang tua.
 Jawab hanya sebagai kelanjutan dari insight awal dan pengukuran terbaru yang diberikan backend.
+Jika menyebut usia, tegaskan bahwa usia dalam konteks adalah usia anak saat pengukuran dilakukan, bukan usia anak saat ini.
 Gunakan Bahasa Indonesia yang sederhana, hangat, ringkas, dan praktis.
 Topik dibatasi pada penjelasan hasil, makanan dan pola makan, aktivitas dan stimulasi, kebersihan dan sanitasi, serta pemantauan pertumbuhan rutin.
 Jangan mendiagnosis, menentukan keputusan klinis, memberi obat, suplemen, dosis, atau terapi.

@@ -106,8 +106,21 @@ export const buatInsightService = (dependencies = {}) => {
         return { processed: ids.length, results };
     };
 
-    const getInsightForOrangTua = (pengukuranId, orangTuaId) =>
-        repository.findForOrangTua(pengukuranId, orangTuaId);
+    const getInsightForOrangTua = async (pengukuranId, orangTuaId) => {
+        const insight = await repository.findForOrangTua(
+            pengukuranId,
+            orangTuaId,
+        );
+        if (
+            insight &&
+            !insight.is_latest &&
+            !insight.insight_teks &&
+            ["pending", "processing"].includes(insight.insight_status)
+        ) {
+            return { ...insight, insight_status: "superseded" };
+        }
+        return insight;
+    };
 
     return Object.freeze({
         processInsight,

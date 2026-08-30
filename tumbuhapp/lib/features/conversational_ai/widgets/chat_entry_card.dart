@@ -16,6 +16,10 @@ class ChatEntryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isAvailable = insightStatus == InsightStatus.completed;
+    final unavailableMessage = insightStatus == InsightStatus.superseded
+        ? 'Percakapan tidak tersedia karena AI Insight tidak dibuat untuk '
+            'pengukuran historis ini.'
+        : 'Percakapan tersedia setelah insight selesai.';
 
     return Container(
       width: double.infinity,
@@ -67,18 +71,18 @@ class ChatEntryCard extends StatelessWidget {
           ),
           if (!isAvailable) ...[
             const SizedBox(height: 8),
-            const Row(
+            Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
+                const Icon(
                   Icons.info_outline,
                   size: 16,
                   color: AppColors.textMuted,
                 ),
-                SizedBox(width: 6),
+                const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    'Percakapan tersedia setelah insight selesai.',
+                    unavailableMessage,
                     style: AppTextStyles.caption,
                   ),
                 ),

@@ -171,3 +171,35 @@ test("worker batch memproses seluruh id yang jatuh tempo", async () => {
     assert.deepEqual(claimedIds.sort(), [1, 2, 3]);
     assert.equal(result.results.every((item) => item.success), true);
 });
+
+test("insight historis yang belum selesai menjadi superseded", async () => {
+    const service = buatInsightService({
+        repository: {
+            findForOrangTua: async () => ({
+                insight_status: "pending",
+                insight_teks: null,
+                is_latest: 0,
+            }),
+        },
+    });
+
+    const result = await service.getInsightForOrangTua(11, "orang-tua-1");
+
+    assert.equal(result.insight_status, "superseded");
+});
+
+test("insight historis completed tetap dapat dibaca", async () => {
+    const completed = {
+        insight_status: "completed",
+        insight_teks: "Insight Agustus",
+        is_latest: 0,
+    };
+    const service = buatInsightService({
+        repository: { findForOrangTua: async () => completed },
+    });
+
+    assert.deepEqual(
+        await service.getInsightForOrangTua(11, "orang-tua-1"),
+        completed,
+    );
+});

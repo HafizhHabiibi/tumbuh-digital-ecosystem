@@ -1,23 +1,58 @@
 import db from "../database/connection.js";
 
-export const createPengukuran = async (data) => {
-    const [result] = await db.query(
-        `INSERT INTO pengukuran
-        (anak_id, kader_id, tanggal_ukur, berat_badan,
-        tinggi_badan, lingkar_kepala, lingkar_lengan)
-        VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [
-            data.anak_id,
-            data.kader_id,
-            data.tanggal_ukur,
-            data.berat_badan,
-            data.tinggi_badan,
-            data.lingkar_kepala || null,
-            data.lingkar_lengan || null,
-        ],
-    );
-    return result.insertId;
+export const buatCreatePengukuran = (database = db) => async (data) => {
+    const connection = await database.getConnection();
+    try {
+        await connection.beginTransaction();
+        const [result] = await connection.query(
+            `INSERT INTO pengukuran
+             (anak_id, kader_id, tanggal_ukur, berat_badan,
+              tinggi_badan, lingkar_kepala, lingkar_lengan)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [
+                data.anak_id,
+                data.kader_id,
+                data.tanggal_ukur,
+                data.berat_badan,
+                data.tinggi_badan,
+                data.lingkar_kepala || null,
+                data.lingkar_lengan || null,
+            ],
+        );
+
+        await connection.query(
+            `UPDATE pengukuran
+             SET insight_status = 'superseded',
+                 insight_available_at = NULL,
+                 insight_last_error = NULL
+             WHERE anak_id = ?
+               AND id <> ?
+               AND insight_teks IS NULL
+               AND insight_status IN ('pending', 'processing')
+               AND (
+                   tanggal_ukur < ?
+                   OR (tanggal_ukur = ? AND id < ?)
+               )`,
+            [
+                data.anak_id,
+                result.insertId,
+                data.tanggal_ukur,
+                data.tanggal_ukur,
+                result.insertId,
+            ],
+        );
+
+        await connection.commit();
+        return result.insertId;
+    } catch (error) {
+        await connection.rollback();
+        throw error;
+    } finally {
+        connection.release();
+    }
 };
+
+export const createPengukuran = buatCreatePengukuran();
 
 export const findDuplicate = async (anak_id, tanggal_ukur) => {
     const [rows] = await db.query(

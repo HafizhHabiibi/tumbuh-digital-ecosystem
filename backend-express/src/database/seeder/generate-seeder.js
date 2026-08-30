@@ -475,6 +475,19 @@ async function generateSeeder() {
     );
     lines.push("");
 
+    lines.push("-- Pengukuran historis tanpa insight tidak masuk antrean AI");
+    lines.push(
+        "UPDATE pengukuran p JOIN pengukuran terbaru ON " +
+            "terbaru.anak_id = p.anak_id AND " +
+            "(terbaru.tanggal_ukur > p.tanggal_ukur OR " +
+            "(terbaru.tanggal_ukur = p.tanggal_ukur AND terbaru.id > p.id)) " +
+            "SET p.insight_status = 'superseded', " +
+            "insight_available_at = NULL, insight_last_error = NULL " +
+            "WHERE p.insight_teks IS NULL " +
+            "AND p.insight_status IN ('pending', 'processing');",
+    );
+    lines.push("");
+
     // ══════════════════════════════════════════════════════════════════════════════
     // TIER 7 — notifikasi
     // ══════════════════════════════════════════════════════════════════════════════

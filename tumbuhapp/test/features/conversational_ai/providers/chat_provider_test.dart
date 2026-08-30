@@ -43,6 +43,7 @@ class _FakeGateway implements ChatGateway {
   ChatExchange? result;
   ChatApiException? nextError;
   Completer<ChatExchange>? sendCompleter;
+  Completer<ChatConversation>? historyCompleter;
   final List<String> sentIds = [];
   final List<String> sentMessages = [];
   final List<int?> cursors = [];
@@ -55,6 +56,8 @@ class _FakeGateway implements ChatGateway {
     int? beforeId,
   }) async {
     cursors.add(beforeId);
+    final completer = historyCompleter;
+    if (completer != null) return completer.future;
     if (historySequence.isNotEmpty) return historySequence.removeAt(0);
     return history;
   }
@@ -345,5 +348,59 @@ void main() {
         ChatSendStatus.failed,
       );
     }
+  });
+
+  test('hasil load diabaikan setelah notifier di-dispose', () async {
+    final completer = Completer<ChatConversation>();
+    final gateway = _FakeGateway()..historyCompleter = completer;
+    final notifier = ChatNotifier(pengukuranId: 12, gateway: gateway);
+
+    final load = notifier.load();
+    notifier.dispose();
+    completer.complete(_conversation());
+
+    await expectLater(load, completes);
+  });
+
+  test('hasil kirim sukses diabaikan setelah notifier di-dispose', () async {
+    final completer = Completer<ChatExchange>();
+    final gateway = _FakeGateway()..sendCompleter = completer;
+    final notifier = ChatNotifier(
+      pengukuranId: 12,
+      gateway: gateway,
+      messageIdGenerator: () => 'uuid-disposed-success',
+    );
+    await notifier.load();
+
+    final send = notifier.sendMessage('Bagaimana hasilnya?');
+    notifier.dispose();
+    completer.complete(
+      ChatExchange(
+        userMessage: _message(31, ChatRole.orangTua),
+        assistantMessage: _message(32, ChatRole.assistant),
+        idempotent: false,
+      ),
+    );
+
+    await expectLater(send, completes);
+  });
+
+  test('error kirim diabaikan setelah notifier di-dispose', () async {
+    final completer = Completer<ChatExchange>();
+    final gateway = _FakeGateway()..sendCompleter = completer;
+    final notifier = ChatNotifier(
+      pengukuranId: 12,
+      gateway: gateway,
+      messageIdGenerator: () => 'uuid-disposed-error',
+    );
+    await notifier.load();
+
+    final send = notifier.sendMessage('Bagaimana hasilnya?');
+    notifier.dispose();
+    completer.completeError(
+      const ChatApiException('Tidak ada koneksi internet'),
+    );
+
+    await expectLater(send, completes);
   });
 }

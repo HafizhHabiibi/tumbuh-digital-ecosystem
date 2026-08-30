@@ -116,5 +116,6 @@ test("query insight orang tua memverifikasi kepemilikan melalui anak", async () 
     await model.findForOrangTua(5, "orang-tua-1");
     assert.match(captured.sql, /JOIN anak/);
     assert.match(captured.sql, /a\.orang_tua_id = \?/);
+    assert.match(captured.sql, /AS is_latest/);
     assert.deepEqual(captured.params, [5, "orang-tua-1"]);
 });

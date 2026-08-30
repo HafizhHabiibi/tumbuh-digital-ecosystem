@@ -72,6 +72,23 @@ void main() {
     expect(insight.insightTeks, isNull);
   });
 
+  test('membaca superseded sebagai status terminal historis', () async {
+    final service = PengukuranService(
+      dio: _dio(_Adapter({
+        'data': {
+          'insight_status': 'superseded',
+          'insight_teks': null,
+        },
+      })),
+    );
+
+    final insight = await service.getInsight(12);
+
+    expect(insight.status, InsightStatus.superseded);
+    expect(insight.isInProgress, isFalse);
+    expect(insight.insightTeks, isNull);
+  });
+
   test('error jaringan diteruskan dan tidak diubah menjadi null', () async {
     final service = PengukuranService(
       dio: _dio(_Adapter({

@@ -39,7 +39,7 @@ class JadwalState {
   List<JadwalModel> get jadwalMendatang {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    return jadwal.where((j) {
+    final result = jadwal.where((j) {
       try {
         final tanggal = DateTime.parse(j.tanggal);
         final jadwalDate = DateTime(tanggal.year, tanggal.month, tanggal.day);
@@ -48,6 +48,31 @@ class JadwalState {
         return false;
       }
     }).toList();
+
+    result.sort(
+      (a, b) => DateTime.parse(a.tanggal).compareTo(DateTime.parse(b.tanggal)),
+    );
+    return result;
+  }
+
+  // Jadwal yang sudah lewat — terbaru ditampilkan lebih dulu
+  List<JadwalModel> get jadwalTerlewat {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final result = jadwal.where((j) {
+      try {
+        final tanggal = DateTime.parse(j.tanggal);
+        final jadwalDate = DateTime(tanggal.year, tanggal.month, tanggal.day);
+        return jadwalDate.isBefore(today);
+      } catch (_) {
+        return false;
+      }
+    }).toList();
+
+    result.sort(
+      (a, b) => DateTime.parse(b.tanggal).compareTo(DateTime.parse(a.tanggal)),
+    );
+    return result;
   }
 
   JadwalState copyWith({

@@ -57,29 +57,99 @@ class _JadwalScreenState extends ConsumerState<JadwalScreen> {
       );
     }
 
-    if (state.jadwalMendatang.isEmpty) {
+    final jadwalMendatang = state.jadwalMendatang;
+    final jadwalTerlewat = state.jadwalTerlewat;
+
+    if (jadwalMendatang.isEmpty && jadwalTerlewat.isEmpty) {
       return const EmptyJadwal();
     }
 
     return RefreshIndicator(
       color: AppColors.primary,
       onRefresh: () => ref.read(jadwalProvider.notifier).fetchJadwal(),
-      child: ListView.separated(
+      child: ListView(
         padding: const EdgeInsets.all(16),
-        itemCount: state.jadwalMendatang.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
-        itemBuilder: (_, index) {
-          final jadwal = state.jadwalMendatang[index];
-          final isBulanIni = state.jadwalBulanIni.contains(jadwal);
-          return _buildJadwalCard(jadwal, isBulanIni);
-        },
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          if (jadwalMendatang.isNotEmpty) ...[
+            _buildSectionHeader(
+              title: 'Jadwal Mendatang',
+              subtitle: 'Jadwal hari ini dan yang akan datang',
+            ),
+            const SizedBox(height: 12),
+            for (var index = 0; index < jadwalMendatang.length; index++) ...[
+              _buildJadwalCard(
+                jadwalMendatang[index],
+                state.jadwalBulanIni.contains(jadwalMendatang[index]),
+              ),
+              if (index < jadwalMendatang.length - 1)
+                const SizedBox(height: 12),
+            ],
+          ] else
+            _buildTidakAdaJadwalMendatang(),
+          if (jadwalTerlewat.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            _buildSectionHeader(
+              title: 'Riwayat Jadwal',
+              subtitle: 'Jadwal Posyandu yang sudah terlewat',
+            ),
+            const SizedBox(height: 12),
+            for (var index = 0; index < jadwalTerlewat.length; index++) ...[
+              _buildJadwalCard(
+                jadwalTerlewat[index],
+                false,
+                isTerlewat: true,
+              ),
+              if (index < jadwalTerlewat.length - 1) const SizedBox(height: 12),
+            ],
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(
+      {required String title, required String subtitle}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: AppTextStyles.heading3),
+        const SizedBox(height: 2),
+        Text(subtitle, style: AppTextStyles.caption),
+      ],
+    );
+  }
+
+  Widget _buildTidakAdaJadwalMendatang() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.primarySurface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: const Row(
+        children: [
+          Icon(Icons.event_available_outlined, color: AppColors.primary),
+          SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Belum ada jadwal Posyandu mendatang.',
+              style: AppTextStyles.body,
+            ),
+          ),
+        ],
       ),
     );
   }
 
   // ── Jadwal Card ───────────────────────────────
 
-  Widget _buildJadwalCard(JadwalModel jadwal, bool isBulanIni) {
+  Widget _buildJadwalCard(
+    JadwalModel jadwal,
+    bool isBulanIni, {
+    bool isTerlewat = false,
+  }) {
     final tanggal = _parseTanggal(jadwal.tanggal);
     final isHariIni = tanggal != null && _isHariIni(tanggal);
 
@@ -105,7 +175,13 @@ class _JadwalScreenState extends ConsumerState<JadwalScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── Header ────────────────────────
-          _buildCardHeader(jadwal, tanggal, isBulanIni, isHariIni),
+          _buildCardHeader(
+            jadwal,
+            tanggal,
+            isBulanIni,
+            isHariIni,
+            isTerlewat,
+          ),
 
           // ── Detail ────────────────────────
           _buildCardDetail(jadwal),
@@ -121,6 +197,7 @@ class _JadwalScreenState extends ConsumerState<JadwalScreen> {
     DateTime? tanggal,
     bool isBulanIni,
     bool isHariIni,
+    bool isTerlewat,
   ) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -203,12 +280,31 @@ class _JadwalScreenState extends ConsumerState<JadwalScreen> {
             ),
           ),
 
-          // Badges kanan (Hari Ini & Bulan Ini)
+          // Status jadwal
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (isHariIni)
+              if (isTerlewat)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.background,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Text(
+                    'Terlewat',
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              if (!isTerlewat && isHariIni)
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
@@ -226,8 +322,9 @@ class _JadwalScreenState extends ConsumerState<JadwalScreen> {
                     ),
                   ),
                 ),
-              if (isHariIni && isBulanIni) const SizedBox(height: 4),
-              if (isBulanIni)
+              if (!isTerlewat && isHariIni && isBulanIni)
+                const SizedBox(height: 4),
+              if (!isTerlewat && isBulanIni)
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,

@@ -347,12 +347,14 @@ class _StatusRujukanScreenState extends ConsumerState<StatusRujukanScreen> {
           const SizedBox(height: 8),
 
           // Catatan Kader
-          _buildInfoRow(
-            icon: Icons.note_outlined,
-            label: 'Catatan Kader',
-            value: rujukan.catatanKader,
-          ),
-          const SizedBox(height: 8),
+          if (rujukan.catatanKader != null) ...[
+            _buildInfoRow(
+              icon: Icons.note_outlined,
+              label: 'Catatan Kader',
+              value: rujukan.catatanKader!,
+            ),
+            const SizedBox(height: 8),
+          ],
 
           // Catatan Puskesmas
           if (rujukan.catatanPuskesmas != null) ...[
@@ -381,15 +383,6 @@ class _StatusRujukanScreenState extends ConsumerState<StatusRujukanScreen> {
               label: 'Tanggal Selesai',
               value: FormatUtils.formatTanggal(rujukan.validatedAt!),
             ),
-
-          // Skor SAW
-          const SizedBox(height: 8),
-          _buildInfoRow(
-            icon: Icons.analytics_outlined,
-            label: 'Skor SAW',
-            value:
-                '${rujukan.skorSaw.toStringAsFixed(4)} (${rujukan.kategoriPrioritas})',
-          ),
         ],
       ),
     );

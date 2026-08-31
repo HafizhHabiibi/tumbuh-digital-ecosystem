@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../providers/pengukuran_provider.dart';
 import '../../../shared/models/pengukuran_model.dart';
 import '../../../shared/widgets/status_badge_widget.dart';
-import '../../../shared/widgets/zscore_card_widget.dart';
 import '../../../shared/widgets/insight_card_widget.dart';
 import '../../conversational_ai/widgets/chat_entry_card.dart';
 import '../../../core/constant/app_constants.dart';
@@ -74,26 +73,16 @@ class DetailPengukuranScreen extends ConsumerWidget {
             _buildAntropometriCard(pengukuran),
             const SizedBox(height: 16),
 
-            // ── Z-Score ────────────────────────
-            _buildSectionTitle('Z-Score'),
-            const SizedBox(height: 12),
-            ZScoreRow(
-              zscoreBbu: pengukuran.zscoreBbu,
-              zscoreTbu: pengukuran.zscoreTbu,
-              zscoreBbtb: pengukuran.zscoreBbtb,
-            ),
-            const SizedBox(height: 16),
-
             // ── Status Antropometri ─────────────
             _buildSectionTitle('Status Antropometri'),
             const SizedBox(height: 12),
             _buildStatusAntropometriCard(pengukuran),
             const SizedBox(height: 16),
 
-            // ── SAW Score ──────────────────────
-            _buildSectionTitle('Skor SAW'),
+            // ── Status Pemantauan ──────────────
+            _buildSectionTitle('Status Pemantauan'),
             const SizedBox(height: 12),
-            _buildSawCard(pengukuran),
+            _buildPemantauanCard(pengukuran),
             const SizedBox(height: 16),
 
             // ── AI Insight ─────────────────────
@@ -194,8 +183,10 @@ class DetailPengukuranScreen extends ConsumerWidget {
               ),
               Expanded(
                 child: _buildRingkasanMetric(
-                  label: 'Prioritas',
-                  value: pengukuran.kategoriPrioritas,
+                  label: 'Pemantauan',
+                  value: formatStatusPemantauan(
+                    pengukuran.statusPemantauan,
+                  ),
                   isCapitalized: true,
                 ),
               ),
@@ -355,9 +346,9 @@ class DetailPengukuranScreen extends ConsumerWidget {
     );
   }
 
-  // ── SAW Card ──────────────────────────────────
+  // ── Status Pemantauan ─────────────────────────
 
-  Widget _buildSawCard(PengukuranModel pengukuran) {
+  Widget _buildPemantauanCard(PengukuranModel pengukuran) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -367,59 +358,13 @@ class DetailPengukuranScreen extends ConsumerWidget {
       ),
       child: Column(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Skor Akhir', style: AppTextStyles.caption),
-                  const SizedBox(height: 4),
-                  Text(
-                    pengukuran.skorSaw.toStringAsFixed(4),
-                    style: AppTextStyles.heading2.copyWith(
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ],
-              ),
-              StatusBadge(
-                label: pengukuran.kategoriPrioritas,
-                type: StatusType.kategoriPrioritas,
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Progress bar skor SAW
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Rendah', style: AppTextStyles.caption),
-                  Text('Sedang', style: AppTextStyles.caption),
-                  Text('Tinggi', style: AppTextStyles.caption),
-                ],
-              ),
-              const SizedBox(height: 4),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: LinearProgressIndicator(
-                  value: pengukuran.skorSaw.clamp(0.0, 1.0),
-                  backgroundColor: AppColors.border,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    _getSawColor(pengukuran.kategoriPrioritas),
-                  ),
-                  minHeight: 10,
-                ),
-              ),
-            ],
+          StatusBadge(
+            label: pengukuran.statusPemantauan,
+            type: StatusType.statusPemantauan,
           ),
           const SizedBox(height: 12),
           Text(
-            _getSawDescription(pengukuran.kategoriPrioritas),
+            _getPemantauanDescription(pengukuran.statusPemantauan),
             style: AppTextStyles.bodySecondary,
             textAlign: TextAlign.center,
           ),
@@ -428,26 +373,13 @@ class DetailPengukuranScreen extends ConsumerWidget {
     );
   }
 
-  Color _getSawColor(String kategori) {
-    switch (kategori.toLowerCase()) {
-      case 'rendah':
-        return AppColors.risikoRendahText;
-      case 'sedang':
-        return AppColors.risikoSedangText;
-      case 'tinggi':
-        return AppColors.risikoTinggiText;
-      default:
-        return AppColors.primary;
-    }
-  }
-
-  String _getSawDescription(String kategori) {
-    switch (kategori.toLowerCase()) {
-      case 'rendah':
+  String _getPemantauanDescription(String status) {
+    switch (status.toLowerCase()) {
+      case 'rutin':
         return 'Kondisi anak baik, pertahankan pola makan dan aktivitas yang sehat.';
-      case 'sedang':
+      case 'perlu_perhatian':
         return 'Perlu perhatian lebih, konsultasikan dengan kader atau petugas kesehatan.';
-      case 'tinggi':
+      case 'konsultasi':
         return 'Segera konsultasikan dengan petugas kesehatan untuk penanganan lebih lanjut.';
       default:
         return '-';

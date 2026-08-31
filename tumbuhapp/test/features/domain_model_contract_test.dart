@@ -19,47 +19,89 @@ void main() {
     expect(anak.nik, '1234567890123456');
   });
 
-  test('PengukuranModel membaca status antropometri dan SAW backend', () {
+  test('PengukuranModel membaca kontrak orang tua tanpa data teknis', () {
     final pengukuran = PengukuranModel.fromJson({
       'id': 10,
       'tanggal_ukur': '2026-08-29',
-      'berat_badan': '12.5',
-      'tinggi_badan': '88.4',
-      'zscore_bbu': '-1.2',
-      'zscore_tbu': '-2.1',
-      'zscore_bbtb': '0.4',
-      'zscore_imtu': '0.3',
+      'berat_badan': 12.5,
+      'tinggi_badan': 88.4,
+      'usia_bulan': 31,
       'status_bbu': 'berat_badan_normal',
       'status_tbu': 'pendek',
       'status_bbtb': 'gizi_baik',
       'status_imtu': 'gizi_baik',
-      'skor_saw': '0.35',
-      'kategori_prioritas': 'sedang',
+      'status_pemantauan': 'perlu_perhatian',
       'created_at': '2026-08-29T00:00:00.000Z',
     });
 
-    expect(pengukuran.zscoreImtu, 0.3);
     expect(pengukuran.statusBbu, 'berat_badan_normal');
     expect(pengukuran.statusTbu, 'pendek');
     expect(pengukuran.statusBbtb, 'gizi_baik');
     expect(pengukuran.statusImtu, 'gizi_baik');
-    expect(pengukuran.skorSaw, 0.35);
-    expect(pengukuran.kategoriPrioritas, 'sedang');
+    expect(pengukuran.statusPemantauan, 'perlu_perhatian');
+    expect(pengukuran.usiaBulan, 31);
     expect(pengukuran.statusForIndicator('tbu'), 'pendek');
   });
 
-  test('RujukanModel membaca skor dan kategori prioritas backend', () {
+  test('RujukanModel membaca kontrak orang tua tanpa skor prioritas', () {
     final rujukan = RujukanModel.fromJson({
       'id': 2,
       'status': 'diajukan',
       'catatan_kader': 'Perlu pemeriksaan',
       'created_at': '2026-08-29T00:00:00.000Z',
-      'skor_saw': '0.72',
-      'kategori_prioritas': 'tinggi',
+      'catatan_puskesmas': null,
+      'validated_at': null,
+      'tanggal_ukur': '2026-08-29',
+      'berat_badan': 12.5,
+      'tinggi_badan': 88.4,
+      'ditangani_oleh': null,
     });
 
-    expect(rujukan.skorSaw, 0.72);
-    expect(rujukan.kategoriPrioritas, 'tinggi');
+    expect(rujukan.status, 'diajukan');
+    expect(rujukan.catatanPuskesmas, isNull);
+    expect(rujukan.tanggalUkur, '2026-08-29');
+  });
+
+  test('model orang tua menolak field wajib yang hilang atau bertipe salah',
+      () {
+    final pengukuran = {
+      'id': 10,
+      'tanggal_ukur': '2026-08-29',
+      'berat_badan': 12.5,
+      'tinggi_badan': 88.4,
+      'usia_bulan': 31,
+      'status_bbu': 'berat_badan_normal',
+      'status_tbu': 'pendek',
+      'status_bbtb': 'gizi_baik',
+      'status_imtu': 'gizi_baik',
+      'status_pemantauan': 'perlu_perhatian',
+      'created_at': '2026-08-29T00:00:00.000Z',
+    };
+
+    expect(
+      () => PengukuranModel.fromJson({
+        ...pengukuran,
+        'berat_badan': '12.5',
+      }),
+      throwsFormatException,
+    );
+    expect(
+      () => PengukuranModel.fromJson({
+        ...pengukuran,
+      }..remove('status_pemantauan')),
+      throwsFormatException,
+    );
+    expect(
+      () => RujukanModel.fromJson({
+        'id': 2,
+        'status': 'diproses',
+        'created_at': '2026-02-30T00:00:00.000Z',
+        'tanggal_ukur': '2026-08-29',
+        'berat_badan': 12.5,
+        'tinggi_badan': 88.4,
+      }),
+      throwsFormatException,
+    );
   });
 
   test('PemberianModel membentuk nama item dari jenis backend', () {

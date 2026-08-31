@@ -4,6 +4,8 @@ import * as PemberianModel from "../models/pemberianModel.js";
 import * as RujukanModel from "../models/rujukanModel.js";
 import * as OrangTuaModel from "../models/orangTuaModel.js";
 import * as pengukuranService from "../services/pengukuranService.js";
+import { toOrangTuaPengukuran } from "../serializers/orangTuaPengukuranSerializer.js";
+import { toOrangTuaRujukan } from "../serializers/orangTuaRujukanSerializer.js";
 import { success, error } from "../utils/response.js";
 
 
@@ -63,7 +65,9 @@ export const getPengukuranAnak = async (req, res) => {
 
         const rawRiwayat = await PengukuranModel.findByAnak(req.params.id);
         // Enrich raw data dengan z-score dan SAW on-the-fly
-        const riwayat = pengukuranService.enrichPengukuranList(rawRiwayat, anak);
+        const riwayat = pengukuranService
+            .enrichPengukuranList(rawRiwayat, anak)
+            .map(toOrangTuaPengukuran);
 
         return success(
             res,
@@ -109,7 +113,8 @@ export const getRujukanAnak = async (req, res) => {
         );
         if (!anak) return;
 
-        const rujukan = await RujukanModel.findByAnak(req.params.id);
+        const rawRujukan = await RujukanModel.findByAnak(req.params.id);
+        const rujukan = rawRujukan.map(toOrangTuaRujukan);
         return success(
             res,
             { anak, rujukan },

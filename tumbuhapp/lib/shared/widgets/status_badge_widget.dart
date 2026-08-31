@@ -36,8 +36,22 @@ String formatStatusAntropometri(String status) {
   }
 }
 
+String formatStatusPemantauan(String status) {
+  switch (status.toLowerCase()) {
+    case 'rutin':
+      return 'Pemantauan Rutin';
+    case 'perlu_perhatian':
+      return 'Perlu Perhatian';
+    case 'konsultasi':
+      return 'Disarankan Konsultasi';
+    default:
+      return status;
+  }
+}
+
 enum StatusType {
   statusAntropometri,
+  statusPemantauan,
   kategoriPrioritas,
   statusRujukan,
   jenisKelamin,
@@ -80,6 +94,8 @@ class StatusBadge extends StatelessWidget {
     switch (type) {
       case StatusType.statusAntropometri:
         return _labelStatusAntropometri();
+      case StatusType.statusPemantauan:
+        return formatStatusPemantauan(label);
       case StatusType.kategoriPrioritas:
         return _labelKategoriPrioritas();
       case StatusType.statusRujukan:
@@ -150,6 +166,8 @@ class StatusBadge extends StatelessWidget {
     switch (type) {
       case StatusType.statusAntropometri:
         return _colorsStatusAntropometri();
+      case StatusType.statusPemantauan:
+        return _colorsStatusPemantauan();
       case StatusType.kategoriPrioritas:
         return _colorsKategoriPrioritas();
       case StatusType.statusRujukan:
@@ -195,6 +213,19 @@ class StatusBadge extends StatelessWidget {
       case 'sedang':
         return (AppColors.risikoSedangText, AppColors.risikoSedangBg);
       case 'tinggi':
+        return (AppColors.risikoTinggiText, AppColors.risikoTinggiBg);
+      default:
+        return (AppColors.textSecondary, AppColors.border);
+    }
+  }
+
+  (Color, Color) _colorsStatusPemantauan() {
+    switch (label.toLowerCase()) {
+      case 'rutin':
+        return (AppColors.risikoRendahText, AppColors.risikoRendahBg);
+      case 'perlu_perhatian':
+        return (AppColors.risikoSedangText, AppColors.risikoSedangBg);
+      case 'konsultasi':
         return (AppColors.risikoTinggiText, AppColors.risikoTinggiBg);
       default:
         return (AppColors.textSecondary, AppColors.border);

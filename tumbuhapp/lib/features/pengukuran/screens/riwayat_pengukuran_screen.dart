@@ -134,29 +134,17 @@ class RiwayatPengukuranScreen extends ConsumerWidget {
                         FormatUtils.formatTinggiBadan(pengukuran.tinggiBadan),
                   ),
                 ),
-                Container(
-                  width: 1,
-                  height: 40,
-                  color: AppColors.divider,
-                ),
-                Expanded(
-                  child: _buildMetric(
-                    icon: Icons.analytics_outlined,
-                    label: 'Skor SAW',
-                    value: pengukuran.skorSaw.toStringAsFixed(2),
-                  ),
-                ),
               ],
             ),
             const SizedBox(height: 12),
 
-            // ── Kategori Risiko & Arrow ────────
+            // ── Status Pemantauan & Arrow ──────
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 StatusBadge(
-                  label: pengukuran.kategoriPrioritas,
-                  type: StatusType.kategoriPrioritas,
+                  label: pengukuran.statusPemantauan,
+                  type: StatusType.statusPemantauan,
                 ),
                 Row(
                   children: [

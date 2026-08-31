@@ -515,20 +515,16 @@ class _GrafikPertumbuhanScreenState
                   if (index >= 0 && index < sorted.length) {
                     final p = sorted[index];
                     String valueStr = '';
-                    String zScoreStr = '';
                     if (type == 'bbu') {
                       valueStr = FormatUtils.formatBeratBadan(p.beratBadan);
-                      zScoreStr = FormatUtils.formatZScore(p.zscoreBbu);
                     } else if (type == 'tbu') {
                       valueStr = FormatUtils.formatTinggiBadan(p.tinggiBadan);
-                      zScoreStr = FormatUtils.formatZScore(p.zscoreTbu);
                     } else {
                       valueStr = FormatUtils.formatBeratBadan(p.beratBadan);
-                      zScoreStr = FormatUtils.formatZScore(p.zscoreBbtb);
                     }
 
                     return LineTooltipItem(
-                      '$valueStr ($zScoreStr)\n'
+                      '$valueStr\n'
                       '${_formatTanggalSingkat(p.tanggalUkur)}',
                       AppTextStyles.caption.copyWith(
                         color: Colors.white,
@@ -745,15 +741,6 @@ class _GrafikPertumbuhanScreenState
                 ),
                 Expanded(
                   child: Text(
-                    'Z-Score',
-                    style: AppTextStyles.label.copyWith(
-                      color: AppColors.primary,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                Expanded(
-                  child: Text(
                     'Status',
                     style: AppTextStyles.label.copyWith(
                       color: AppColors.primary,
@@ -770,7 +757,6 @@ class _GrafikPertumbuhanScreenState
             final index = entry.key;
             final p = entry.value;
             final isLast = index == riwayat.length - 1;
-            final zscore = _getYValue(p, type);
 
             return Column(
               children: [
@@ -800,16 +786,6 @@ class _GrafikPertumbuhanScreenState
                         ),
                       ),
                       Expanded(
-                        child: Text(
-                          FormatUtils.formatZScore(zscore),
-                          style: AppTextStyles.caption.copyWith(
-                            color: _getZScoreColor(zscore),
-                            fontWeight: FontWeight.w600,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      Expanded(
                         child: Center(
                           child: StatusBadge(
                             label: p.statusForIndicator(type),
@@ -830,19 +806,6 @@ class _GrafikPertumbuhanScreenState
   }
 
   // ── Helpers ───────────────────────────────────
-
-  double _getYValue(PengukuranModel p, String type) {
-    switch (type) {
-      case 'bbu':
-        return p.zscoreBbu;
-      case 'tbu':
-        return p.zscoreTbu;
-      case 'bbtb':
-        return p.zscoreBbtb;
-      default:
-        return 0;
-    }
-  }
 
   String _getGrafikTitle(String type) {
     switch (type) {
@@ -877,12 +840,6 @@ class _GrafikPertumbuhanScreenState
     } catch (_) {
       return '-';
     }
-  }
-
-  Color _getZScoreColor(double zscore) {
-    if (zscore < -2 || zscore > 2) return AppColors.statusBurukText;
-    if (zscore < -1 || zscore > 1) return AppColors.statusKurangText;
-    return AppColors.statusNormalText;
   }
 
   Color _getCurveColor(double z, String type) {

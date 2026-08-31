@@ -38,6 +38,21 @@ class NotifikasiModel {
     );
   }
 
+  NotifikasiModel copyWith({bool? sudahDibaca}) {
+    return NotifikasiModel(
+      id: id,
+      judul: judul,
+      pesan: pesan,
+      tipe: tipe,
+      sudahDibaca: sudahDibaca ?? this.sudahDibaca,
+      sentAt: sentAt,
+      rujukanId: rujukanId,
+      jadwalId: jadwalId,
+      pengukuranId: pengukuranId,
+      anakId: anakId,
+    );
+  }
+
   static int? _asInt(dynamic value) {
     if (value == null) return null;
     if (value is num) return value.toInt();

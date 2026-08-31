@@ -112,18 +112,7 @@ class NotifikasiNotifier extends StateNotifier<NotifikasiState> {
 
       // Update state lokal tanpa fetch ulang
       final updated = state.notifikasi.map((n) {
-        return n.id == id
-            ? NotifikasiModel(
-                id: n.id,
-                judul: n.judul,
-                pesan: n.pesan,
-                tipe: n.tipe,
-                sudahDibaca: true,
-                sentAt: n.sentAt,
-                rujukanId: n.rujukanId,
-                jadwalId: n.jadwalId,
-              )
-            : n;
+        return n.id == id ? n.copyWith(sudahDibaca: true) : n;
       }).toList();
 
       final belumDibaca = updated.where((n) => !n.sudahDibaca).length;
@@ -150,16 +139,7 @@ class NotifikasiNotifier extends StateNotifier<NotifikasiState> {
       await _service.bacaSemuaNotifikasi();
 
       final updated = state.notifikasi.map((n) {
-        return NotifikasiModel(
-          id: n.id,
-          judul: n.judul,
-          pesan: n.pesan,
-          tipe: n.tipe,
-          sudahDibaca: true,
-          sentAt: n.sentAt,
-          rujukanId: n.rujukanId,
-          jadwalId: n.jadwalId,
-        );
+        return n.copyWith(sudahDibaca: true);
       }).toList();
 
       state = state.copyWith(

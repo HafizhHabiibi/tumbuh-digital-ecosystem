@@ -92,7 +92,7 @@ class _NotifikasiScreenState extends ConsumerState<NotifikasiScreen> {
       {'value': 'semua', 'label': 'Semua'},
       {'value': 'jadwal', 'label': 'Jadwal'},
       {'value': 'rujukan', 'label': 'Rujukan'},
-      {'value': 'pengingat', 'label': 'Pengingat'},
+      {'value': 'pengukuran', 'label': 'Pengukuran'},
     ];
 
     return Container(
@@ -326,8 +326,6 @@ class _NotifikasiScreenState extends ConsumerState<NotifikasiScreen> {
         return Icons.local_hospital_outlined;
       case 'pengukuran':
         return Icons.monitor_weight_outlined;
-      case 'pengingat':
-        return Icons.alarm_outlined;
       default:
         return Icons.notifications_outlined;
     }
@@ -341,8 +339,6 @@ class _NotifikasiScreenState extends ConsumerState<NotifikasiScreen> {
         return AppColors.statusBurukText;
       case 'pengukuran':
         return AppColors.primary;
-      case 'pengingat':
-        return AppColors.vitaminAText;
       default:
         return AppColors.primary;
     }
@@ -356,8 +352,6 @@ class _NotifikasiScreenState extends ConsumerState<NotifikasiScreen> {
         return AppColors.statusBurukBg;
       case 'pengukuran':
         return AppColors.primarySurface;
-      case 'pengingat':
-        return AppColors.vitaminABg;
       default:
         return AppColors.primarySurface;
     }

@@ -506,7 +506,7 @@ class DashboardScreen extends ConsumerWidget {
       _MenuItem(
         icon: Icons.notifications_outlined,
         label: 'Notifikasi',
-        subtitle: 'Informasi & pengingat jadwal',
+        subtitle: 'Informasi jadwal, pengukuran & rujukan',
         color: const Color(0xFFDC2626),
         bgColor: const Color(0xFFFEE2E2),
         onTap: () => context.push(AppRoutes.notifikasi),

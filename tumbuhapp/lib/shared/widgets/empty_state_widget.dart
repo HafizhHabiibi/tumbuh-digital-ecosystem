@@ -137,7 +137,8 @@ class EmptyNotifikasi extends StatelessWidget {
     return const EmptyStateWidget(
       icon: Icons.notifications_none_outlined,
       title: 'Tidak Ada Notifikasi',
-      message: 'Notifikasi jadwal posyandu dan\npengingat akan muncul di sini.',
+      message:
+          'Notifikasi jadwal, pengukuran, dan\nrujukan akan muncul di sini.',
     );
   }
 }

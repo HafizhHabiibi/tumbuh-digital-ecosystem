@@ -152,6 +152,9 @@ Respons error tetap berupa JSON standar backend, bukan PDF.
 - PDF dibuat saat diminta dan tidak disimpan di database maupun filesystem
   backend.
 
+Pemisahan informasi berdasarkan role mengikuti
+[Kebijakan UX dan Keamanan Data Teknis](./DATA_TEKNIS_UX_SECURITY_POLICY.md).
+
 ## Keamanan dan privasi
 
 - Access token diverifikasi sebelum endpoint dijalankan.

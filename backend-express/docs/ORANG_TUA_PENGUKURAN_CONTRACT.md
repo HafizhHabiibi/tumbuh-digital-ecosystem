@@ -11,6 +11,20 @@ tidak berubah. Z-score dan SAW tetap dihitung di backend untuk menghasilkan
 status antropometri dan prioritas pemantauan, tetapi nilai serta istilah
 teknisnya tidak dikirim kepada orang tua.
 
+## Pemisahan kontrak berdasarkan peran
+
+| Pengguna | Endpoint utama | Kontrak |
+| --- | --- | --- |
+| Orang tua | `GET /api/orang-tua/anak/:id/pengukuran` | Nilai fisik, kategori antropometri, dan `status_pemantauan` |
+| Kader/Puskesmas | `GET /api/pengukuran/anak/:anak_id` | Data pengukuran teknis untuk pemantauan profesional |
+| Kader/Puskesmas | `GET /api/pengukuran/:id` | Detail pengukuran beserta Z-score dan hasil SAW |
+| Kader/Puskesmas | `GET /api/pengukuran/:id/saw` | Skor, kategori internal, detail, dan bobot SAW |
+| Puskesmas | `GET /api/puskesmas/anak/:id/pengukuran` | Riwayat teknis anak untuk tindak lanjut |
+
+Pemisahan dilakukan oleh route, otorisasi role, dan serializer backend. Klien
+orang tua tidak dapat meminta kontrak teknis melalui query parameter atau
+sekadar menyembunyikan field di UI.
+
 ## Bentuk response
 
 Envelope endpoint tetap menggunakan format response API saat ini. Perubahan
@@ -48,7 +62,7 @@ sudah berlaku.
 
 ## Whitelist field
 
-Serializer Tahap 2 wajib membangun objek baru hanya dari field berikut. Spread
+Serializer aplikasi wajib membangun objek baru hanya dari field berikut. Spread
 objek sumber seperti `...pengukuran` tidak diperbolehkan.
 
 | Field | Tipe JSON | Nullable | Aturan |
@@ -113,6 +127,9 @@ Pemetaan dilakukan di backend setelah perhitungan internal selesai.
 
 `status_pemantauan` adalah arahan pemantauan, bukan diagnosis atau persentase
 risiko. Respons orang tua tidak boleh menyebut SAW sebagai sumber kategori.
+Kategori antropometri juga merupakan hasil klasifikasi pertumbuhan berdasarkan
+referensi yang digunakan backend, bukan diagnosis klinis. Penilaian dan tindak
+lanjut profesional tetap dilakukan kader atau petugas Puskesmas.
 
 ## Field terlarang
 
@@ -138,19 +155,18 @@ Strict whitelist berlaku juga untuk field teknis baru yang belum tercantum.
 Penambahan field pada kontrak orang tua harus melalui review kontrak dan test
 regresi kebocoran data.
 
-## Aturan kompatibilitas dan rilis
+## Aturan kompatibilitas dan perubahan kontrak
 
-Penghapusan field teknis adalah breaking change bagi model mobile saat ini.
-Karena itu:
-
-1. perubahan backend dan mobile harus berada dalam satu rangkaian rilis;
-2. backend dengan serializer baru tidak boleh dideploy sendiri sebelum model
-   dan UI mobile tidak lagi bergantung pada field teknis;
-3. endpoint kader dan Puskesmas harus tetap memakai kontrak teknisnya;
+1. endpoint kader dan Puskesmas tetap memakai kontrak teknisnya;
+2. perubahan whitelist orang tua harus disertai model test, integration test,
+   dan review kebocoran data;
+3. field teknis baru bersifat ditolak secara default untuk kontrak orang tua;
 4. perubahan ini tidak memerlukan migrasi database; dan
 5. perhitungan Z-score, SAW, AI Insight, serta laporan teknis tidak diubah.
 
-## Batas Tahap 1
+## Status implementasi
 
-Tahap 1 hanya memfinalkan kontrak. Endpoint produksi belum disaring pada tahap
-ini. Implementasi serializer dan perubahan response dilakukan pada Tahap 2.
+Kontrak ini telah diterapkan pada serializer dan endpoint aplikasi. Model serta
+UI mobile tidak lagi bergantung pada field teknis. Aturan penyajian dan
+perlindungan lintas fitur dijelaskan dalam
+[Kebijakan UX dan Keamanan Data Teknis](./DATA_TEKNIS_UX_SECURITY_POLICY.md).

@@ -11,6 +11,19 @@ Kontrak ini hanya berlaku untuk role `orang_tua`. Endpoint kader dan
 Puskesmas tetap menggunakan kontrak teknis yang diperlukan untuk menjalankan
 proses rujukan.
 
+## Pemisahan kontrak berdasarkan peran
+
+| Pengguna | Endpoint utama | Kontrak |
+| --- | --- | --- |
+| Orang tua | `GET /api/orang-tua/anak/:id/rujukan` | Status, catatan, tindak lanjut, waktu, dan petugas |
+| Kader/Puskesmas | `GET /api/rujukan/anak/:anak_id` | Riwayat rujukan beserta data teknis pengukuran |
+| Kader/Puskesmas | `GET /api/rujukan` dan `GET /api/rujukan/:id` | Daftar/detail operasional termasuk prioritas internal |
+| Kader | `POST /api/rujukan` | Pengajuan berdasarkan penilaian kader |
+| Puskesmas | `PUT /api/rujukan/:id/status` | Pembaruan penanganan dan catatan Puskesmas |
+
+Serializer orang tua tidak digunakan endpoint teknis. Akses setiap endpoint
+tetap dibatasi middleware autentikasi dan role backend.
+
 ## Bentuk response
 
 Envelope endpoint tidak berubah. Strict whitelist diterapkan pada setiap item
@@ -40,7 +53,7 @@ Envelope endpoint tidak berubah. Strict whitelist diterapkan pada setiap item
 }
 ```
 
-Objek `data.anak` tidak diubah dalam tahap ini dan mengikuti kontrak yang
+Objek `data.anak` mengikuti kontrak profil anak yang
 sudah berlaku.
 
 ## Whitelist field
@@ -84,11 +97,19 @@ peringkat
 Field internal baru juga tidak ikut terkirim secara otomatis. Penambahannya ke
 kontrak orang tua harus melalui review kontrak dan test kebocoran data.
 
+Keberadaan rujukan menjelaskan bahwa anak memerlukan tindak lanjut, tetapi
+bukan diagnosis klinis. Skor SAW hanya dapat menjadi informasi prioritas bagi
+petugas dan tidak menentukan kelayakan rujukan secara otomatis.
+
 ## Batas peran dan rilis
 
 - Perhitungan Z-score dan SAW di backend tidak diubah.
 - Endpoint teknis kader/Puskesmas tidak menggunakan serializer ini.
 - Perubahan tidak memerlukan migrasi database.
-- Backend dan mobile harus dirilis terkoordinasi. Model dan UI mobile lama
-  masih menampilkan nilai default `Skor SAW 0.0000` sampai Tahap 4 dan 7
-  diselesaikan.
+- Model dan UI orang tua tidak bergantung pada skor atau kategori prioritas
+  internal.
+- Perubahan whitelist wajib dilindungi unit test dan integration test.
+
+Kontrak ini telah diterapkan pada serializer dan endpoint aplikasi. Aturan
+penyajian dan perlindungan lintas fitur dijelaskan dalam
+[Kebijakan UX dan Keamanan Data Teknis](./DATA_TEKNIS_UX_SECURITY_POLICY.md).

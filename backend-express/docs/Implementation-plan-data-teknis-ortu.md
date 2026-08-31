@@ -109,8 +109,8 @@ Endpoint kader dan Puskesmas tidak diubah.
 strict-whitelist `src/serializers/orangTuaRujukanSerializer.js` telah diterapkan
 khusus pada `GET /api/orang-tua/anak/:id/rujukan`. Endpoint teknis kader dan
 Puskesmas tidak diubah. UI mobile lama masih dapat menampilkan nilai default
-`Skor SAW 0.0000` sampai Tahap 4 dan 7 selesai, sehingga rilis tetap harus
-terkoordinasi.
+`Skor SAW 0.0000`; risiko kompatibilitas tersebut telah diselesaikan pada
+Tahap 4 dan 7.
 
 Audit dan tetapkan whitelist untuk:
 
@@ -136,7 +136,9 @@ Jangan mengirim atau menampilkan:
 - Z-score;
 - rincian perhitungan prioritas.
 
-Ini juga memperbaiki kondisi mobile yang saat ini dapat menampilkan `Skor SAW 0.0000` karena field tersebut tidak dikirim backend tetapi diberi nilai default oleh model.
+Ini juga memperbaiki kondisi mobile sebelumnya yang dapat menampilkan
+`Skor SAW 0.0000` karena field tersebut tidak dikirim backend tetapi diberi
+nilai default oleh model.
 
 ## Tahap 4 — Sederhanakan model mobile
 
@@ -382,6 +384,13 @@ Pastikan status antropometri dan status pemantauan tetap tampil.
 
 ## Tahap 10 — Dokumentasi
 
+**Status: selesai.** Dokumentasi API pengukuran dan rujukan kini membedakan
+kontrak orang tua dari endpoint teknis kader/Puskesmas, termasuk status
+implementasi serializer aplikasinya. Kebijakan UX dan keamanan lintas fitur
+mendokumentasikan bahwa Z-score/SAW tetap dihitung backend tetapi tidak dikirim
+kepada orang tua, kategori bukan diagnosis, dan SAW hanya membantu prioritas
+pemantauan.
+
 Perbarui dokumentasi API dengan membedakan:
 
 ```
@@ -399,6 +408,12 @@ Jelaskan bahwa:
 Tambahkan aturan yang sama pada dokumentasi kebijakan UX dan keamanan data.
 
 ## Tahap 11 — Validasi akhir
+
+**Status: validasi otomatis selesai; pengujian manual tertunda.** Seluruh 176
+test backend dan 106 test Flutter lulus, `flutter analyze` tidak menemukan
+masalah, serta pemeriksaan format terhadap 80 berkas Dart tidak menemukan
+perubahan. Build APK dan checklist pengujian manual di bawah belum dijalankan
+karena menjadi bagian validasi perangkat oleh pengguna.
 
 Jalankan:
 

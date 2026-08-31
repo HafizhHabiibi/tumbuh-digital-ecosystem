@@ -113,6 +113,7 @@ class _DetailAnakScreenState extends ConsumerState<DetailAnakScreen> {
                                       anak.nama,
                                       style: AppTextStyles.heading2.copyWith(
                                         color: Colors.white,
+                                        fontWeight: FontWeight.w700,
                                       ),
                                     ),
                                     const SizedBox(height: 4),
@@ -122,8 +123,8 @@ class _DetailAnakScreenState extends ConsumerState<DetailAnakScreen> {
                                           FormatUtils.hitungUsia(
                                               anak.tanggalLahir),
                                           style: AppTextStyles.body.copyWith(
-                                            color: Colors.white
-                                                .withValues(alpha: 0.8),
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
                                           ),
                                         ),
                                         const SizedBox(width: 8),

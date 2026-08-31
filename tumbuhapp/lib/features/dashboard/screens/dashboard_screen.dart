@@ -12,15 +12,26 @@ import '../../../shared/widgets/empty_state_widget.dart';
 import '../../../shared/widgets/status_badge_widget.dart';
 import '../../../shared/widgets/insight_card_widget.dart';
 import '../../../core/constant/app_constants.dart';
+import '../../../core/utils/error_utils.dart';
 import '../../../core/utils/format_utils.dart';
 import '../../../core/services/fcm_service.dart';
 import '../../../router/app_router.dart';
+import '../../conversational_ai/widgets/chat_entry_card.dart';
+import '../../laporan/data/laporan_service.dart';
+import '../../laporan/providers/laporan_provider.dart';
 
-class DashboardScreen extends ConsumerWidget {
+class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+  bool _isDownloading = false;
+
+  @override
+  Widget build(BuildContext context) {
     // Auto select anak pertama
     ref.watch(autoSelectAnakProvider);
 
@@ -150,7 +161,16 @@ class DashboardScreen extends ConsumerWidget {
       color: AppColors.primary,
       onRefresh: () async {
         ref.invalidate(daftarAnakProvider);
+        if (selectedAnak != null) {
+          ref.invalidate(pengukuranTerakhirProvider(selectedAnak.id));
+        }
+
         await ref.read(daftarAnakProvider.future);
+        if (selectedAnak != null) {
+          await ref.read(
+            pengukuranTerakhirProvider(selectedAnak.id).future,
+          );
+        }
       },
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -212,7 +232,7 @@ class DashboardScreen extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '$greeting, $firstName 👋',
+          '$greeting, $firstName',
           style: AppTextStyles.heading2,
         ),
         const SizedBox(height: 4),
@@ -241,6 +261,7 @@ class DashboardScreen extends ConsumerWidget {
 
           return GestureDetector(
             onTap: () {
+              ref.invalidate(pengukuranTerakhirProvider(anak.id));
               ref.read(selectedAnakIndexProvider.notifier).state = index;
               ref.read(selectedAnakProvider.notifier).state = anak;
             },
@@ -338,8 +359,9 @@ class DashboardScreen extends ConsumerWidget {
                       Text(
                         FormatUtils.hitungUsia(anak.tanggalLahir),
                         style: AppTextStyles.body.copyWith(
-                          color: Colors.white.withValues(alpha: 0.85),
+                          color: Colors.white,
                           fontSize: 13,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
@@ -358,6 +380,26 @@ class DashboardScreen extends ConsumerWidget {
             // Row 2: Pengukuran Terakhir (jika ada)
             if (terakhir != null) ...[
               Row(
+                children: [
+                  const Icon(
+                    Icons.calendar_today_outlined,
+                    color: Colors.white,
+                    size: 14,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Pengukuran terakhir: ${FormatUtils.formatTanggal(terakhir.tanggalUkur)}',
+                      style: AppTextStyles.caption.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _buildMiniStat('Berat Badan',
@@ -365,7 +407,7 @@ class DashboardScreen extends ConsumerWidget {
                   _buildMiniStat('Tinggi Badan',
                       FormatUtils.formatTinggiBadan(terakhir.tinggiBadan)),
                   _buildMiniStat(
-                    'Status BB/TB',
+                    'Status Gizi',
                     formatStatusAntropometri(terakhir.statusBbtb),
                     isBadge: true,
                   ),
@@ -377,7 +419,10 @@ class DashboardScreen extends ConsumerWidget {
             ] else ...[
               Text(
                 'Belum ada riwayat pengukuran anak.',
-                style: AppTextStyles.caption.copyWith(color: Colors.white70),
+                style: AppTextStyles.caption.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               const SizedBox(height: 12),
             ],
@@ -387,15 +432,16 @@ class DashboardScreen extends ConsumerWidget {
               children: [
                 const Icon(
                   Icons.touch_app_outlined,
-                  color: Colors.white70,
+                  color: Colors.white,
                   size: 14,
                 ),
                 const SizedBox(width: 6),
                 Text(
                   'Tap untuk lihat detail perkembangan anak',
                   style: AppTextStyles.caption.copyWith(
-                    color: Colors.white70,
+                    color: Colors.white,
                     fontSize: 11,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
@@ -413,8 +459,9 @@ class DashboardScreen extends ConsumerWidget {
         Text(
           label,
           style: const TextStyle(
-            color: Colors.white70,
+            color: Colors.white,
             fontSize: 10,
+            fontWeight: FontWeight.w500,
           ),
         ),
         const SizedBox(height: 4),
@@ -465,7 +512,7 @@ class DashboardScreen extends ConsumerWidget {
     final menus = [
       _MenuItem(
         icon: Icons.monitor_weight_outlined,
-        label: 'Pengukuran Anak',
+        label: 'Riwayat Pengukuran',
         subtitle: 'Input berat, tinggi & lingkar lengan',
         color: AppColors.primary,
         bgColor: AppColors.primarySurface,
@@ -473,7 +520,7 @@ class DashboardScreen extends ConsumerWidget {
       ),
       _MenuItem(
         icon: Icons.show_chart,
-        label: 'Grafik KMS & WHO',
+        label: 'Grafik Pertumbuhan',
         subtitle: 'Pantau kurva pertumbuhan',
         color: const Color(0xFF1D4ED8),
         bgColor: const Color(0xFFDBEAFE),
@@ -481,7 +528,7 @@ class DashboardScreen extends ConsumerWidget {
       ),
       _MenuItem(
         icon: Icons.vaccines_outlined,
-        label: 'Layanan Pemberian',
+        label: 'Riwayat Pemberian',
         subtitle: 'Imunisasi, Vitamin A & PMT',
         color: const Color(0xFF7C3AED),
         bgColor: const Color(0xFFEDE9FE),
@@ -497,19 +544,22 @@ class DashboardScreen extends ConsumerWidget {
       ),
       _MenuItem(
         icon: Icons.local_hospital_outlined,
-        label: 'Rujukan Medis',
+        label: 'Status Rujukan',
         subtitle: 'Ajukan rujukan ke Puskesmas',
         color: const Color(0xFFD97706),
         bgColor: const Color(0xFFFEF3C7),
         onTap: () => pushAnakRoute('/anak/$anakId/rujukan'),
       ),
       _MenuItem(
-        icon: Icons.notifications_outlined,
-        label: 'Notifikasi',
-        subtitle: 'Informasi jadwal, pengukuran & rujukan',
-        color: const Color(0xFFDC2626),
+        icon: Icons.picture_as_pdf_outlined,
+        label: 'Unduh Laporan',
+        subtitle: 'Simpan ringkasan pertumbuhan',
+        color: const Color(0xFFB91C1C),
         bgColor: const Color(0xFFFEE2E2),
-        onTap: () => context.push(AppRoutes.notifikasi),
+        isLoading: _isDownloading,
+        onTap: _isDownloading || selectedAnak == null
+            ? null
+            : () => _downloadLaporan(selectedAnak),
       ),
       _MenuItem(
         icon: Icons.person_outline,
@@ -547,6 +597,47 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
+  Future<void> _downloadLaporan(AnakModel anak) async {
+    setState(() => _isDownloading = true);
+    try {
+      final result =
+          await ref.read(laporanServiceProvider).downloadLaporanAnak(anak.id);
+      if (!mounted) return;
+      _showMessage(
+        'Laporan ${anak.nama} berhasil disimpan sebagai ${result.fileName}',
+        AppColors.primary,
+      );
+    } on LaporanDownloadCancelled {
+      if (mounted) {
+        _showMessage('Penyimpanan laporan dibatalkan', AppColors.textSecondary);
+      }
+    } catch (error) {
+      if (mounted) {
+        _showMessage(
+          ErrorUtils.getCleanErrorMessage(error),
+          AppColors.statusBurukText,
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isDownloading = false);
+    }
+  }
+
+  void _showMessage(String message, Color color) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: color,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      );
+  }
+
   // ── AI Insight Section ────────────────────────
 
   Widget _buildInsightSection(
@@ -559,24 +650,9 @@ class DashboardScreen extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Row(
-          children: [
-            Icon(
-              Icons.auto_awesome,
-              color: AppColors.primary,
-              size: 20,
-            ),
-            SizedBox(width: 8),
-            Text(
-              'AI Insight Perkembangan',
-              style: AppTextStyles.heading3,
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'Analisis cerdas tumbuh kembang ${selectedAnak.nama}',
-          style: AppTextStyles.bodySecondary.copyWith(fontSize: 12),
+        const Text(
+          'AI Insight Perkembangan',
+          style: AppTextStyles.heading3,
         ),
         const SizedBox(height: 12),
         terakhirAsync.when(
@@ -659,15 +735,29 @@ class DashboardScreen extends ConsumerWidget {
             // Jika ada pengukuran terakhir, fetch insight-nya
             final insightState = ref.watch(insightProvider(terakhir.id));
 
-            return InsightCard(
-              insightTeks: insightState.insight?.insightTeks,
-              createdAt: insightState.insight?.insightGeneratedAt,
-              status: insightState.insight?.status,
-              isLoading: insightState.isLoading || insightState.isPolling,
-              pollingTimedOut: insightState.pollingTimedOut,
-              errorMessage: insightState.errorMessage,
-              onRefresh: () =>
-                  ref.read(insightProvider(terakhir.id).notifier).refresh(),
+            return Column(
+              children: [
+                InsightCard(
+                  insightTeks: insightState.insight?.insightTeks,
+                  createdAt: insightState.insight?.insightGeneratedAt,
+                  status: insightState.insight?.status,
+                  isLoading: insightState.isLoading || insightState.isPolling,
+                  pollingTimedOut: insightState.pollingTimedOut,
+                  errorMessage: insightState.errorMessage,
+                  onRefresh: () =>
+                      ref.read(insightProvider(terakhir.id).notifier).refresh(),
+                ),
+                const SizedBox(height: 12),
+                ChatEntryCard(
+                  insightStatus: insightState.insight?.status,
+                  onPressed: () => context.push(
+                    AppRoutes.chatPengukuranLocation(
+                      terakhir.id,
+                      tanggalPengukuran: terakhir.tanggalUkur,
+                    ),
+                  ),
+                ),
+              ],
             );
           },
         ),
@@ -749,11 +839,19 @@ class _HoverableMenuItemCardState extends State<_HoverableMenuItemCard> {
                         color: item.bgColor,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Icon(
-                        item.icon,
-                        color: item.color,
-                        size: 26,
-                      ),
+                      child: item.isLoading
+                          ? Padding(
+                              padding: const EdgeInsets.all(14),
+                              child: CircularProgressIndicator(
+                                color: item.color,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Icon(
+                              item.icon,
+                              color: item.color,
+                              size: 26,
+                            ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -797,11 +895,19 @@ class _HoverableMenuItemCardState extends State<_HoverableMenuItemCard> {
                         color: item.bgColor,
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: Icon(
-                        item.icon,
-                        color: item.color,
-                        size: 20,
-                      ),
+                      child: item.isLoading
+                          ? Padding(
+                              padding: const EdgeInsets.all(11),
+                              child: CircularProgressIndicator(
+                                color: item.color,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Icon(
+                              item.icon,
+                              color: item.color,
+                              size: 20,
+                            ),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -839,7 +945,8 @@ class _MenuItem {
   final String subtitle;
   final Color color;
   final Color bgColor;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
+  final bool isLoading;
 
   const _MenuItem({
     required this.icon,
@@ -848,5 +955,6 @@ class _MenuItem {
     required this.color,
     required this.bgColor,
     required this.onTap,
+    this.isLoading = false,
   });
 }

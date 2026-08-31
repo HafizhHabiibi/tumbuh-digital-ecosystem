@@ -77,7 +77,8 @@ class _ConversationalAiScreenState
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Tanya AI', style: AppTextStyles.heading3),
+          const Text('AI Insight Chat', style: AppTextStyles.heading3),
+          const SizedBox(height: 4),
           Text(subtitle, style: AppTextStyles.caption),
         ],
       ),
@@ -250,6 +251,7 @@ class _ConversationalAiScreenState
                         hintText: state.isActiveMode
                             ? 'Tanyakan tentang hasil pengukuran'
                             : 'Percakapan tersedia setelah insight selesai',
+                        hintStyle: AppTextStyles.caption.copyWith(fontSize: 13),
                         filled: true,
                         fillColor: state.isActiveMode
                             ? AppColors.background
@@ -477,6 +479,7 @@ class _MessageBubble extends StatelessWidget {
                   style: AppTextStyles.body.copyWith(
                     color: textColor,
                     height: 1.45,
+                    fontWeight: isUser ? FontWeight.w500 : null,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -486,7 +489,8 @@ class _MessageBubble extends StatelessWidget {
                     Text(
                       _timeLabel(message),
                       style: AppTextStyles.caption.copyWith(
-                        color: isUser ? Colors.white70 : AppColors.textMuted,
+                        color: isUser ? Colors.white : AppColors.textMuted,
+                        fontWeight: isUser ? FontWeight.w500 : null,
                       ),
                     ),
                     if (message.sendStatus == ChatSendStatus.sending) ...[
@@ -495,14 +499,15 @@ class _MessageBubble extends StatelessWidget {
                         dimension: 11,
                         child: CircularProgressIndicator(
                           strokeWidth: 1.5,
-                          color: Colors.white70,
+                          color: Colors.white,
                         ),
                       ),
                       const SizedBox(width: 4),
                       Text(
                         'Mengirim...',
                         style: AppTextStyles.caption.copyWith(
-                          color: Colors.white70,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
@@ -515,6 +520,7 @@ class _MessageBubble extends StatelessWidget {
                         'Gagal dikirim',
                         style: AppTextStyles.caption.copyWith(
                           color: Colors.white,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
@@ -526,6 +532,9 @@ class _MessageBubble extends StatelessWidget {
                     onPressed: onRetry,
                     style: TextButton.styleFrom(
                       foregroundColor: Colors.white,
+                      textStyle: AppTextStyles.label.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                       padding: const EdgeInsets.only(top: 4),
                       minimumSize: const Size(0, 32),
                     ),

@@ -111,7 +111,7 @@ class EmptyPemberian extends StatelessWidget {
       icon: Icons.vaccines_outlined,
       title: 'Belum Ada Pemberian',
       message:
-          'Riwayat pemberian imunisasi, vitamin,\ndan obat akan muncul di sini.',
+          'Riwayat pemberian Vitamin A, obat cacing,\ndan PMT akan muncul di sini.',
     );
   }
 }

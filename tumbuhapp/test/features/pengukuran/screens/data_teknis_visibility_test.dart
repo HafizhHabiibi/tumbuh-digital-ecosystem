@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:tumbuhapp/features/dashboard/providers/anak_provider.dart';
 import 'package:tumbuhapp/features/dashboard/screens/detail_anak_screen.dart';
 import 'package:tumbuhapp/features/pengukuran/data/pengukuran_service.dart';
@@ -46,6 +47,22 @@ final _pengukuran = PengukuranModel(
   statusImtu: 'gizi_baik',
   statusPemantauan: 'perlu_perhatian',
   createdAt: '2026-08-26T03:00:00.000Z',
+);
+
+final _pengukuranSebelumnya = PengukuranModel(
+  id: 500,
+  tanggalUkur: '2026-07-26',
+  beratBadan: 10.6,
+  tinggiBadan: 84.3,
+  lingkarKepala: 47.8,
+  lingkarLengan: 14.8,
+  usiaBulan: 23,
+  statusBbu: 'berat_badan_normal',
+  statusTbu: 'normal',
+  statusBbtb: 'gizi_baik',
+  statusImtu: 'gizi_baik',
+  statusPemantauan: 'rutin',
+  createdAt: '2026-07-26T03:00:00.000Z',
 );
 
 final _response = PengukuranResponse(
@@ -105,9 +122,18 @@ Widget _app(
 }
 
 void main() {
+  setUpAll(() async {
+    await initializeDateFormatting('id');
+  });
+
   testWidgets(
     'detail pengukuran menampilkan status tanpa data teknis',
     (tester) async {
+      tester.view.physicalSize = const Size(360, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       await tester.pumpWidget(
         _app(
           const DetailPengukuranScreen(pengukuranId: 501),
@@ -126,8 +152,32 @@ void main() {
 
       expect(find.text('Status Antropometri'), findsOneWidget);
       expect(find.text('Status Pemantauan'), findsOneWidget);
-      expect(find.text('Gizi Baik'), findsWidgets);
+      expect(find.text('AI Insight Perkembangan'), findsOneWidget);
+      expect(find.text('Status BB/TB'), findsNothing);
+      expect(find.text('Gizi Baik'), findsNWidgets(2));
       expect(find.text('Perlu Perhatian'), findsOneWidget);
+      expect(find.text('26 Agustus 2026'), findsOneWidget);
+      expect(
+        tester.getRect(find.text('26 Agustus 2026')).top -
+            tester.getRect(find.text('Detail Pengukuran')).bottom,
+        greaterThanOrEqualTo(3),
+      );
+      expect(
+        find.text(
+          'Setiap indikator membandingkan berat, tinggi, atau IMT sesuai acuan pertumbuhan anak.',
+        ),
+        findsOneWidget,
+      );
+      for (final kode in ['bbu', 'tbu', 'bbtb', 'imtu']) {
+        expect(
+          find.byKey(ValueKey('status-antropometri-$kode')),
+          findsOneWidget,
+        );
+      }
+      expect(find.text('Berat badan menurut usia'), findsOneWidget);
+      expect(find.text('Tinggi badan menurut usia'), findsOneWidget);
+      expect(find.text('Berat badan menurut tinggi badan'), findsOneWidget);
+      expect(find.text('Indeks massa tubuh menurut usia'), findsOneWidget);
       _expectDataTeknisTidakTampil();
     },
   );
@@ -170,7 +220,7 @@ void main() {
   );
 
   testWidgets(
-    'grafik pertumbuhan memakai nilai fisik dan kategori tanpa data teknis',
+    'grafik pertumbuhan menangani kondisi satu pengukuran',
     (tester) async {
       tester.view.physicalSize = const Size(900, 2400);
       tester.view.devicePixelRatio = 1;
@@ -191,8 +241,51 @@ void main() {
 
       expect(find.text('Perkembangan Berat Badan'), findsOneWidget);
       expect(find.text('Perkembangan Tinggi Badan'), findsOneWidget);
-      expect(find.text('Status Gizi per Pengukuran'), findsOneWidget);
-      expect(find.text('Gizi Baik'), findsWidgets);
+      expect(find.text('Ringkasan Perubahan Terakhir'), findsOneWidget);
+      expect(
+        find.text('Belum cukup data untuk melihat perubahan pertumbuhan.'),
+        findsOneWidget,
+      );
+      expect(find.text('Saran Pemantauan Terbaru'), findsNothing);
+      expect(find.text('Lihat detail pengukuran terbaru'), findsOneWidget);
+      expect(find.text('Status Gizi per Pengukuran'), findsNothing);
+      _expectDataTeknisTidakTampil();
+    },
+  );
+
+  testWidgets(
+    'grafik pertumbuhan merangkum perubahan dua pengukuran terbaru',
+    (tester) async {
+      tester.view.physicalSize = const Size(900, 2400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        _app(
+          const GrafikPertumbuhanScreen(anakId: _anakId),
+          overrides: [
+            riwayatPengukuranProvider.overrideWith(
+              (ref, id) async => PengukuranResponse(
+                anak: _anak,
+                riwayat: [_pengukuran, _pengukuranSebelumnya],
+              ),
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Ringkasan Perubahan Terakhir'), findsOneWidget);
+      expect(
+        find.text('Dibandingkan dengan pengukuran 31 hari sebelumnya'),
+        findsOneWidget,
+      );
+      expect(find.text('Naik 0,4 KG'), findsOneWidget);
+      expect(find.text('Naik 1,2 CM'), findsOneWidget);
+      expect(find.text('Menjadi 11 KG'), findsOneWidget);
+      expect(find.text('Menjadi 85,5 CM'), findsOneWidget);
+      expect(find.text('Status Gizi per Pengukuran'), findsNothing);
       _expectDataTeknisTidakTampil();
     },
   );

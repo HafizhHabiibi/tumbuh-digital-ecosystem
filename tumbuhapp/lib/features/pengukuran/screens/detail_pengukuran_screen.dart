@@ -43,6 +43,7 @@ class DetailPengukuranScreen extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: AppColors.surface,
         elevation: 0,
+        toolbarHeight: 72,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => context.pop(),
@@ -51,6 +52,7 @@ class DetailPengukuranScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text('Detail Pengukuran', style: AppTextStyles.heading3),
+            const SizedBox(height: 4),
             Text(
               FormatUtils.formatTanggal(pengukuran.tanggalUkur),
               style: AppTextStyles.caption,
@@ -63,10 +65,6 @@ class DetailPengukuranScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Card Ringkasan ─────────────────
-            _buildRingkasanCard(pengukuran),
-            const SizedBox(height: 16),
-
             // ── Data Antropometri ──────────────
             _buildSectionTitle('Data Antropometri'),
             const SizedBox(height: 12),
@@ -75,6 +73,11 @@ class DetailPengukuranScreen extends ConsumerWidget {
 
             // ── Status Antropometri ─────────────
             _buildSectionTitle('Status Antropometri'),
+            const SizedBox(height: 4),
+            const Text(
+              'Setiap indikator membandingkan berat, tinggi, atau IMT sesuai acuan pertumbuhan anak.',
+              style: AppTextStyles.caption,
+            ),
             const SizedBox(height: 12),
             _buildStatusAntropometriCard(pengukuran),
             const SizedBox(height: 16),
@@ -85,8 +88,8 @@ class DetailPengukuranScreen extends ConsumerWidget {
             _buildPemantauanCard(pengukuran),
             const SizedBox(height: 16),
 
-            // ── AI Insight ─────────────────────
-            _buildSectionTitle('AI Insight'),
+            // ── AI Insight Perkembangan ────────
+            _buildSectionTitle('AI Insight Perkembangan'),
             const SizedBox(height: 12),
             InsightCard(
               insightTeks: insightState.insight?.insightTeks,
@@ -121,74 +124,28 @@ class DetailPengukuranScreen extends ConsumerWidget {
     return Text(title, style: AppTextStyles.heading3);
   }
 
-  // ── Ringkasan Card ────────────────────────────
-
-  Widget _buildRingkasanCard(PengukuranModel pengukuran) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.primary,
-            AppColors.primary.withValues(alpha: 0.8),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Status BB/TB',
-                style: AppTextStyles.body.copyWith(
-                  color: Colors.white70,
-                ),
-              ),
-              StatusBadge(
-                label: pengukuran.statusBbtb,
-                type: StatusType.statusAntropometri,
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildRingkasanMetric(
-                  label: 'Berat Badan',
-                  value: FormatUtils.formatBeratBadan(pengukuran.beratBadan),
-                ),
-              ),
-              Container(
-                width: 1,
-                height: 40,
-                color: Colors.white24,
-              ),
-              Expanded(
-                child: _buildRingkasanMetric(
-                  label: 'Tinggi Badan',
-                  value: FormatUtils.formatTinggiBadan(pengukuran.tinggiBadan),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildStatusAntropometriCard(PengukuranModel pengukuran) {
     final statuses = [
-      ('BB/U', pengukuran.statusBbu),
-      ('TB/U', pengukuran.statusTbu),
-      ('BB/TB', pengukuran.statusBbtb),
-      ('IMT/U', pengukuran.statusImtu),
+      _StatusAntropometriItem(
+        kode: 'BB/U',
+        label: 'Berat badan menurut usia',
+        status: pengukuran.statusBbu,
+      ),
+      _StatusAntropometriItem(
+        kode: 'TB/U',
+        label: 'Tinggi badan menurut usia',
+        status: pengukuran.statusTbu,
+      ),
+      _StatusAntropometriItem(
+        kode: 'BB/TB',
+        label: 'Berat badan menurut tinggi badan',
+        status: pengukuran.statusBbtb,
+      ),
+      _StatusAntropometriItem(
+        kode: 'IMT/U',
+        label: 'Indeks massa tubuh menurut usia',
+        status: pengukuran.statusImtu,
+      ),
     ];
 
     return Container(
@@ -199,53 +156,72 @@ class DetailPengukuranScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
       ),
-      child: Wrap(
-        spacing: 12,
-        runSpacing: 12,
-        children: statuses.map((status) {
-          return SizedBox(
-            width: 132,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(status.$1, style: AppTextStyles.caption),
-                const SizedBox(height: 6),
-                StatusBadge(
-                  label: status.$2,
-                  type: StatusType.statusAntropometri,
+      child: Column(
+        children: statuses.indexed.map((entry) {
+          final index = entry.$1;
+          final status = entry.$2;
+
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: index < statuses.length - 1 ? 10 : 0,
+            ),
+            child: Container(
+              key: ValueKey(
+                'status-antropometri-${status.kode.toLowerCase().replaceAll('/', '')}',
+              ),
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.primarySurface.withValues(alpha: 0.55),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.14),
                 ),
-              ],
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Text(
+                      status.kode,
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.label.copyWith(
+                        color: AppColors.primaryDark,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          status.label,
+                          style: AppTextStyles.body.copyWith(
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        StatusBadge(
+                          label: status.status,
+                          type: StatusType.statusAntropometri,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildRingkasanMetric({
-    required String label,
-    required String value,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: AppTextStyles.heading3.copyWith(
-              color: Colors.white,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: AppTextStyles.caption.copyWith(
-              color: Colors.white70,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
       ),
     );
   }
@@ -292,7 +268,7 @@ class DetailPengukuranScreen extends ConsumerWidget {
           crossAxisCount: 2,
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
-          childAspectRatio: 2.5,
+          mainAxisExtent: 76,
         ),
         itemCount: items.length,
         itemBuilder: (_, index) {
@@ -381,5 +357,17 @@ class _MetricItem {
     required this.icon,
     required this.label,
     required this.value,
+  });
+}
+
+class _StatusAntropometriItem {
+  final String kode;
+  final String label;
+  final String status;
+
+  const _StatusAntropometriItem({
+    required this.kode,
+    required this.label,
+    required this.status,
   });
 }

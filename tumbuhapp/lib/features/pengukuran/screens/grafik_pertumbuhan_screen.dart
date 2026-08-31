@@ -60,17 +60,7 @@ class GrafikPertumbuhanScreen extends ConsumerWidget {
                 const SizedBox(height: 16),
                 _buildChartCard(sorted, _GrowthMetric.height),
                 const SizedBox(height: 24),
-                const Text(
-                  'Status Gizi per Pengukuran',
-                  style: AppTextStyles.heading3,
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Kategori membantu memahami hasil pengukuran tanpa angka teknis.',
-                  style: AppTextStyles.caption,
-                ),
-                const SizedBox(height: 12),
-                _buildNutritionStatusList(sorted.reversed.toList()),
+                _buildGrowthSummaryCard(context, ref, sorted),
               ],
             ),
           );
@@ -299,73 +289,176 @@ class GrafikPertumbuhanScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildNutritionStatusList(List<PengukuranModel> measurements) {
+  Widget _buildGrowthSummaryCard(
+    BuildContext context,
+    WidgetRef ref,
+    List<PengukuranModel> measurements,
+  ) {
+    final latest = measurements.last;
+    final previous =
+        measurements.length > 1 ? measurements[measurements.length - 2] : null;
+
     return Container(
+      key: const ValueKey('growth-change-summary'),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
       ),
       child: Column(
-        children: measurements.indexed.map((entry) {
-          final index = entry.$1;
-          final measurement = entry.$2;
-          return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
             children: [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      FormatUtils.formatTanggal(measurement.tanggalUkur),
-                      style: AppTextStyles.body.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: _buildStatusItem(
-                            label: 'BB/TB',
-                            status: measurement.statusBbtb,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildStatusItem(
-                            label: 'IMT/U',
-                            status: measurement.statusImtu,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+              Icon(Icons.trending_up, color: AppColors.primary, size: 22),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Ringkasan Perubahan Terakhir',
+                  style: AppTextStyles.heading3,
                 ),
               ),
-              if (index < measurements.length - 1)
-                const Divider(height: 1, color: AppColors.divider),
             ],
-          );
-        }).toList(),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Pengukuran terakhir ${FormatUtils.formatTanggal(latest.tanggalUkur)}',
+            style: AppTextStyles.caption,
+          ),
+          const SizedBox(height: 16),
+          if (previous == null)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.primarySurface.withValues(alpha: 0.55),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Text(
+                'Belum cukup data untuk melihat perubahan pertumbuhan.',
+                style: AppTextStyles.bodySecondary,
+              ),
+            )
+          else ...[
+            Text(
+              _comparisonPeriod(previous, latest),
+              style: AppTextStyles.bodySecondary,
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildChangeItem(
+                    label: 'Berat Badan',
+                    change: latest.beratBadan - previous.beratBadan,
+                    currentValue:
+                        FormatUtils.formatBeratBadan(latest.beratBadan),
+                    unit: 'KG',
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildChangeItem(
+                    label: 'Tinggi Badan',
+                    change: latest.tinggiBadan - previous.tinggiBadan,
+                    currentValue:
+                        FormatUtils.formatTinggiBadan(latest.tinggiBadan),
+                    unit: 'CM',
+                  ),
+                ),
+              ],
+            ),
+          ],
+          const SizedBox(height: 16),
+          const Divider(height: 1, color: AppColors.divider),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              key: const ValueKey('open-latest-measurement'),
+              onPressed: () {
+                ref.read(selectedPengukuranProvider.notifier).state = latest;
+                context.push('/pengukuran/${latest.id}');
+              },
+              icon: const Icon(Icons.arrow_forward_rounded, size: 18),
+              label: const Text('Lihat detail pengukuran terbaru'),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildStatusItem({required String label, required String status}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: AppTextStyles.caption),
-        const SizedBox(height: 6),
-        StatusBadge(
-          label: status,
-          type: StatusType.statusAntropometri,
-        ),
-      ],
+  Widget _buildChangeItem({
+    required String label,
+    required double change,
+    required String currentValue,
+    required String unit,
+  }) {
+    final direction = change > 0
+        ? 'Naik'
+        : change < 0
+            ? 'Turun'
+            : 'Tetap';
+    final icon = change > 0
+        ? Icons.arrow_upward_rounded
+        : change < 0
+            ? Icons.arrow_downward_rounded
+            : Icons.remove_rounded;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: AppTextStyles.caption),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Icon(icon, size: 16, color: AppColors.primary),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  '$direction ${_formatChange(change)} $unit',
+                  style: AppTextStyles.body.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text('Menjadi $currentValue', style: AppTextStyles.caption),
+        ],
+      ),
     );
+  }
+
+  String _comparisonPeriod(
+    PengukuranModel previous,
+    PengukuranModel latest,
+  ) {
+    final previousDate = DateTime.parse(previous.tanggalUkur);
+    final latestDate = DateTime.parse(latest.tanggalUkur);
+    final days = latestDate.difference(previousDate).inDays;
+    if (days == 0) {
+      return 'Dibandingkan pengukuran sebelumnya pada hari yang sama';
+    }
+    return 'Dibandingkan dengan pengukuran $days hari sebelumnya';
+  }
+
+  String _formatChange(double value) {
+    final absolute = value.abs();
+    if (absolute == absolute.roundToDouble()) {
+      return absolute.toInt().toString();
+    }
+    return absolute.toStringAsFixed(1).replaceAll('.', ',');
   }
 
   String _formatAxisValue(double value) {
@@ -394,8 +487,8 @@ extension on _GrowthMetric {
       };
 
   String get shortUnit => switch (this) {
-        _GrowthMetric.weight => 'kg',
-        _GrowthMetric.height => 'cm',
+        _GrowthMetric.weight => 'KG',
+        _GrowthMetric.height => 'CM',
       };
 
   String get legend => switch (this) {

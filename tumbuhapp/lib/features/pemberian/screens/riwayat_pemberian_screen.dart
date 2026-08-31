@@ -5,7 +5,6 @@ import '../providers/pemberian_provider.dart';
 import '../../../shared/models/pemberian_model.dart';
 import '../../../shared/widgets/loading_widget.dart';
 import '../../../shared/widgets/empty_state_widget.dart';
-import '../../../shared/widgets/status_badge_widget.dart';
 import '../../../core/constant/app_constants.dart';
 import '../../../core/utils/format_utils.dart';
 
@@ -46,8 +45,10 @@ class _RiwayatPemberianScreenState
       ),
       body: Column(
         children: [
-          // ── Filter Chips ───────────────────
-          _buildFilterChips(state),
+          if (!state.isLoading &&
+              state.errorMessage == null &&
+              state.riwayat.isNotEmpty)
+            _buildHistoryHeader(state),
 
           // ── Content ────────────────────────
           Expanded(child: _buildContent(state)),
@@ -58,6 +59,27 @@ class _RiwayatPemberianScreenState
 
   // ── Filter Chips ──────────────────────────────
 
+  Widget _buildHistoryHeader(PemberianState state) {
+    return Container(
+      width: double.infinity,
+      color: AppColors.surface,
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Tampilkan berdasarkan jenis',
+            style: AppTextStyles.label.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          _buildFilterChips(state),
+        ],
+      ),
+    );
+  }
+
   Widget _buildFilterChips(PemberianState state) {
     final filters = [
       {'value': 'semua', 'label': 'Semua'},
@@ -66,47 +88,43 @@ class _RiwayatPemberianScreenState
       {'value': 'pmt', 'label': 'PMT'},
     ];
 
-    return Container(
-      color: AppColors.surface,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: SizedBox(
-        height: 36,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          itemCount: filters.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 8),
-          itemBuilder: (_, index) {
-            final filter = filters[index];
-            final isActive = state.activeFilter == filter['value'];
+    return SizedBox(
+      height: 36,
+      child: ListView.separated(
+        key: const ValueKey('pemberian-filter-list'),
+        scrollDirection: Axis.horizontal,
+        itemCount: filters.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (_, index) {
+          final filter = filters[index];
+          final value = filter['value']!;
+          final isActive = state.activeFilter == value;
+          final count = value == 'semua'
+              ? state.riwayat.length
+              : state.riwayat.where((item) => item.sesuaiFilter(value)).length;
 
-            return GestureDetector(
-              onTap: () => ref
-                  .read(pemberianProvider.notifier)
-                  .setFilter(filter['value']!),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: isActive ? AppColors.primary : AppColors.background,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: isActive ? AppColors.primary : AppColors.border,
-                  ),
-                ),
-                child: Text(
-                  filter['label']!,
-                  style: AppTextStyles.body.copyWith(
-                    color: isActive ? Colors.white : AppColors.textSecondary,
-                    fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
+          return ChoiceChip(
+            selected: isActive,
+            showCheckmark: false,
+            label: Text('${filter['label']} ($count)'),
+            onSelected: (_) =>
+                ref.read(pemberianProvider.notifier).setFilter(value),
+            backgroundColor: AppColors.background,
+            selectedColor: AppColors.primary,
+            side: BorderSide(
+              color: isActive ? AppColors.primary : AppColors.border,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            labelStyle: AppTextStyles.body.copyWith(
+              color: isActive ? Colors.white : AppColors.textSecondary,
+              fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            visualDensity: VisualDensity.compact,
+          );
+        },
       ),
     );
   }
@@ -127,11 +145,30 @@ class _RiwayatPemberianScreenState
     }
 
     if (state.filtered.isEmpty) {
-      return const EmptyPemberian();
+      return RefreshIndicator(
+        color: AppColors.primary,
+        onRefresh: () =>
+            ref.read(pemberianProvider.notifier).fetchPemberian(widget.anakId),
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            SizedBox(
+              height: MediaQuery.sizeOf(context).height * 0.5,
+              child: state.riwayat.isEmpty
+                  ? const EmptyPemberian()
+                  : _FilteredEmptyState(
+                      categoryLabel: _activeFilterLabel(state.activeFilter),
+                    ),
+            ),
+          ],
+        ),
+      );
     }
 
     // Kelompokkan per bulan
-    final grouped = _groupByMonth(state.filtered);
+    final sorted = [...state.filtered]
+      ..sort((a, b) => b.tanggalPemberian.compareTo(a.tanggalPemberian));
+    final grouped = _groupByMonth(sorted);
 
     return RefreshIndicator(
       color: AppColors.primary,
@@ -146,6 +183,15 @@ class _RiwayatPemberianScreenState
         },
       ),
     );
+  }
+
+  String _activeFilterLabel(String filter) {
+    return switch (filter) {
+      'vitamin_a' => 'Vitamin A',
+      'obat_cacing' => 'Obat Cacing',
+      'pmt' => 'PMT',
+      _ => 'Pemberian',
+    };
   }
 
   // ── Group by Month ────────────────────────────
@@ -205,32 +251,32 @@ class _RiwayatPemberianScreenState
                 ),
               ),
               const SizedBox(width: 8),
-              Text(bulan, style: AppTextStyles.heading3),
+              Expanded(child: Text(bulan, style: AppTextStyles.heading3)),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 9,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primarySurface,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '${items.length} pemberian',
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.primaryDark,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
             ],
           ),
         ),
 
-        // Items
-        Container(
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.border),
-          ),
-          child: Column(
-            children: items.asMap().entries.map((entry) {
-              final index = entry.key;
-              final item = entry.value;
-              final isLast = index == items.length - 1;
-
-              return Column(
-                children: [
-                  _buildPemberianItem(item),
-                  if (!isLast)
-                    const Divider(height: 1, color: AppColors.divider),
-                ],
-              );
-            }).toList(),
+        ...items.map(
+          (item) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _buildPemberianItem(item),
           ),
         ),
         const SizedBox(height: 16),
@@ -241,98 +287,118 @@ class _RiwayatPemberianScreenState
   // ── Pemberian Item ────────────────────────────
 
   Widget _buildPemberianItem(PemberianModel item) {
-    return Padding(
-      padding: const EdgeInsets.all(12),
-      child: Row(
-        children: [
-          // Icon jenis
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: _getJenisBgColor(item.kategori),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              _getJenisIcon(item.kategori),
-              color: _getJenisColor(item.kategori),
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
+    final shape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(16),
+      side: const BorderSide(color: AppColors.border),
+    );
 
-          // Info
-          Expanded(
-            child: Column(
+    return Material(
+      key: ValueKey('pemberian-${item.id}'),
+      color: AppColors.surface,
+      elevation: 2,
+      shadowColor: Colors.black.withValues(alpha: 0.12),
+      shape: shape,
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            color: _getJenisBgColor(item.kategori).withValues(alpha: 0.72),
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Nama & badge
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    _getJenisIcon(item.kategori),
+                    color: _getJenisColor(item.kategori),
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
                         item.namaItem,
                         style: AppTextStyles.body.copyWith(
                           fontWeight: FontWeight.w600,
+                          fontSize: 15,
                         ),
                       ),
-                    ),
-                    StatusBadge(
-                      label: item.jenis,
-                      type: StatusType.jenisPemberian,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-
-                // Dosis & tanggal
-                Row(
-                  children: [
-                    if (item.dosis != null) ...[
-                      const Icon(
-                        Icons.colorize_outlined,
-                        size: 12,
-                        color: AppColors.textSecondary,
+                      const SizedBox(height: 5),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_today_outlined,
+                            size: 13,
+                            color: _getJenisColor(item.kategori),
+                          ),
+                          const SizedBox(width: 5),
+                          Expanded(
+                            child: Text(
+                              FormatUtils.formatTanggal(
+                                item.tanggalPemberian,
+                              ),
+                              style: AppTextStyles.caption.copyWith(
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 4),
-                      Flexible(
-                        child: Text(
-                          item.dosis!,
-                          style: AppTextStyles.caption,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
                     ],
-                    const Icon(
-                      Icons.calendar_today_outlined,
-                      size: 12,
-                      color: AppColors.textSecondary,
-                    ),
-                    const SizedBox(width: 4),
-                    Flexible(
-                      child: Text(
-                        FormatUtils.formatTanggal(item.tanggalPemberian),
-                        style: AppTextStyles.caption,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-                const SizedBox(height: 4),
-
-                // Dicatat oleh
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (_hasText(item.dosis))
+                  _buildDetailRow(
+                    icon: Icons.colorize_outlined,
+                    label: 'Dosis',
+                    value: item.dosis!.trim(),
+                  ),
+                if (_hasText(item.dosis) && _hasText(item.keterangan))
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 10),
+                    child: Divider(height: 1, color: AppColors.divider),
+                  ),
+                if (_hasText(item.keterangan))
+                  _buildDetailRow(
+                    icon: Icons.notes_outlined,
+                    label: 'Catatan',
+                    value: item.keterangan!.trim(),
+                  ),
+                if (_hasText(item.dosis) || _hasText(item.keterangan))
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    child: Divider(height: 1, color: AppColors.divider),
+                  ),
                 Row(
                   children: [
                     const Icon(
                       Icons.person_outline,
-                      size: 12,
+                      size: 14,
                       color: AppColors.textSecondary,
                     ),
-                    const SizedBox(width: 4),
-                    Flexible(
+                    const SizedBox(width: 5),
+                    Expanded(
                       child: Text(
-                        'Dicatat oleh ${item.dicatatOleh}',
+                        'Dicatat oleh ${_hasText(item.dicatatOleh) ? item.dicatatOleh.trim() : 'Petugas Posyandu'}',
                         style: AppTextStyles.caption,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -346,6 +412,33 @@ class _RiwayatPemberianScreenState
       ),
     );
   }
+
+  Widget _buildDetailRow({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 16, color: AppColors.textSecondary),
+        const SizedBox(width: 8),
+        SizedBox(
+          width: 58,
+          child: Text(label, style: AppTextStyles.caption),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            value,
+            style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w500),
+          ),
+        ),
+      ],
+    );
+  }
+
+  bool _hasText(String? value) => value != null && value.trim().isNotEmpty;
 
   // ── Helpers ───────────────────────────────────
 
@@ -386,5 +479,49 @@ class _RiwayatPemberianScreenState
       default:
         return AppColors.primarySurface;
     }
+  }
+}
+
+class _FilteredEmptyState extends StatelessWidget {
+  final String categoryLabel;
+
+  const _FilteredEmptyState({required this.categoryLabel});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: const BoxDecoration(
+                color: AppColors.primarySurface,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.history_toggle_off_outlined,
+                color: AppColors.primary,
+                size: 32,
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              'Belum Ada Riwayat $categoryLabel',
+              textAlign: TextAlign.center,
+              style: AppTextStyles.heading3,
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Catatan akan muncul setelah pemberian dilakukan oleh petugas Posyandu.',
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bodySecondary,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

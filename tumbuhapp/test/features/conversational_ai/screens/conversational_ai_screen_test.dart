@@ -120,12 +120,15 @@ void main() {
     await tester.pumpWidget(_app(gateway));
     await tester.pumpAndSettle();
 
-    expect(find.text('Tanya AI'), findsOneWidget);
+    expect(find.text('AI Insight Chat'), findsOneWidget);
     expect(find.text('Pengukuran 29 Agustus 2026'), findsOneWidget);
     expect(find.text('Aktif'), findsOneWidget);
     expect(find.text('Lihat insight awal'), findsOneWidget);
     expect(find.text('Muat pesan sebelumnya'), findsOneWidget);
     expect(find.text('Apa contoh protein?'), findsOneWidget);
+    final userMessage = tester.widget<Text>(find.text('Apa contoh protein?'));
+    expect(userMessage.style?.color, Colors.white);
+    expect(userMessage.style?.fontWeight, FontWeight.w500);
     expect(find.text('Bukan saran medis'), findsOneWidget);
     expect(find.byKey(const ValueKey('chat-composer')), findsOneWidget);
     expect(

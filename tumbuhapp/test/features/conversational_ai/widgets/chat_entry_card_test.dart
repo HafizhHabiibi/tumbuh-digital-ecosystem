@@ -206,7 +206,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Tanya AI'), findsOneWidget);
+    expect(find.text('AI Insight Chat'), findsOneWidget);
     expect(find.text('Pengukuran #12'), findsOneWidget);
     expect(find.text('Aktif'), findsOneWidget);
   });

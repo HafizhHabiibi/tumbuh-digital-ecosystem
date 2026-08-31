@@ -54,30 +54,77 @@ export const getAnakById = async (req, res) => {
     }
 };
 
-export const getPengukuranAnak = async (req, res) => {
-    try {
-        const anak = await getAnakMilikOrangTua(
-            res,
-            req.params.id,
-            req.orangTua.id,
-        );
-        if (!anak) return;
+export const buatOrangTuaDataController = ({
+    findAnakById = AnakModel.findById,
+    findPengukuranByAnak = PengukuranModel.findByAnak,
+    enrichPengukuranList = pengukuranService.enrichPengukuranList,
+    serializePengukuran = toOrangTuaPengukuran,
+    findRujukanByAnak = RujukanModel.findByAnak,
+    serializeRujukan = toOrangTuaRujukan,
+} = {}) => {
+    const getAnakMilik = async (res, anakId, orangTuaId) => {
+        const anak = await findAnakById(anakId);
+        if (!anak) {
+            error(res, "Data anak tidak ditemukan", 404);
+            return null;
+        }
+        if (anak.orang_tua_id !== orangTuaId) {
+            error(res, "Akses ditolak", 403);
+            return null;
+        }
+        return anak;
+    };
 
-        const rawRiwayat = await PengukuranModel.findByAnak(req.params.id);
-        // Enrich raw data dengan z-score dan SAW on-the-fly
-        const riwayat = pengukuranService
-            .enrichPengukuranList(rawRiwayat, anak)
-            .map(toOrangTuaPengukuran);
+    const getPengukuranAnak = async (req, res) => {
+        try {
+            const anak = await getAnakMilik(
+                res,
+                req.params.id,
+                req.orangTua.id,
+            );
+            if (!anak) return;
 
-        return success(
-            res,
-            { anak, riwayat },
-            "Riwayat pengukuran berhasil diambil",
-        );
-    } catch (err) {
-        return error(res, err.message);
-    }
+            const rawRiwayat = await findPengukuranByAnak(req.params.id);
+            const riwayat = enrichPengukuranList(rawRiwayat, anak)
+                .map(serializePengukuran);
+
+            return success(
+                res,
+                { anak, riwayat },
+                "Riwayat pengukuran berhasil diambil",
+            );
+        } catch (err) {
+            return error(res, err.message);
+        }
+    };
+
+    const getRujukanAnak = async (req, res) => {
+        try {
+            const anak = await getAnakMilik(
+                res,
+                req.params.id,
+                req.orangTua.id,
+            );
+            if (!anak) return;
+
+            const rawRujukan = await findRujukanByAnak(req.params.id);
+            const rujukan = rawRujukan.map(serializeRujukan);
+            return success(
+                res,
+                { anak, rujukan },
+                "Riwayat rujukan berhasil diambil",
+            );
+        } catch (err) {
+            return error(res, err.message);
+        }
+    };
+
+    return { getPengukuranAnak, getRujukanAnak };
 };
+
+const orangTuaDataController = buatOrangTuaDataController();
+
+export const getPengukuranAnak = orangTuaDataController.getPengukuranAnak;
 
 export const getPemberianAnak = async (req, res) => {
     try {
@@ -104,26 +151,7 @@ export const getPemberianAnak = async (req, res) => {
     }
 };
 
-export const getRujukanAnak = async (req, res) => {
-    try {
-        const anak = await getAnakMilikOrangTua(
-            res,
-            req.params.id,
-            req.orangTua.id,
-        );
-        if (!anak) return;
-
-        const rawRujukan = await RujukanModel.findByAnak(req.params.id);
-        const rujukan = rawRujukan.map(toOrangTuaRujukan);
-        return success(
-            res,
-            { anak, rujukan },
-            "Riwayat rujukan berhasil diambil",
-        );
-    } catch (err) {
-        return error(res, err.message);
-    }
-};
+export const getRujukanAnak = orangTuaDataController.getRujukanAnak;
 
 export const updateFcmToken = async (req, res) => {
     try {

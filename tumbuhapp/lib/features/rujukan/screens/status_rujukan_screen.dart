@@ -165,7 +165,7 @@ class _StatusRujukanScreenState extends ConsumerState<StatusRujukanScreen> {
                     ),
                   ),
                   Text(
-                    FormatUtils.formatTanggal(rujukan.createdAt),
+                    'Diajukan ${FormatUtils.formatTanggal(rujukan.createdAt)}',
                     style: AppTextStyles.caption,
                   ),
                 ],
@@ -187,30 +187,17 @@ class _StatusRujukanScreenState extends ConsumerState<StatusRujukanScreen> {
     final steps = [
       const _StepItem(
         label: 'Diajukan',
-        status: 'diajukan',
         icon: Icons.send_outlined,
       ),
       const _StepItem(
-        label: 'Diterima',
-        status: 'diterima',
-        icon: Icons.check_circle_outline,
-      ),
-      const _StepItem(
-        label: 'Penanganan',
-        status: 'dalam_penanganan',
+        label: 'Ditangani',
         icon: Icons.medical_services_outlined,
       ),
       const _StepItem(
         label: 'Selesai',
-        status: 'selesai',
         icon: Icons.task_alt_outlined,
       ),
     ];
-
-    // Kalau ditolak tampilkan stepper berbeda
-    if (rujukan.status == 'ditolak') {
-      return _buildDitolakStepper();
-    }
 
     final currentIndex = _getStepIndex(rujukan.status);
 
@@ -288,48 +275,14 @@ class _StatusRujukanScreenState extends ConsumerState<StatusRujukanScreen> {
     );
   }
 
-  Widget _buildDitolakStepper() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: AppColors.rujukanDitolakBg,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.rujukanDitolakText),
-            ),
-            child: const Icon(
-              Icons.cancel_outlined,
-              size: 16,
-              color: AppColors.rujukanDitolakText,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            'Rujukan Ditolak',
-            style: AppTextStyles.body.copyWith(
-              color: AppColors.rujukanDitolakText,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   int _getStepIndex(String status) {
     switch (status) {
       case 'diajukan':
         return 0;
-      case 'diterima':
+      case 'ditangani':
         return 1;
-      case 'dalam_penanganan':
-        return 2;
       case 'selesai':
-        return 3;
+        return 2;
       default:
         return 0;
     }
@@ -346,28 +299,28 @@ class _StatusRujukanScreenState extends ConsumerState<StatusRujukanScreen> {
           const Divider(color: AppColors.divider),
           const SizedBox(height: 8),
 
-          // Catatan Kader
-          if (rujukan.catatanKader != null) ...[
+          // Alasan atau catatan dari kader
+          if (rujukan.catatanKader?.trim().isNotEmpty ?? false) ...[
             _buildInfoRow(
               icon: Icons.note_outlined,
-              label: 'Catatan Kader',
+              label: 'Alasan / Catatan Kader',
               value: rujukan.catatanKader!,
             ),
             const SizedBox(height: 8),
           ],
 
-          // Catatan Puskesmas
-          if (rujukan.catatanPuskesmas != null) ...[
+          // Tindak lanjut dari Puskesmas
+          if (rujukan.catatanPuskesmas?.trim().isNotEmpty ?? false) ...[
             _buildInfoRow(
               icon: Icons.local_hospital_outlined,
-              label: 'Catatan Puskesmas',
+              label: 'Tindak Lanjut Puskesmas',
               value: rujukan.catatanPuskesmas!,
             ),
             const SizedBox(height: 8),
           ],
 
           // Ditangani oleh
-          if (rujukan.ditanganiOleh != null) ...[
+          if (rujukan.ditanganiOleh?.trim().isNotEmpty ?? false) ...[
             _buildInfoRow(
               icon: Icons.person_outline,
               label: 'Ditangani Oleh',
@@ -376,11 +329,11 @@ class _StatusRujukanScreenState extends ConsumerState<StatusRujukanScreen> {
             const SizedBox(height: 8),
           ],
 
-          // Tanggal selesai
+          // Waktu pertama kali rujukan ditangani/divalidasi
           if (rujukan.validatedAt != null)
             _buildInfoRow(
               icon: Icons.event_available_outlined,
-              label: 'Tanggal Selesai',
+              label: 'Mulai Ditangani',
               value: FormatUtils.formatTanggal(rujukan.validatedAt!),
             ),
         ],
@@ -417,12 +370,10 @@ class _StatusRujukanScreenState extends ConsumerState<StatusRujukanScreen> {
 
 class _StepItem {
   final String label;
-  final String status;
   final IconData icon;
 
   const _StepItem({
     required this.label,
-    required this.status,
     required this.icon,
   });
 }

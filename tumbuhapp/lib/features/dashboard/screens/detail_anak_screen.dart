@@ -270,7 +270,7 @@ class _DetailAnakScreenState extends ConsumerState<DetailAnakScreen> {
       _FiturItem(
         icon: Icons.monitor_weight_outlined,
         label: 'Riwayat Pengukuran',
-        subtitle: 'Lihat data BB, TB, dan z-score',
+        subtitle: 'Lihat pertumbuhan dan status gizi anak',
         color: AppColors.primary,
         bgColor: AppColors.primarySurface,
         onTap: () => context.push('/anak/$anakId/pengukuran'),
@@ -310,12 +310,13 @@ class _DetailAnakScreenState extends ConsumerState<DetailAnakScreen> {
       ),
     ];
 
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
+    return Material(
+      color: AppColors.surface,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        side: const BorderSide(color: AppColors.border),
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         children: menus.asMap().entries.map((entry) {
           final index = entry.key;

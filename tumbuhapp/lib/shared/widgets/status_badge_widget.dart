@@ -52,7 +52,6 @@ String formatStatusPemantauan(String status) {
 enum StatusType {
   statusAntropometri,
   statusPemantauan,
-  kategoriPrioritas,
   statusRujukan,
   jenisKelamin,
   jenisPemberian,
@@ -96,8 +95,6 @@ class StatusBadge extends StatelessWidget {
         return _labelStatusAntropometri();
       case StatusType.statusPemantauan:
         return formatStatusPemantauan(label);
-      case StatusType.kategoriPrioritas:
-        return _labelKategoriPrioritas();
       case StatusType.statusRujukan:
         return _labelStatusRujukan();
       case StatusType.jenisKelamin:
@@ -111,31 +108,14 @@ class StatusBadge extends StatelessWidget {
     return formatStatusAntropometri(label);
   }
 
-  String _labelKategoriPrioritas() {
-    switch (label.toLowerCase()) {
-      case 'rendah':
-        return 'Prioritas Rendah';
-      case 'sedang':
-        return 'Prioritas Sedang';
-      case 'tinggi':
-        return 'Prioritas Tinggi';
-      default:
-        return label;
-    }
-  }
-
   String _labelStatusRujukan() {
     switch (label.toLowerCase()) {
       case 'diajukan':
         return 'Diajukan';
-      case 'diterima':
-        return 'Diterima';
-      case 'dalam_penanganan':
-        return 'Dalam Penanganan';
+      case 'ditangani':
+        return 'Ditangani';
       case 'selesai':
         return 'Selesai';
-      case 'ditolak':
-        return 'Ditolak';
       default:
         return label;
     }
@@ -168,8 +148,6 @@ class StatusBadge extends StatelessWidget {
         return _colorsStatusAntropometri();
       case StatusType.statusPemantauan:
         return _colorsStatusPemantauan();
-      case StatusType.kategoriPrioritas:
-        return _colorsKategoriPrioritas();
       case StatusType.statusRujukan:
         return _colorsStatusRujukan();
       case StatusType.jenisKelamin:
@@ -206,19 +184,6 @@ class StatusBadge extends StatelessWidget {
     }
   }
 
-  (Color, Color) _colorsKategoriPrioritas() {
-    switch (label.toLowerCase()) {
-      case 'rendah':
-        return (AppColors.risikoRendahText, AppColors.risikoRendahBg);
-      case 'sedang':
-        return (AppColors.risikoSedangText, AppColors.risikoSedangBg);
-      case 'tinggi':
-        return (AppColors.risikoTinggiText, AppColors.risikoTinggiBg);
-      default:
-        return (AppColors.textSecondary, AppColors.border);
-    }
-  }
-
   (Color, Color) _colorsStatusPemantauan() {
     switch (label.toLowerCase()) {
       case 'rutin':
@@ -236,14 +201,10 @@ class StatusBadge extends StatelessWidget {
     switch (label.toLowerCase()) {
       case 'diajukan':
         return (AppColors.rujukanDiajukanText, AppColors.rujukanDiajukanBg);
-      case 'diterima':
-        return (AppColors.rujukanDiterimaText, AppColors.rujukanDiterimaBg);
-      case 'dalam_penanganan':
+      case 'ditangani':
         return (AppColors.rujukanPenangananText, AppColors.rujukanPenangananBg);
       case 'selesai':
         return (AppColors.rujukanSelesaiText, AppColors.rujukanSelesaiBg);
-      case 'ditolak':
-        return (AppColors.rujukanDitolakText, AppColors.rujukanDitolakBg);
       default:
         return (AppColors.textSecondary, AppColors.border);
     }

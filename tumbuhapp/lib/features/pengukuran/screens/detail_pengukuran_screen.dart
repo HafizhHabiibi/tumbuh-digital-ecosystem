@@ -176,20 +176,6 @@ class DetailPengukuranScreen extends ConsumerWidget {
                   value: FormatUtils.formatTinggiBadan(pengukuran.tinggiBadan),
                 ),
               ),
-              Container(
-                width: 1,
-                height: 40,
-                color: Colors.white24,
-              ),
-              Expanded(
-                child: _buildRingkasanMetric(
-                  label: 'Pemantauan',
-                  value: formatStatusPemantauan(
-                    pengukuran.statusPemantauan,
-                  ),
-                  isCapitalized: true,
-                ),
-              ),
             ],
           ),
         ],
@@ -239,16 +225,13 @@ class DetailPengukuranScreen extends ConsumerWidget {
   Widget _buildRingkasanMetric({
     required String label,
     required String value,
-    bool isCapitalized = false,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Column(
         children: [
           Text(
-            isCapitalized && value.isNotEmpty
-                ? value[0].toUpperCase() + value.substring(1)
-                : value,
+            value,
             style: AppTextStyles.heading3.copyWith(
               color: Colors.white,
             ),
@@ -357,6 +340,7 @@ class DetailPengukuranScreen extends ConsumerWidget {
         border: Border.all(color: AppColors.border),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           StatusBadge(
             label: pengukuran.statusPemantauan,
@@ -366,7 +350,6 @@ class DetailPengukuranScreen extends ConsumerWidget {
           Text(
             _getPemantauanDescription(pengukuran.statusPemantauan),
             style: AppTextStyles.bodySecondary,
-            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -376,11 +359,11 @@ class DetailPengukuranScreen extends ConsumerWidget {
   String _getPemantauanDescription(String status) {
     switch (status.toLowerCase()) {
       case 'rutin':
-        return 'Kondisi anak baik, pertahankan pola makan dan aktivitas yang sehat.';
+        return 'Pantau pola makan dan pertumbuhan anak secara rutin. Pertahankan kebiasaan sehat yang sudah berjalan.';
       case 'perlu_perhatian':
-        return 'Perlu perhatian lebih, konsultasikan dengan kader atau petugas kesehatan.';
+        return 'Pantau pola makan dan pertumbuhan anak secara rutin. Konsultasikan dengan kader bila ada kekhawatiran.';
       case 'konsultasi':
-        return 'Segera konsultasikan dengan petugas kesehatan untuk penanganan lebih lanjut.';
+        return 'Konsultasikan hasil pertumbuhan anak dengan kader atau petugas kesehatan untuk mendapatkan arahan lebih lanjut.';
       default:
         return '-';
     }

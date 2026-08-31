@@ -195,20 +195,12 @@ class ShimmerDetail extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // Z-Score cards
-            Row(
-              children: List.generate(
-                3,
-                (_) => Expanded(
-                  child: Container(
-                    height: 100,
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
+            // Content card
+            Container(
+              height: 120,
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(16),
               ),
             ),
             const SizedBox(height: 16),

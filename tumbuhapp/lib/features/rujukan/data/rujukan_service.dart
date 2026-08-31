@@ -1,10 +1,14 @@
+import 'package:dio/dio.dart';
+
 import '../../../core/network/dio_client.dart';
 import '../../../core/constant/api_constants.dart';
 import '../../../shared/models/rujukan_model.dart';
 import '../../../shared/models/anak_model.dart';
 
 class RujukanService {
-  final _dio = DioClient.instance;
+  final Dio _dio;
+
+  RujukanService({Dio? dio}) : _dio = dio ?? DioClient.instance;
 
   // ── Riwayat Rujukan ───────────────────────────
 

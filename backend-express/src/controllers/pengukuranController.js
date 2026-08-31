@@ -177,26 +177,30 @@ export const getRiwayatPengukuran = async (req, res) => {
     }
 };
 
-export const getDetailPengukuran = async (req, res) => {
+export const buatGetDetailPengukuran = ({
+    findPengukuranById = PengukuranModel.findById,
+    enrichPengukuran = pengukuranService.enrichPengukuranDenganPrioritas,
+} = {}) => async (req, res) => {
     try {
         const { id } = req.params;
 
-        const raw = await PengukuranModel.findById(id);
+        const raw = await findPengukuranById(id);
         if (!raw) {
             return error(res, "Data pengukuran tidak ditemukan", 404);
         }
 
-        const enriched =
-            pengukuranService.enrichPengukuranDenganPrioritas(raw, {
-                tanggal_lahir: raw.tanggal_lahir,
-                jenis_kelamin: raw.jenis_kelamin,
-            });
+        const enriched = enrichPengukuran(raw, {
+            tanggal_lahir: raw.tanggal_lahir,
+            jenis_kelamin: raw.jenis_kelamin,
+        });
 
         return success(res, enriched, "Detail pengukuran berhasil diambil");
     } catch (err) {
         return error(res, err.message);
     }
 };
+
+export const getDetailPengukuran = buatGetDetailPengukuran();
 
 export const getRankingAnak = async (req, res) => {
     try {
@@ -211,11 +215,13 @@ export const getRankingAnak = async (req, res) => {
     }
 };
 
-export const getDetailSAW = async (req, res) => {
+export const buatGetDetailSAW = ({
+    getDetailSAW = pengukuranService.getDetailSAW,
+} = {}) => async (req, res) => {
     try {
         const { id } = req.params;
 
-        const detail = await pengukuranService.getDetailSAW(id);
+        const detail = await getDetailSAW(id);
         if (!detail) {
             return error(res, "Data SAW tidak ditemukan", 404);
         }
@@ -224,6 +230,8 @@ export const getDetailSAW = async (req, res) => {
         return error(res, err.message);
     }
 };
+
+export const getDetailSAW = buatGetDetailSAW();
 
 export const getInsight = async (req, res) => {
     try {

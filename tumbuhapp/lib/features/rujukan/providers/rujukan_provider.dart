@@ -25,10 +25,9 @@ class RujukanState {
     this.errorMessage,
   });
 
-  // Rujukan aktif — status selain selesai & ditolak
-  List<RujukanModel> get rujukanAktif => rujukan
-      .where((r) => r.status != 'selesai' && r.status != 'ditolak')
-      .toList();
+  // Rujukan aktif — diajukan atau sedang ditangani
+  List<RujukanModel> get rujukanAktif =>
+      rujukan.where((r) => r.status != 'selesai').toList();
 
   // Riwayat — semua rujukan
   List<RujukanModel> get riwayat => rujukan;

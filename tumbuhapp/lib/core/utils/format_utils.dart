@@ -90,12 +90,6 @@ class FormatUtils {
     return '$formatted cm';
   }
 
-  // -2.5 → "-2,50 SD"
-  static String formatZScore(double? nilai) {
-    if (nilai == null) return '-';
-    return '${nilai.toStringAsFixed(2).replaceAll('.', ',')} SD';
-  }
-
   // ── Usia ──────────────────────────────────────────────
 
   // "2006-05-15" → "8 bulan" | "1 tahun 3 bulan" | "2 tahun"

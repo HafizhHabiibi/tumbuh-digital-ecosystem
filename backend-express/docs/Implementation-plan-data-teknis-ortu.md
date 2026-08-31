@@ -185,6 +185,14 @@ Parsing harus ketat untuk field wajib. Jangan memberikan nilai default `0` untuk
 
 ## Tahap 5 — Perbaiki UI detail dan riwayat pengukuran
 
+**Status: selesai.** Detail pengukuran tidak lagi menampilkan bagian Z-score,
+skor akhir, skor SAW, atau progress numerik. Data antropometri, empat status
+pertumbuhan, AI Insight, conversational AI, dan kartu `Status Pemantauan`
+tetap tersedia. Kartu riwayat hanya menampilkan tanggal, BB, TB, kategori
+BB/TB, status pemantauan, dan navigasi detail. Subtitle detail anak telah
+diubah menjadi bahasa pertumbuhan yang mudah dipahami. Komponen teknis grafik
+dan skeleton yang sudah tidak digunakan akan diaudit pada Tahap 6.
+
 ### Detail pengukuran
 
 Hapus:
@@ -244,6 +252,14 @@ Lihat pertumbuhan dan status gizi anak
 
 ## Tahap 6 — Sederhanakan grafik pertumbuhan
 
+**Status: selesai.** Grafik orang tua kini kronologis berdasarkan tanggal dan
+hanya memakai nilai fisik BB dalam kilogram serta TB dalam sentimeter. Tooltip
+menampilkan tanggal, nilai fisik, dan kategori BB/U atau TB/U tanpa Z-score.
+Kategori BB/TB dan IMT/U tersedia dalam daftar ringkas per pengukuran. Provider
+dan asset kurva WHO pada mobile, `ZScoreCard`, formatter Z-score, serta skeleton
+terkait telah dihapus karena tidak lagi digunakan layar lain. Perhitungan WHO
+di backend dan kategori hasil pengukuran tidak berubah.
+
 Grafik orang tua tidak lagi menggunakan Z-score sebagai nilai sumbu atau tooltip.
 
 Gunakan grafik kronologis:
@@ -272,6 +288,13 @@ Komponen `ZScoreCard`, formatter Z-score, dan skeleton terkait dapat dihapus apa
 
 ## Tahap 7 — Perbaiki UI status rujukan
 
+**Status: selesai.** Tampilan rujukan orang tua telah diselaraskan dengan tiga
+status yang didukung backend: `diajukan`, `ditangani`, dan `selesai`. Kartu
+menampilkan tanggal pengajuan, alasan atau catatan kader, tindak lanjut
+Puskesmas, petugas yang menangani, serta waktu mulai ditangani jika tersedia.
+Skor SAW, kategori prioritas internal, dan status lama yang tidak didukung
+kontrak API tidak ditampilkan.
+
 Hapus baris:
 
 ```
@@ -289,6 +312,13 @@ Ganti dengan informasi yang relevan:
 Prioritas internal tidak perlu ditampilkan karena keberadaan rujukan sendiri sudah menjelaskan bahwa anak memerlukan tindak lanjut.
 
 ## Tahap 8 — Pengujian backend
+
+**Status: selesai.** Unit test serializer mencakup daftar field yang diizinkan,
+pemetaan seluruh kategori prioritas menjadi `status_pemantauan`, serta
+ketiadaan Z-score, skor, detail, bobot, dan kategori SAW dari kontrak orang
+tua. Integration test menjalankan endpoint pengukuran dan rujukan orang tua
+melalui Express. Regression test memastikan endpoint detail pengukuran dan
+detail SAW untuk kader/Puskesmas tetap menyediakan data teknis.
 
 Tambahkan unit test serializer orang tua:
 
@@ -316,6 +346,13 @@ assert.equal("status_pemantauan" in item, true);
 Tambahkan regression test bahwa endpoint teknis kader/Puskesmas tetap menerima data teknis yang dibutuhkan.
 
 ## Tahap 9 — Pengujian mobile
+
+**Status: selesai.** Model test memverifikasi parsing kontrak pengukuran orang
+tua dan seluruh nilai `status_pemantauan` tanpa ketergantungan pada field
+teknis. Widget test mencakup detail pengukuran, riwayat pengukuran, grafik
+pertumbuhan, status rujukan, dan detail anak. Seluruh layar diuji agar tidak
+menampilkan Z-score atau skor SAW, sementara kategori antropometri dan status
+pemantauan tetap tersedia pada layar yang relevan.
 
 Tambahkan model test:
 

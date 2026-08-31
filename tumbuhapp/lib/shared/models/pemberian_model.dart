@@ -29,6 +29,20 @@ class PemberianModel {
     );
   }
 
+  /// Kategori umum yang digunakan oleh filter dan tampilan aplikasi.
+  ///
+  /// Backend tetap menyimpan jenis rinci seperti `vitamin_a_merah` dan
+  /// `pmt_biskuit`, sedangkan orang tua memilih kategori Vitamin A atau PMT.
+  String get kategori {
+    if (jenis.startsWith('vitamin_a')) return 'vitamin_a';
+    if (jenis.startsWith('pmt')) return 'pmt';
+    return jenis;
+  }
+
+  bool sesuaiFilter(String filter) {
+    return filter == 'semua' || kategori == filter;
+  }
+
   String get namaItem {
     switch (jenis) {
       case 'vitamin_a_merah':

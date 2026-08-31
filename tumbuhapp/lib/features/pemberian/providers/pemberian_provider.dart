@@ -87,9 +87,9 @@ class PemberianNotifier extends StateNotifier<PemberianState> {
   // ── Filter Pemberian ────────────────────────
 
   void setFilter(String filter) {
-    final filtered = filter == 'semua'
-        ? state.riwayat
-        : state.riwayat.where((p) => p.jenis == filter).toList();
+    final filtered = state.riwayat
+        .where((pemberian) => pemberian.sesuaiFilter(filter))
+        .toList();
 
     state = state.copyWith(
       activeFilter: filter,

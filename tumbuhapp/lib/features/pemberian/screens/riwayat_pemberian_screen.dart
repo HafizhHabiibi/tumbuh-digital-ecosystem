@@ -250,12 +250,12 @@ class _RiwayatPemberianScreenState
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: _getJenisBgColor(item.jenis),
+              color: _getJenisBgColor(item.kategori),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
-              _getJenisIcon(item.jenis),
-              color: _getJenisColor(item.jenis),
+              _getJenisIcon(item.kategori),
+              color: _getJenisColor(item.kategori),
               size: 20,
             ),
           ),

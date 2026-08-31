@@ -121,6 +121,32 @@ void main() {
     expect(pemberian('pmt_lainnya').namaItem, 'PMT Lainnya');
   });
 
+  test('PemberianModel mengelompokkan jenis rinci untuk filter riwayat', () {
+    PemberianModel pemberian(String jenis) => PemberianModel.fromJson({
+          'id': 1,
+          'jenis': jenis,
+          'tanggal_pemberian': '2026-08-29',
+          'created_at': '2026-08-29T00:00:00.000Z',
+          'dicatat_oleh': 'Kader Satu',
+        });
+
+    for (final jenis in ['vitamin_a_merah', 'vitamin_a_biru']) {
+      expect(pemberian(jenis).kategori, 'vitamin_a');
+      expect(pemberian(jenis).sesuaiFilter('vitamin_a'), isTrue);
+      expect(pemberian(jenis).sesuaiFilter('pmt'), isFalse);
+    }
+
+    for (final jenis in ['pmt_biskuit', 'pmt_susu', 'pmt_lainnya']) {
+      expect(pemberian(jenis).kategori, 'pmt');
+      expect(pemberian(jenis).sesuaiFilter('pmt'), isTrue);
+      expect(pemberian(jenis).sesuaiFilter('vitamin_a'), isFalse);
+    }
+
+    expect(pemberian('obat_cacing').kategori, 'obat_cacing');
+    expect(pemberian('obat_cacing').sesuaiFilter('obat_cacing'), isTrue);
+    expect(pemberian('obat_cacing').sesuaiFilter('semua'), isTrue);
+  });
+
   test('kode status antropometri diformat untuk tampilan', () {
     expect(formatStatusAntropometri('berat_badan_normal'), 'BB Normal');
     expect(formatStatusAntropometri('gizi_baik'), 'Gizi Baik');

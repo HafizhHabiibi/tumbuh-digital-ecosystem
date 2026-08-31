@@ -135,6 +135,11 @@ void main() {
   testWidgets(
     'riwayat pengukuran menampilkan kategori tanpa data teknis',
     (tester) async {
+      tester.view.physicalSize = const Size(360, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       await tester.pumpWidget(
         _app(
           const RiwayatPengukuranScreen(anakId: _anakId),
@@ -151,6 +156,15 @@ void main() {
       expect(find.text('Perlu Perhatian'), findsOneWidget);
       expect(find.text('Berat Badan'), findsOneWidget);
       expect(find.text('Tinggi Badan'), findsOneWidget);
+      expect(find.text('Usia saat diukur: 2 tahun'), findsOneWidget);
+      expect(find.text('Status Gizi'), findsOneWidget);
+      expect(find.text('Saran Pemantauan'), findsOneWidget);
+      expect(find.text('Terbaru'), findsOneWidget);
+      expect(find.text('Lihat detail pengukuran'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('riwayat-pengukuran-501')),
+        findsOneWidget,
+      );
       _expectDataTeknisTidakTampil();
     },
   );

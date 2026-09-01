@@ -91,6 +91,9 @@ export const toOrangTuaRujukan = (rujukan) => {
         validated_at: toIsoTimestamp(rujukan.validated_at, "validated_at", {
             nullable: true,
         }),
+        completed_at: toIsoTimestamp(rujukan.completed_at, "completed_at", {
+            nullable: true,
+        }),
         tanggal_ukur: toDateOnly(rujukan.tanggal_ukur),
         berat_badan: requiredPositiveNumber(
             rujukan.berat_badan,

@@ -21,16 +21,8 @@ class StatusRujukanScreen extends ConsumerStatefulWidget {
 
 class _StatusRujukanScreenState extends ConsumerState<StatusRujukanScreen> {
   @override
-  void initState() {
-    super.initState();
-    Future.microtask(() {
-      ref.read(rujukanProvider.notifier).fetchRujukan(widget.anakId);
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final state = ref.watch(rujukanProvider);
+    final state = ref.watch(rujukanProvider(widget.anakId));
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -57,20 +49,32 @@ class _StatusRujukanScreenState extends ConsumerState<StatusRujukanScreen> {
     if (state.errorMessage != null) {
       return ErrorStateWidget(
         message: state.errorMessage!,
-        onRetry: () =>
-            ref.read(rujukanProvider.notifier).fetchRujukan(widget.anakId),
+        onRetry: _refresh,
       );
     }
 
     if (state.rujukan.isEmpty) {
-      return const EmptyRujukan();
+      return RefreshIndicator(
+        color: AppColors.primary,
+        onRefresh: _refresh,
+        child: LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            key: const ValueKey('empty-rujukan-scroll'),
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: const EmptyRujukan(),
+            ),
+          ),
+        ),
+      );
     }
 
     return RefreshIndicator(
       color: AppColors.primary,
-      onRefresh: () =>
-          ref.read(rujukanProvider.notifier).fetchRujukan(widget.anakId),
+      onRefresh: _refresh,
       child: ListView.separated(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(16),
         itemCount: state.rujukan.length,
         separatorBuilder: (_, __) => const SizedBox(height: 12),
@@ -82,6 +86,9 @@ class _StatusRujukanScreenState extends ConsumerState<StatusRujukanScreen> {
       ),
     );
   }
+
+  Future<void> _refresh() =>
+      ref.read(rujukanProvider(widget.anakId).notifier).fetchRujukan();
 
   // ── Rujukan Card ──────────────────────────────
 
@@ -133,48 +140,59 @@ class _StatusRujukanScreenState extends ConsumerState<StatusRujukanScreen> {
         ),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: isAktif
-                      ? AppColors.primary
-                      : AppColors.textSecondary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  Icons.local_hospital_outlined,
-                  color: isAktif ? Colors.white : AppColors.textSecondary,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    isAktif ? 'Rujukan Aktif' : 'Riwayat Rujukan',
-                    style: AppTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color:
-                          isAktif ? AppColors.primary : AppColors.textPrimary,
-                    ),
+          Expanded(
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: isAktif
+                        ? AppColors.primary
+                        : AppColors.textSecondary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  Text(
-                    'Diajukan ${FormatUtils.formatTanggal(rujukan.createdAt)}',
-                    style: AppTextStyles.caption,
+                  child: Icon(
+                    Icons.local_hospital_outlined,
+                    color: isAktif ? Colors.white : AppColors.textSecondary,
+                    size: 20,
                   ),
-                ],
-              ),
-            ],
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isAktif ? 'Rujukan Aktif' : 'Riwayat Rujukan',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.body.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: isAktif
+                              ? AppColors.primary
+                              : AppColors.textPrimary,
+                        ),
+                      ),
+                      Text(
+                        'Diajukan ${FormatUtils.formatTanggal(rujukan.createdAt)}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.caption,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
-          StatusBadge(
-            label: rujukan.status,
-            type: StatusType.statusRujukan,
+          const SizedBox(width: 8),
+          Flexible(
+            child: StatusBadge(
+              label: rujukan.status,
+              type: StatusType.statusRujukan,
+            ),
           ),
         ],
       ),
@@ -204,72 +222,72 @@ class _StatusRujukanScreenState extends ConsumerState<StatusRujukanScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
-        children: steps.asMap().entries.map((entry) {
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: steps.asMap().entries.expand((entry) {
           final index = entry.key;
           final step = entry.value;
           final isDone = index <= currentIndex;
           final isActive = index == currentIndex;
           final isLast = index == steps.length - 1;
 
-          return Expanded(
-            child: Row(
+          final indicator = Expanded(
+            child: Column(
               children: [
-                Expanded(
-                  child: Column(
-                    children: [
-                      // Step circle
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color:
-                              isDone ? AppColors.primary : AppColors.background,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color:
-                                isDone ? AppColors.primary : AppColors.border,
-                            width: isActive ? 2 : 1,
-                          ),
-                        ),
-                        child: Icon(
-                          step.icon,
-                          size: 16,
-                          color:
-                              isDone ? Colors.white : AppColors.textSecondary,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-
-                      // Step label
-                      Text(
-                        step.label,
-                        style: AppTextStyles.caption.copyWith(
-                          color: isDone
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: isActive ? 36 : 32,
+                  height: isActive ? 36 : 32,
+                  decoration: BoxDecoration(
+                    color: isDone ? AppColors.primary : AppColors.background,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isActive
+                          ? AppColors.primaryDark
+                          : isDone
                               ? AppColors.primary
-                              : AppColors.textSecondary,
-                          fontWeight:
-                              isActive ? FontWeight.w600 : FontWeight.normal,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+                              : AppColors.border,
+                      width: isActive ? 3 : 1,
+                    ),
+                    boxShadow: isActive
+                        ? [
+                            BoxShadow(
+                              color: AppColors.primary.withValues(alpha: 0.2),
+                              blurRadius: 6,
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: Icon(
+                    step.icon,
+                    size: 16,
+                    color: isDone ? Colors.white : AppColors.textSecondary,
                   ),
                 ),
-
-                // Connector line
-                if (!isLast)
-                  Expanded(
-                    child: Container(
-                      height: 2,
-                      margin: const EdgeInsets.only(bottom: 20),
-                      color: index < currentIndex
-                          ? AppColors.primary
-                          : AppColors.border,
-                    ),
+                const SizedBox(height: 6),
+                Text(
+                  step.label,
+                  style: AppTextStyles.caption.copyWith(
+                    color: isDone ? AppColors.primary : AppColors.textSecondary,
+                    fontWeight: isActive ? FontWeight.w700 : FontWeight.normal,
                   ),
+                  textAlign: TextAlign.center,
+                ),
               ],
             ),
           );
+
+          if (isLast) return [indicator];
+          return [
+            indicator,
+            Expanded(
+              child: Container(
+                height: 2,
+                margin: const EdgeInsets.only(top: 16),
+                color:
+                    index < currentIndex ? AppColors.primary : AppColors.border,
+              ),
+            ),
+          ];
         }).toList(),
       ),
     );
@@ -297,6 +315,14 @@ class _StatusRujukanScreenState extends ConsumerState<StatusRujukanScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Divider(color: AppColors.divider),
+          const SizedBox(height: 8),
+
+          _buildInfoRow(
+            icon: Icons.monitor_weight_outlined,
+            label: 'Dasar Rujukan',
+            value:
+                'Pengukuran ${FormatUtils.formatTanggal(rujukan.tanggalUkur)}',
+          ),
           const SizedBox(height: 8),
 
           // Alasan atau catatan dari kader
@@ -334,7 +360,17 @@ class _StatusRujukanScreenState extends ConsumerState<StatusRujukanScreen> {
             _buildInfoRow(
               icon: Icons.event_available_outlined,
               label: 'Mulai Ditangani',
-              value: FormatUtils.formatTanggal(rujukan.validatedAt!),
+              value: FormatUtils.formatTanggalJam(rujukan.validatedAt!),
+            ),
+
+          if (rujukan.validatedAt != null && rujukan.completedAt != null)
+            const SizedBox(height: 8),
+
+          if (rujukan.completedAt != null)
+            _buildInfoRow(
+              icon: Icons.task_alt_outlined,
+              label: 'Selesai Ditangani',
+              value: FormatUtils.formatTanggalJam(rujukan.completedAt!),
             ),
         ],
       ),

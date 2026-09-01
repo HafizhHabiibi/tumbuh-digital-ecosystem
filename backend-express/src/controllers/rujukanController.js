@@ -6,6 +6,7 @@ import * as pengukuranService from "../services/pengukuranService.js";
 import * as fcmService from "../services/fcmService.js";
 import { success, error } from "../utils/response.js";
 import { parsePagination, paginationMeta } from "../utils/pagination.js";
+import { isValidRujukanTransition } from "../services/rujukanStatusService.js";
 
 const STATUS_VALID = ["ditangani", "selesai"];
 
@@ -174,22 +175,34 @@ export const updateStatusRujukan = async (req, res) => {
             return error(res, "Rujukan tidak ditemukan", 404);
         }
 
-        if (rujukan.status === "selesai") {
+        if (!isValidRujukanTransition(rujukan.status, status)) {
             return error(
                 res,
-                "Rujukan yang sudah selesai tidak bisa diupdate",
-                400,
+                rujukan.status === "selesai"
+                    ? "Rujukan yang sudah selesai tidak bisa diperbarui"
+                    : `Status rujukan harus diperbarui dari ${rujukan.status} ke ${rujukan.status === "diajukan" ? "ditangani" : "selesai"}`,
+                409,
             );
         }
 
         const puskesmas = await PuskesmasModel.findByUserId(req.user.id);
         const puskesmas_id = puskesmas?.id;
 
-        await RujukanModel.updateStatus(id, {
+        const updated = await RujukanModel.updateStatus(id, {
             status,
             catatan_puskesmas,
             puskesmas_id,
+            current_status: rujukan.status,
         });
+        if (!updated) {
+            return error(
+                res,
+                "Status rujukan telah berubah. Muat ulang data lalu coba lagi",
+                409,
+            );
+        }
+
+        const rujukanTerbaru = await RujukanModel.findById(id);
 
         // anak_id didapat dari rujukan (via pengukuran JOIN)
         const anak = await AnakModel.findById(rujukan.anak_id);
@@ -214,8 +227,10 @@ export const updateStatusRujukan = async (req, res) => {
             {
                 id: parseInt(id),
                 status,
-                catatan_puskesmas: catatan_puskesmas || null,
-                ditangani_oleh: puskesmas?.nama_lengkap || null,
+                catatan_puskesmas: rujukanTerbaru.catatan_puskesmas,
+                ditangani_oleh: rujukanTerbaru.ditangani_oleh,
+                validated_at: rujukanTerbaru.validated_at,
+                completed_at: rujukanTerbaru.completed_at,
             },
             "Status rujukan berhasil diupdate",
         );

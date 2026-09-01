@@ -186,6 +186,7 @@ CREATE TABLE IF NOT EXISTS rujukan (
     catatan_puskesmas TEXT DEFAULT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     validated_at DATETIME DEFAULT NULL,
+    completed_at DATETIME DEFAULT NULL,
     FOREIGN KEY (kader_id) REFERENCES kader(id) ON DELETE CASCADE,
     FOREIGN KEY (puskesmas_id) REFERENCES puskesmas(id) ON DELETE SET NULL,
     FOREIGN KEY (pengukuran_id) REFERENCES pengukuran(id) ON DELETE CASCADE,

@@ -54,16 +54,17 @@ class RujukanState {
 
 class RujukanNotifier extends StateNotifier<RujukanState> {
   final RujukanService _service;
+  final String _anakId;
 
-  RujukanNotifier(this._service) : super(const RujukanState());
+  RujukanNotifier(this._service, this._anakId) : super(const RujukanState());
 
   // ── Fetch Rujukan ───────────────────────────
 
-  Future<void> fetchRujukan(String anakId) async {
+  Future<void> fetchRujukan() async {
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
-      final result = await _service.getRujukan(anakId);
+      final result = await _service.getRujukan(_anakId);
 
       state = state.copyWith(
         anak: result['anak'] as AnakModel,
@@ -81,7 +82,12 @@ class RujukanNotifier extends StateNotifier<RujukanState> {
 
 // ── Provider ──────────────────────────────────
 
-final rujukanProvider =
-    StateNotifierProvider<RujukanNotifier, RujukanState>((ref) {
-  return RujukanNotifier(ref.watch(rujukanServiceProvider));
+final rujukanProvider = StateNotifierProvider.autoDispose
+    .family<RujukanNotifier, RujukanState, String>((ref, anakId) {
+  final notifier = RujukanNotifier(
+    ref.watch(rujukanServiceProvider),
+    anakId,
+  );
+  Future.microtask(notifier.fetchRujukan);
+  return notifier;
 });

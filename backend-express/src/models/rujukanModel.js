@@ -46,6 +46,7 @@ export const findAll = async (page = 1, limit = 20) => {
             r.catatan_puskesmas,
             r.created_at,
             r.validated_at,
+            r.completed_at,
             a.nama AS nama_anak,
             a.tanggal_lahir,
             a.jenis_kelamin,
@@ -116,6 +117,7 @@ export const findByAnak = async (anak_id) => {
             r.catatan_puskesmas,
             r.created_at,
             r.validated_at,
+            r.completed_at,
             DATE_FORMAT(p.tanggal_ukur, '%Y-%m-%d') AS tanggal_ukur,
             CAST(p.berat_badan AS DECIMAL(5,2)) AS berat_badan,
             CAST(p.tinggi_badan AS DECIMAL(5,2)) AS tinggi_badan,
@@ -142,20 +144,27 @@ export const findAktifByAnak = async (anak_id) => {
 };
 
 export const updateStatus = async (id, data) => {
-    await db.query(
+    const [result] = await db.query(
         `UPDATE rujukan
         SET status = ?,
-        catatan_puskesmas = ?,
+        catatan_puskesmas = COALESCE(?, catatan_puskesmas),
         puskesmas_id = ?,
-        validated_at = CASE 
-            WHEN validated_at IS NULL THEN NOW()
-            ELSE validated_at END
-        WHERE id = ?`,
+        validated_at = CASE
+            WHEN ? = 'ditangani' AND validated_at IS NULL THEN NOW()
+            ELSE validated_at END,
+        completed_at = CASE
+            WHEN ? = 'selesai' AND completed_at IS NULL THEN NOW()
+            ELSE completed_at END
+        WHERE id = ? AND status = ?`,
         [
             data.status,
             data.catatan_puskesmas || null,
             data.puskesmas_id,
+            data.status,
+            data.status,
             id,
+            data.current_status,
         ],
     );
+    return result.affectedRows === 1;
 };

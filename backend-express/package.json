@@ -12,6 +12,7 @@
         "db:setup": "node src/database/setup-database.js",
         "db:migrate:chat-reservation": "node scripts/migrate-chat-reservation.js",
         "db:migrate:insight-superseded": "node scripts/migrate-insight-superseded.js",
+        "db:migrate:rujukan-lifecycle": "node scripts/migrate-rujukan-lifecycle.js",
         "seed:generate": "node src/database/seeder/generate-seeder.js",
         "seed:run": "node src/database/seeder/run-seeder.js",
         "report:preview": "node scripts/generate-laporan-preview.js",

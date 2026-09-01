@@ -495,8 +495,8 @@ INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keter
 -- ==========================================================
 
 -- Rujukan untuk: Bimo | Status: selesai
-INSERT INTO rujukan (kader_id, puskesmas_id, pengukuran_id, status, catatan_kader, catatan_puskesmas, validated_at) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', '01a053bb-fb3f-7b2a-ae2e-e48116394f55', 90, 'selesai', 'Anak memerlukan penanganan lebih lanjut. Hasil penilaian SAW menunjukkan kategori risiko tinggi dengan skor 0.696.', 'Pasien telah diperiksa. Diberikan edukasi gizi intensif dan program PMT selama 3 bulan ke depan.', '2026-05-15');
+INSERT INTO rujukan (kader_id, puskesmas_id, pengukuran_id, status, catatan_kader, catatan_puskesmas, validated_at, completed_at) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', '01a053bb-fb3f-7b2a-ae2e-e48116394f55', 90, 'selesai', 'Anak memerlukan penanganan lebih lanjut. Hasil penilaian SAW menunjukkan kategori risiko tinggi dengan skor 0.696.', 'Pasien telah diperiksa. Diberikan edukasi gizi intensif dan program PMT selama 3 bulan ke depan.', '2026-05-15', '2026-05-18');
 
 -- ==========================================================
 -- TIER 6: AI Insight — pengukuran terakhir setiap anak

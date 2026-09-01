@@ -432,6 +432,10 @@ async function generateSeeder() {
             status !== "diajukan"
                 ? sq(`2026-05-${String(15 + ri).padStart(2, "0")}`)
                 : "NULL";
+        const completedAt =
+            status === "selesai"
+                ? sq(`2026-05-${String(18 + ri).padStart(2, "0")}`)
+                : "NULL";
 
         rujukanCount++;
         rujukanMeta.push({
@@ -441,8 +445,8 @@ async function generateSeeder() {
         });
 
         lines.push(`-- Rujukan untuk: ${ANAK_LIST[target.aIdx].nama} | Status: ${status}`);
-        lines.push(`INSERT INTO rujukan (kader_id, puskesmas_id, pengukuran_id, status, catatan_kader, catatan_puskesmas, validated_at) VALUES`);
-        lines.push(`    (${sq(kId)}, ${puskesId ? sq(puskesId) : "NULL"}, ${target.pengId}, ${sq(status)}, ${sq(catatanKader)}, ${catatanPusk ? sq(catatanPusk) : "NULL"}, ${validatedAt});`);
+        lines.push(`INSERT INTO rujukan (kader_id, puskesmas_id, pengukuran_id, status, catatan_kader, catatan_puskesmas, validated_at, completed_at) VALUES`);
+        lines.push(`    (${sq(kId)}, ${puskesId ? sq(puskesId) : "NULL"}, ${target.pengId}, ${sq(status)}, ${sq(catatanKader)}, ${catatanPusk ? sq(catatanPusk) : "NULL"}, ${validatedAt}, ${completedAt});`);
         lines.push("");
     }
 

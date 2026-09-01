@@ -7,6 +7,7 @@ class RujukanModel {
   final String? catatanPuskesmas;
   final String createdAt;
   final String? validatedAt;
+  final String? completedAt;
   final String tanggalUkur;
   final double beratBadan;
   final double tinggiBadan;
@@ -19,6 +20,7 @@ class RujukanModel {
     this.catatanPuskesmas,
     required this.createdAt,
     this.validatedAt,
+    this.completedAt,
     required this.tanggalUkur,
     required this.beratBadan,
     required this.tinggiBadan,
@@ -33,6 +35,7 @@ class RujukanModel {
       catatanPuskesmas: _optionalString(json, 'catatan_puskesmas'),
       createdAt: _requiredTimestamp(json, 'created_at'),
       validatedAt: _optionalTimestamp(json, 'validated_at'),
+      completedAt: _optionalTimestamp(json, 'completed_at'),
       tanggalUkur: _requiredDate(json, 'tanggal_ukur'),
       beratBadan: _requiredPositiveDouble(json, 'berat_badan'),
       tinggiBadan: _requiredPositiveDouble(json, 'tinggi_badan'),

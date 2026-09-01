@@ -54,7 +54,7 @@
         <!-- Pilih status baru -->
         <div class="space-y-1.5">
             <label class="field-label">Status Baru</label>
-            <div class="grid grid-cols-2 gap-2">
+            <div class="grid grid-cols-1 gap-2">
                 <label
                     v-for="s in statusOptions"
                     :key="s.value"
@@ -148,17 +148,22 @@ const form = reactive({
 });
 
 /* ── Status yang bisa dipilih (exclude status saat ini & yang tidak valid) */
-const STATUS_OPTIONS = ["ditangani", "selesai"];
+const NEXT_STATUS = {
+    diajukan: "ditangani",
+    ditangani: "selesai",
+};
 const ikonStatus = {
     ditangani: "pi-sync",
     selesai: "pi-check-circle",
 };
 const statusOptions = computed(() =>
-    STATUS_OPTIONS.filter((s) => s !== props.rujukan.status).map((s) => ({
-        value: s,
-        label: LABEL_STATUS[s],
-        icon: ikonStatus[s],
-    })),
+    NEXT_STATUS[props.rujukan.status]
+        ? [NEXT_STATUS[props.rujukan.status]].map((s) => ({
+              value: s,
+              label: LABEL_STATUS[s],
+              icon: ikonStatus[s],
+          }))
+        : [],
 );
 
 /* ── Warna ───────────────────────────────────────────────────────── */

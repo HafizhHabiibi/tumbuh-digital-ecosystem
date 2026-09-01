@@ -97,12 +97,12 @@ class _StaticInsightGateway implements InsightGateway {
 }
 
 class _StaticRujukanNotifier extends RujukanNotifier {
-  _StaticRujukanNotifier() : super(RujukanService(dio: Dio())) {
+  _StaticRujukanNotifier() : super(RujukanService(dio: Dio()), _anakId) {
     state = RujukanState(anak: _anak, rujukan: [_rujukan]);
   }
 
   @override
-  Future<void> fetchRujukan(String anakId) async {}
+  Future<void> fetchRujukan() async {}
 }
 
 void _expectDataTeknisTidakTampil() {
@@ -297,7 +297,8 @@ void main() {
         _app(
           const StatusRujukanScreen(anakId: _anakId),
           overrides: [
-            rujukanProvider.overrideWith((ref) => _StaticRujukanNotifier()),
+            rujukanProvider(_anakId)
+                .overrideWith((ref) => _StaticRujukanNotifier()),
           ],
         ),
       );

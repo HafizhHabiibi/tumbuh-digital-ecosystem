@@ -14,11 +14,24 @@ class RujukanService {
 
   Future<Map<String, dynamic>> getRujukan(String anakId) async {
     final response = await _dio.get(ApiConstants.rujukanAnak(anakId));
-    final data = response.data['data'];
+    final body = response.data;
+    if (body is! Map<String, dynamic> ||
+        body['data'] is! Map<String, dynamic>) {
+      throw const FormatException('Format respons rujukan tidak valid');
+    }
 
-    final anak = AnakModel.fromJson(data['anak']);
-    final rujukan =
-        (data['rujukan'] as List).map((e) => RujukanModel.fromJson(e)).toList();
+    final data = body['data'] as Map<String, dynamic>;
+    if (data['anak'] is! Map<String, dynamic> || data['rujukan'] is! List) {
+      throw const FormatException('Data rujukan tidak lengkap');
+    }
+
+    final anak = AnakModel.fromJson(data['anak'] as Map<String, dynamic>);
+    final rujukan = (data['rujukan'] as List).map((item) {
+      if (item is! Map<String, dynamic>) {
+        throw const FormatException('Item rujukan tidak valid');
+      }
+      return RujukanModel.fromJson(item);
+    }).toList(growable: false);
 
     return {
       'anak': anak,

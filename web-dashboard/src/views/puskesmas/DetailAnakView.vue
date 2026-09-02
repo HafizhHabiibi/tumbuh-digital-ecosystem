@@ -73,8 +73,8 @@
                     <StatusBadge type="antropometri" :value="store.pengukuranTerakhir.status_tbu" />
                 </div>
                 <div class="summary-card">
-                    <span>Prioritas</span>
-                    <StatusBadge type="prioritas" :value="store.pengukuranTerakhir.kategori_prioritas" />
+                    <span>Prioritas Pemantauan</span>
+                    <StatusBadge type="prioritas" :value="store.pengukuranTerakhir.prioritas_pemantauan?.kategori" />
                 </div>
             </section>
 
@@ -108,7 +108,7 @@
                                 <th class="th-cell">Tanggal</th>
                                 <th class="th-cell">BB / TB</th>
                                 <th class="th-cell">Status Antropometri</th>
-                                <th class="th-cell">Prioritas</th>
+                                <th class="th-cell">Prioritas Pemantauan</th>
                                 <th class="th-cell text-right">Skor SAW</th>
                             </tr>
                         </thead>
@@ -134,7 +134,7 @@
                                     </div>
                                 </td>
                                 <td class="px-4 py-3">
-                                    <StatusBadge type="prioritas" :value="item.kategori_prioritas" />
+                                    <StatusBadge type="prioritas" :value="item.prioritas_pemantauan?.kategori" />
                                 </td>
                                 <td class="px-4 py-3 text-right font-mono">
                                     {{ formatSkor(item.skor_saw) }}

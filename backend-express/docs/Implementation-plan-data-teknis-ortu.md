@@ -48,7 +48,9 @@ nilai_normalisasi
 peringkat
 ```
 
-`status_pemantauan` berasal dari kategori SAW internal:
+`status_pemantauan` berasal dari `prioritas_pemantauan.kategori`, yaitu hasil
+akhir antara kategori SAW risiko kekurangan gizi dan batas minimum kategori
+antropometri. Kategori SAW murni tidak dipetakan langsung ke kontrak orang tua:
 
 | Kategori internal | Respons orang tua | Teks UI |
 | --- | --- | --- |
@@ -91,9 +93,9 @@ Alurnya menjadi:
 ```
 data DB
   ↓
-hitung Z-score dan SAW
+hitung Z-score, kategori antropometri, dan SAW
   ↓
-hasilkan status/kategori
+tentukan prioritas pemantauan akhir
   ↓
 serializer orang tua
   ↓

@@ -46,6 +46,11 @@ const pengukuran = (id = 1) => ({
     status_imtu: "gizi_baik",
     skor_saw: 0.1533,
     kategori_prioritas: "rendah",
+    prioritas_pemantauan: {
+        kategori: "rendah",
+        sumber_utama: "saw",
+        alasan: [],
+    },
     detail_saw: [
         { nama_kriteria: "zscore_bbu", bobot: 0.25, nilai: 0.1333, skor: 0.0333 },
         { nama_kriteria: "zscore_tbu", bobot: 0.30, nilai: 0.4, skor: 0.12 },
@@ -99,6 +104,11 @@ test("renderer rekap menangani tabel prioritas multi-halaman", async () => {
         nama_orang_tua: `Orang Tua ${index + 1}`,
         tanggal_ukur: "2026-08-26",
         kategori_prioritas: index % 3 === 0 ? "tinggi" : "sedang",
+        prioritas_pemantauan: {
+            kategori: index % 3 === 0 ? "tinggi" : "sedang",
+            sumber_utama: "saw",
+            alasan: [],
+        },
         skor_saw: index % 3 === 0 ? 0.8 : 0.5,
         status_bbu: "berat_badan_kurang",
         status_tbu: "pendek",

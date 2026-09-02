@@ -5,7 +5,7 @@ import { ChatServiceError, buatChatService } from "../src/services/chatService.j
 
 const clientMessageId = "018f0000-0000-7000-8000-000000000001";
 const context = {
-    pengukuran: { kategori_prioritas: "sedang" },
+    pengukuran: { prioritas_pemantauan: "sedang" },
     insight_awal: "Pertahankan pemantauan rutin.",
     riwayat_pesan: [],
 };

@@ -29,6 +29,9 @@ test("konteks LLM tidak mengizinkan Z-Score dan identitas sensitif", () => {
         "zscore_tbu",
         "zscore_bbtb",
         "zscore_imtu",
+        "kategori_prioritas",
+        "kategori_prioritas_saw",
+        "sumber_utama",
     ];
 
     for (const field of prohibitedFields) {
@@ -43,7 +46,7 @@ test("konteks LLM hanya menggunakan hasil kategoris dari backend", () => {
         "status_tbu",
         "status_bbtb",
         "status_imtu",
-        "kategori_prioritas",
+        "prioritas_pemantauan",
     ];
 
     for (const field of requiredCategoryFields) {

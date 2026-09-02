@@ -1,4 +1,4 @@
-export const AI_POLICY_VERSION = "1.0.0";
+export const AI_POLICY_VERSION = "1.1.0";
 
 export const AI_RESPONSE_TYPES = Object.freeze({
     ANSWERED: "answered",
@@ -21,7 +21,7 @@ export const AI_PROHIBITED_CAPABILITIES = Object.freeze([
     "memberikan_obat_suplemen_atau_dosis",
     "menggantikan_konsultasi_tenaga_kesehatan",
     "menghitung_ulang_zscore_atau_saw",
-    "mengubah_kategori_antropometri_atau_prioritas_saw",
+    "mengubah_kategori_antropometri_atau_prioritas_pemantauan",
     "menjawab_topik_umum_di_luar_konteks_pengukuran",
 ]);
 
@@ -37,7 +37,7 @@ export const AI_CONTEXT_ALLOWED_FIELDS = Object.freeze([
     "status_tbu",
     "status_bbtb",
     "status_imtu",
-    "kategori_prioritas",
+    "prioritas_pemantauan",
     "insight_teks",
     "riwayat_pesan",
 ]);
@@ -54,6 +54,10 @@ export const AI_CONTEXT_PROHIBITED_FIELDS = Object.freeze([
     "zscore_imtu",
     "skor_saw",
     "peringkat_saw",
+    "kategori_prioritas",
+    "kategori_prioritas_saw",
+    "sumber_utama",
+    "alasan_prioritas",
 ]);
 
 export const AI_DISCLOSURES = Object.freeze({
@@ -77,5 +81,5 @@ export const AI_CONVERSATION_POLICY = Object.freeze({
     memoryRule:
         "Riwayat pesan hanya berasal dari percakapan pada pengukuran yang sama.",
     sourceOfTruthRule:
-        "Kategori antropometri dan prioritas SAW dari backend tidak boleh dihitung ulang atau diubah oleh LLM.",
+        "Kategori antropometri dan prioritas pemantauan dari backend tidak boleh dihitung ulang atau diubah oleh LLM.",
 });

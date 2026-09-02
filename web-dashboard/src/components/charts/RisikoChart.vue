@@ -1,12 +1,12 @@
 <template>
     <!--
         RisikoChart.vue
-        Bar chart distribusi prioritas pemantauan berdasarkan hasil SAW.
+        Bar chart distribusi prioritas pemantauan akhir.
         Tiga kategori: Rendah, Sedang, Tinggi.
     -->
     <ChartCard
         title="Distribusi Prioritas Pemantauan"
-        subtitle="SAW digunakan untuk mengurutkan tindak lanjut, bukan diagnosis"
+        subtitle="Berdasarkan hasil antropometri dan SAW risiko kekurangan gizi; bukan diagnosis"
         :loading="loading"
         :empty="!series[0]?.data?.some((v) => v > 0)"
     >

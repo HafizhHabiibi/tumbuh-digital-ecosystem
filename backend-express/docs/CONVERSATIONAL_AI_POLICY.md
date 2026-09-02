@@ -20,12 +20,14 @@ Backend merupakan satu-satunya sumber kebenaran untuk:
 
 - perhitungan Z-Score;
 - kategori BB/U, TB/U, BB/TB, dan IMT/U;
-- normalisasi dan perankingan SAW; serta
-- penentuan prioritas pemantauan.
+- normalisasi dan perankingan SAW risiko kekurangan gizi; serta
+- penentuan prioritas pemantauan akhir berdasarkan SAW dan kategori
+  antropometri.
 
 LLM tidak boleh menghitung ulang, mengoreksi, atau mengubah hasil tersebut. SAW
-tetap digunakan untuk mengurutkan prioritas pemantauan dan bukan untuk
-menetapkan diagnosis.
+tetap menjadi informasi teknis untuk risiko kekurangan gizi, sedangkan
+prioritas pemantauan akhir juga melindungi kondisi gizi lebih dan obesitas.
+Keduanya bukan diagnosis.
 
 ## Konteks yang boleh diberikan kepada LLM
 
@@ -34,13 +36,14 @@ Konteks dibatasi pada satu pengukuran terbaru:
 - jenis kelamin dan usia dalam bulan;
 - berat badan, tinggi badan, dan nilai IMT terkini;
 - kategori BB/U, TB/U, BB/TB, dan IMT/U;
-- kategori prioritas pemantauan SAW;
+- kategori prioritas pemantauan akhir;
 - insight awal; dan
 - sejumlah pesan terakhir dari percakapan pengukuran yang sama.
 
-Nilai Z-Score mentah, skor dan peringkat SAW, nama, NIK, alamat, nomor telepon,
-serta email tidak boleh dimasukkan ke prompt. Identitas relasional seperti ID
-anak dan ID orang tua hanya digunakan backend untuk otorisasi.
+Nilai Z-Score mentah, skor dan kategori SAW, sumber/kode alasan prioritas, nama,
+NIK, alamat, nomor telepon, serta email tidak boleh dimasukkan ke prompt.
+Identitas relasional seperti ID anak dan ID orang tua hanya digunakan backend
+untuk otorisasi.
 
 ## Ruang lingkup percakapan
 
@@ -120,7 +123,7 @@ atau melanggar batasan tidak boleh diteruskan apa adanya kepada orang tua.
 
 | Komponen | Tanggung jawab |
 |---|---|
-| Backend | Menghitung antropometri dan SAW, memilih pengukuran terbaru, memverifikasi kepemilikan, menyaring konteks, serta memvalidasi keluaran |
+| Backend | Menghitung antropometri, SAW, dan prioritas pemantauan akhir; memilih pengukuran terbaru; memverifikasi kepemilikan; menyaring konteks; serta memvalidasi keluaran |
 | LLM | Menyusun penjelasan dan edukasi berdasarkan konteks yang sudah ditetapkan backend |
 | Kader/Puskesmas | Melakukan pengukuran, pemantauan, serta penilaian atau tindak lanjut profesional |
 | Orang tua | Membaca insight dan mengajukan pertanyaan lanjutan dalam ruang lingkup edukasi |

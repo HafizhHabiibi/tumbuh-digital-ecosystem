@@ -125,7 +125,7 @@ const roleLabel = computed(() =>
 
 const kaderMenu = [
     { name: "KaderDashboard", label: "Dashboard", icon: "pi-home" },
-    { name: "KaderRanking", label: "Prioritas SAW", icon: "pi-sort-amount-down-alt" },
+    { name: "KaderRanking", label: "Prioritas Pemantauan", icon: "pi-sort-amount-down-alt" },
     { name: "KaderAnak", label: "Data Anak", icon: "pi-heart" },
     { name: "KaderOrangTua", label: "Orang Tua", icon: "pi-users" },
     { name: "KaderPengukuran", label: "Pengukuran", icon: "pi-chart-line" },
@@ -136,7 +136,7 @@ const kaderMenu = [
 ];
 const puskesmasMenu = [
     { name: "PuskesmasDashboard", label: "Dashboard", icon: "pi-home" },
-    { name: "PuskesmasRanking", label: "Prioritas SAW", icon: "pi-sort-amount-down-alt" },
+    { name: "PuskesmasRanking", label: "Prioritas Pemantauan", icon: "pi-sort-amount-down-alt" },
     { name: "PuskesmasAnak", label: "Data Anak", icon: "pi-heart" },
     { name: "PuskesmasRujukan", label: "Rujukan", icon: "pi-send" },
     { name: "PuskesmasJadwal", label: "Jadwal", icon: "pi-calendar" },

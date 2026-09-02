@@ -158,7 +158,7 @@
                             </th>
                             <th class="th-cell">Status</th>
                             <th class="th-cell hidden md:table-cell">
-                                Prioritas
+                                Prioritas Pemantauan
                             </th>
                             <th class="th-cell hidden lg:table-cell">
                                 Skor SAW
@@ -220,7 +220,7 @@
                             <td class="px-4 py-3 hidden md:table-cell">
                                 <StatusBadge
                                     type="prioritas"
-                                    :value="r.kategori_prioritas"
+                                :value="r.prioritas_pemantauan?.kategori"
                                 />
                             </td>
 

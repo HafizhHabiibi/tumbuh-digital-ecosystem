@@ -245,7 +245,8 @@ endpoint insight yang sudah ada dan mengaktifkan input chat setelah
 ## Privasi dan observability
 
 Konteks yang dikirim ke Gemini tidak memuat nama, NIK, alamat, kontak, ID anak,
-ID orang tua, nilai Z-score mentah, atau skor SAW. Hanya kategori hasil backend,
+ID orang tua, nilai Z-score mentah, skor/kategori SAW, sumber prioritas, atau
+kode alasan internal. Hanya kategori antropometri, prioritas pemantauan akhir,
 data pengukuran yang diperlukan, insight awal, dan maksimal 10 pesan terakhir
 dari pengukuran yang sama yang digunakan.
 

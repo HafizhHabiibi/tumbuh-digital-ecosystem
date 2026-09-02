@@ -73,7 +73,7 @@ test("alur HTTP menjalankan guardrail, Gemini, persistence, idempotensi, dan his
     const contextLoader = async (id, owner) =>
         id === 12 && owner === "orang-tua-1"
             ? {
-                  pengukuran: { kategori_prioritas: "sedang" },
+                  pengukuran: { prioritas_pemantauan: "sedang" },
                   insight_awal: "Insight awal aman.",
                   riwayat_pesan: [],
               }

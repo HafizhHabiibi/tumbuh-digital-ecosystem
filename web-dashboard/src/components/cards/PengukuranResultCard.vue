@@ -83,7 +83,7 @@
                     </p>
                     <StatusBadge
                         type="prioritas"
-                        :value="result.kategori_prioritas"
+                        :value="result.prioritas_pemantauan?.kategori"
                     />
                 </div>
             </div>
@@ -172,12 +172,12 @@
             >
                 <div
                     class="h-full rounded-full transition-all duration-700"
-                    :style="`width: ${(result.skor_saw || 0) * 100}%; background: ${prioritasColor}`"
+                    :style="`width: ${(result.skor_saw || 0) * 100}%; background: ${sawColor}`"
                 />
             </div>
             <p class="text-xs m-0" style="color: var(--color-text-muted)">
-                Skor mendekati 1 menunjukkan prioritas pemantauan lebih tinggi,
-                bukan diagnosis.
+                Skor mendekati 1 menunjukkan risiko kekurangan gizi yang lebih
+                perlu diperhatikan. Skor ini bukan diagnosis.
             </p>
         </div>
 
@@ -232,7 +232,7 @@ const warnaPrioritas = {
     sedang: "#d97706",
     tinggi: "#dc2626",
 };
-const prioritasColor = computed(
+const sawColor = computed(
     () => warnaPrioritas[props.result.kategori_prioritas] ?? "#6b7280",
 );
 

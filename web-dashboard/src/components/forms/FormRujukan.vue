@@ -74,7 +74,7 @@
                     >
                         {{ formatTanggal(p.tanggal_ukur) }} — BB:
                         {{ p.berat_badan }}kg, TB: {{ p.tinggi_badan }}cm
-                        (prioritas {{ p.kategori_prioritas ?? "—" }})
+                        (prioritas {{ p.prioritas_pemantauan?.kategori ?? "—" }})
                     </option>
                 </select>
                 <i
@@ -102,9 +102,9 @@
                         >
                         <span
                             class="text-xs font-semibold capitalize px-2 py-0.5 rounded-full"
-                            :style="`background: ${warnaBg[pengukuranTerpilih.kategori_prioritas]}; color: ${warnaHex[pengukuranTerpilih.kategori_prioritas]}`"
+                            :style="`background: ${warnaBg[pengukuranTerpilih.prioritas_pemantauan?.kategori]}; color: ${warnaHex[pengukuranTerpilih.prioritas_pemantauan?.kategori]}`"
                         >
-                            {{ pengukuranTerpilih.kategori_prioritas ?? "—" }}
+                            {{ pengukuranTerpilih.prioritas_pemantauan?.kategori ?? "—" }}
                         </span>
                         <span
                             class="text-xs"

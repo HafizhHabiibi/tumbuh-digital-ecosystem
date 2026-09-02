@@ -82,6 +82,8 @@ export const createPengukuran = async (req, res) => {
             zscore_bbtb: zscores.zscore_bbtb,
             zscore_imtu: zscores.zscore_imtu,
         });
+        const prioritasPemantauan =
+            pengukuranService.hitungPrioritasPemantauan(zscores, sawResult);
 
         // Simpan HANYA raw data ke database (3NF).
         const pengukuran_id = await PengukuranModel.createPengukuran({
@@ -100,8 +102,8 @@ export const createPengukuran = async (req, res) => {
                 anak.orang_tua_id,
                 `Hasil Pengukuran ${anak.nama}`,
                 `${anak.nama} telah diukur pada ${tanggal_ukur}. ` +
-                `BB: ${berat}kg, TB: ${tinggi}cm. ` +
-                `Prioritas pemantauan: ${sawResult.kategori_prioritas}. ` +
+                `BB: ${berat} KG, TB: ${tinggi} CM. ` +
+                `Prioritas pemantauan: ${prioritasPemantauan.kategori}. ` +
                 `Cek detail lengkap di aplikasi.`,
                 "pengukuran",
                 pengukuran_id,
@@ -137,6 +139,7 @@ export const createPengukuran = async (req, res) => {
                 status_imtu: zscores.status_imtu,
                 skor_saw: sawResult.skor_akhir,
                 kategori_prioritas: sawResult.kategori_prioritas,
+                prioritas_pemantauan: prioritasPemantauan,
                 detail_saw: sawResult.detail,
                 ai_insight_status: "pending",
                 ai_insight: "Sedang diproses, tersedia dalam beberapa detik",

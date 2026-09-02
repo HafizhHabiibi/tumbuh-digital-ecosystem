@@ -44,6 +44,11 @@ const pengukuranTeknis = {
     status_imtu: "gizi_baik",
     skor_saw: 0.0825,
     kategori_prioritas: "rendah",
+    prioritas_pemantauan: {
+        kategori: "rendah",
+        sumber_utama: "saw",
+        alasan: [],
+    },
     detail: [{ nama_kriteria: "zscore_bbu", bobot: 0.25 }],
     detail_saw: [{ nama_kriteria: "zscore_bbu", bobot: 0.25 }],
     bobot_saw: { bbu: 0.25, tbu: 0.30, bbtb: 0.25, imtu: 0.20 },
@@ -106,6 +111,8 @@ const assertTidakAdaDataTeknis = (value) => {
         /"(?:detail|bobot|detail_saw|bobot_saw)"\s*:/,
     );
     assert.doesNotMatch(serialized, /"kategori_prioritas"\s*:/);
+    assert.doesNotMatch(serialized, /"prioritas_pemantauan"\s*:/);
+    assert.doesNotMatch(serialized, /"sumber_utama"\s*:/);
 };
 
 const bukaServer = async (configure) => {
@@ -134,15 +141,57 @@ test("serializer pengukuran orang tua mengekspos seluruh field yang diizinkan", 
     assertTidakAdaDataTeknis(result);
 });
 
-test("serializer memetakan seluruh kategori internal ke status pemantauan", () => {
+test("serializer memetakan seluruh prioritas pemantauan ke status orang tua", () => {
     assert.deepEqual(
-        ["rendah", "sedang", "tinggi"].map((kategori_prioritas) =>
+        ["rendah", "sedang", "tinggi"].map((kategori) =>
             toOrangTuaPengukuran({
                 ...pengukuranTeknis,
-                kategori_prioritas,
+                prioritas_pemantauan: {
+                    kategori,
+                    sumber_utama: "saw",
+                    alasan: [],
+                },
             }).status_pemantauan
         ),
         ["rutin", "perlu_perhatian", "konsultasi"],
+    );
+});
+
+test("serializer memakai prioritas akhir tanpa mengekspos detail internal", () => {
+    const result = toOrangTuaPengukuran({
+        ...pengukuranTeknis,
+        kategori_prioritas: "rendah",
+        prioritas_pemantauan: {
+            kategori: "tinggi",
+            sumber_utama: "antropometri",
+            alasan: ["imtu_obesitas"],
+        },
+    });
+
+    assert.equal(result.status_pemantauan, "konsultasi");
+    assert.equal("prioritas_pemantauan" in result, false);
+    assert.equal("kategori_prioritas" in result, false);
+    assertTidakAdaDataTeknis(result);
+});
+
+test("serializer menolak prioritas akhir yang hilang atau tidak dikenal", () => {
+    assert.throws(
+        () => toOrangTuaPengukuran({
+            ...pengukuranTeknis,
+            prioritas_pemantauan: undefined,
+        }),
+        /Prioritas pemantauan tidak valid/,
+    );
+    assert.throws(
+        () => toOrangTuaPengukuran({
+            ...pengukuranTeknis,
+            prioritas_pemantauan: {
+                kategori: "darurat",
+                sumber_utama: "antropometri",
+                alasan: [],
+            },
+        }),
+        /Prioritas pemantauan tidak valid/,
     );
 });
 

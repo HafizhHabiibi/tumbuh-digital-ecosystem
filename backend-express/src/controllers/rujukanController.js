@@ -22,6 +22,7 @@ const enrichRujukan = (rujukan, anak = rujukan) => {
         tinggi_badan: pengukuran.tinggi_badan,
         skor_saw: pengukuran.skor_saw,
         kategori_prioritas: pengukuran.kategori_prioritas,
+        prioritas_pemantauan: pengukuran.prioritas_pemantauan,
         status_bbu: pengukuran.status_bbu,
         status_tbu: pengukuran.status_tbu,
         status_bbtb: pengukuran.status_bbtb,
@@ -63,9 +64,9 @@ export const createRujukan = async (req, res) => {
             return error(res, "Pengukuran tidak sesuai dengan data anak yang dirujuk", 400);
         }
 
-        // Prioritas SAW dilampirkan sebagai informasi, bukan penentu kelayakan
-        // rujukan. Keputusan rujukan tetap dapat dibuat berdasarkan penilaian
-        // kader atau tenaga kesehatan.
+        // Prioritas pemantauan dilampirkan sebagai informasi, bukan penentu
+        // kelayakan rujukan. Keputusan tetap dibuat berdasarkan penilaian kader
+        // atau tenaga kesehatan.
         const pengukuranEnriched =
             pengukuranService.enrichPengukuranDenganPrioritas(
                 pengukuran,
@@ -108,6 +109,8 @@ export const createRujukan = async (req, res) => {
                 catatan_kader,
                 skor_saw: pengukuranEnriched.skor_saw,
                 kategori_prioritas: pengukuranEnriched.kategori_prioritas,
+                prioritas_pemantauan:
+                    pengukuranEnriched.prioritas_pemantauan,
                 status_bbu: pengukuranEnriched.status_bbu,
                 status_tbu: pengukuranEnriched.status_tbu,
                 status_bbtb: pengukuranEnriched.status_bbtb,

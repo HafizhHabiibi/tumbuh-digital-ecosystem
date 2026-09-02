@@ -95,6 +95,42 @@ test("composer individual teknis menyertakan empat detail kriteria SAW", async (
     assert.equal(laporan.rujukan[0].status, "diajukan");
 });
 
+test("laporan membedakan SAW rendah dan pemantauan tinggi pada obesitas", async () => {
+    const rawObesitas = {
+        ...rawPengukuran,
+        berat_badan: "20.00",
+        tinggi_badan: "85.00",
+    };
+    const penyusun = buatPenyusunLaporan({
+        model: buatModelIndividual({
+            pengukuran_terakhir: rawObesitas,
+            riwayat_pengukuran: [rawObesitas],
+        }),
+        sekarang: tanggalTetap,
+        identitasFasilitas: fasilitas,
+    });
+
+    const orangTua = await penyusun.siapkanIndividualOrangTua(
+        "anak-1",
+        "Aminah",
+    );
+    const teknis = await penyusun.siapkanIndividualTeknis(
+        "anak-1",
+        "Kader Riri",
+    );
+
+    assert.equal(orangTua.prioritas_pemantauan.kategori, "tinggi");
+    assert.equal(teknis.pengukuran_terakhir.saw.kategori_prioritas, "rendah");
+    assert.equal(
+        teknis.pengukuran_terakhir.prioritas_pemantauan.kategori,
+        "tinggi",
+    );
+    assert.equal(
+        teknis.pengukuran_terakhir.prioritas_pemantauan.sumber_utama,
+        "antropometri",
+    );
+});
+
 test("composer individual membedakan anak tidak ditemukan dan belum diukur", async () => {
     const tidakAda = buatPenyusunLaporan({
         model: { findDataIndividual: async () => null },

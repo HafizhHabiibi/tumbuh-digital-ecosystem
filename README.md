@@ -12,5 +12,6 @@
 
 ## Fitur Utama
 - Monitoring tumbuh kembang balita
-- Deteksi risiko stunting dengan metode SAW
+- Pemantauan pertumbuhan berdasarkan standar antropometri WHO
+- Pemeringkatan risiko kekurangan gizi dengan metode SAW
 - Rekomendasi berbasis AI (LLM)

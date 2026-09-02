@@ -2,6 +2,7 @@ import db from "../database/connection.js";
 import * as PengukuranModel from "../models/pengukuranModel.js";
 import * as zscoreService from "./zscoreService.js";
 import * as sawService from "./sawService.js";
+import * as monitoringPriorityService from "./monitoringPriorityService.js";
 
 const inputSAW = (zscores) => ({
     zscore_bbu: zscores.zscore_bbu,
@@ -9,6 +10,85 @@ const inputSAW = (zscores) => ({
     zscore_bbtb: zscores.zscore_bbtb,
     zscore_imtu: zscores.zscore_imtu,
 });
+
+export const hitungPrioritasPemantauan = (zscores, saw) => (
+    monitoringPriorityService.gabungkanPrioritasPemantauan({
+        kategori_prioritas_saw: saw.kategori_prioritas,
+        status_bbu: zscores.status_bbu,
+        status_tbu: zscores.status_tbu,
+        status_bbtb: zscores.status_bbtb,
+        status_imtu: zscores.status_imtu,
+    })
+);
+
+const TINGKAT_PRIORITAS_PEMANTAUAN = Object.freeze({
+    rendah: 1,
+    sedang: 2,
+    tinggi: 3,
+});
+
+const tingkatPrioritasPemantauan = (item) => {
+    const kategori = item?.prioritas_pemantauan?.kategori;
+    if (!Object.hasOwn(TINGKAT_PRIORITAS_PEMANTAUAN, kategori)) {
+        throw new TypeError("Kategori prioritas pemantauan tidak valid");
+    }
+    return TINGKAT_PRIORITAS_PEMANTAUAN[kategori];
+};
+
+const waktuTanggalUkur = (item) => {
+    const waktu = item?.tanggal_ukur instanceof Date
+        ? item.tanggal_ukur.getTime()
+        : Date.parse(item?.tanggal_ukur);
+    if (!Number.isFinite(waktu)) {
+        throw new TypeError("Tanggal ukur ranking tidak valid");
+    }
+    return waktu;
+};
+
+export const bandingkanRankingPrioritas = (a, b) => {
+    const selisihPrioritas =
+        tingkatPrioritasPemantauan(b) - tingkatPrioritasPemantauan(a);
+    if (selisihPrioritas !== 0) return selisihPrioritas;
+
+    const selisihSaw = Number(b.skor_saw) - Number(a.skor_saw);
+    if (Number.isFinite(selisihSaw) && selisihSaw !== 0) return selisihSaw;
+
+    const selisihTanggal = waktuTanggalUkur(b) - waktuTanggalUkur(a);
+    if (selisihTanggal !== 0) return selisihTanggal;
+
+    return String(a.anak_id).localeCompare(String(b.anak_id));
+};
+
+export const buatDistribusiPrioritasPemantauan = (items) => {
+    if (!Array.isArray(items)) {
+        throw new TypeError("Daftar prioritas pemantauan harus berupa array");
+    }
+
+    const distribusi = { rendah: 0, sedang: 0, tinggi: 0 };
+    for (const item of items) {
+        const kategori = item?.prioritas_pemantauan?.kategori;
+        tingkatPrioritasPemantauan(item);
+        distribusi[kategori]++;
+    }
+    return distribusi;
+};
+
+export const buatStatistikDashboard = ({
+    totalAnak,
+    totalRujukanAktif,
+    totalPengukuranBulan,
+    pengukuranTerbaru,
+}) => {
+    const distribusiPrioritas =
+        buatDistribusiPrioritasPemantauan(pengukuranTerbaru);
+
+    return {
+        total_anak: Number.parseInt(totalAnak, 10),
+        total_prioritas_tinggi: distribusiPrioritas.tinggi,
+        total_rujukan_aktif: Number.parseInt(totalRujukanAktif, 10),
+        total_pengukuran_bulan: Number.parseInt(totalPengukuranBulan, 10),
+    };
+};
 
 const buatDistribusiAntropometri = () => ({
     bbu: {
@@ -84,23 +164,27 @@ export const enrichPengukuran = (raw, anak) => {
 };
 
 /**
- * Enrich satu pengukuran dengan z-score, status antropometri, dan prioritas SAW.
+ * Enrich satu pengukuran dengan z-score, status antropometri, prioritas SAW,
+ * dan prioritas pemantauan akhir.
  * Helper ini juga dipakai rujukan agar enrichment dilakukan dari data yang sudah
  * diambil model, tanpa query detail SAW per baris.
  */
 export const enrichPengukuranDenganPrioritas = (raw, anak) => {
     const item = enrichPengukuran(raw, anak);
     const saw = sawService.hitungSAW(inputSAW(item));
+    const prioritasPemantauan = hitungPrioritasPemantauan(item, saw);
 
     return {
         ...item,
         skor_saw: saw.skor_akhir,
         kategori_prioritas: saw.kategori_prioritas,
+        prioritas_pemantauan: prioritasPemantauan,
     };
 };
 
 /**
- * Enrich daftar pengukuran (riwayat) dengan z-score dan SAW.
+ * Enrich daftar pengukuran (riwayat) dengan z-score, SAW, dan prioritas
+ * pemantauan akhir.
  * List harus sudah diurutkan dari terbaru ke terlama (DESC tanggal_ukur).
  * @param {Array} rawList - Daftar pengukuran dari DB (DESC order)
  * @param {object} anak - Data anak { tanggal_lahir, jenis_kelamin }
@@ -117,42 +201,32 @@ export const enrichPengukuranList = (rawList, anak) => {
 export const getRankingAllAnak = async (page = 1, limit = 20) => {
     const latestList = await PengukuranModel.findLatestPerAnak();
 
-    const ranked = await Promise.all(
-        latestList.map(async (row) => {
-            const zscores = zscoreService.hitungSemuaZScore({
-                berat_badan: parseFloat(row.berat_badan),
-                tinggi_badan: parseFloat(row.tinggi_badan),
-                tanggal_lahir: row.tanggal_lahir,
-                tanggal_ukur: row.tanggal_ukur,
-                jenis_kelamin: row.jenis_kelamin,
-            });
+    const ranked = latestList.map((row) => {
+        const item = enrichPengukuranDenganPrioritas(row, row);
 
-            const saw = sawService.hitungSAW(inputSAW(zscores));
+        return {
+            anak_id: row.anak_id,
+            nama_anak: row.nama_anak,
+            tanggal_lahir: row.tanggal_lahir,
+            jenis_kelamin: row.jenis_kelamin,
+            nama_orang_tua: row.nama_orang_tua,
+            no_hp_orang_tua: row.no_hp_orang_tua,
+            skor_saw: item.skor_saw,
+            calculated_at: row.created_at,
+            tanggal_ukur: row.tanggal_ukur,
+            berat_badan: item.berat_badan,
+            tinggi_badan: item.tinggi_badan,
+            nilai_imt: item.nilai_imt,
+            status_bbu: item.status_bbu,
+            status_tbu: item.status_tbu,
+            status_bbtb: item.status_bbtb,
+            status_imtu: item.status_imtu,
+            kategori_prioritas: item.kategori_prioritas,
+            prioritas_pemantauan: item.prioritas_pemantauan,
+        };
+    });
 
-            return {
-                anak_id: row.anak_id,
-                nama_anak: row.nama_anak,
-                tanggal_lahir: row.tanggal_lahir,
-                jenis_kelamin: row.jenis_kelamin,
-                nama_orang_tua: row.nama_orang_tua,
-                no_hp_orang_tua: row.no_hp_orang_tua,
-                skor_saw: saw.skor_akhir,
-                calculated_at: row.created_at,
-                tanggal_ukur: row.tanggal_ukur,
-                berat_badan: parseFloat(row.berat_badan),
-                tinggi_badan: parseFloat(row.tinggi_badan),
-                nilai_imt: zscores.nilai_imt,
-                status_bbu: zscores.status_bbu,
-                status_tbu: zscores.status_tbu,
-                status_bbtb: zscores.status_bbtb,
-                status_imtu: zscores.status_imtu,
-                kategori_prioritas: saw.kategori_prioritas,
-            };
-        }),
-    );
-
-    // Sort dari prioritas pemantauan tertinggi
-    ranked.sort((a, b) => b.skor_saw - a.skor_saw);
+    ranked.sort(bandingkanRankingPrioritas);
     const offset = (page - 1) * limit;
     return {
         items: ranked.slice(offset, offset + limit),
@@ -202,27 +276,15 @@ export const getStatistik = async () => {
         AND YEAR(tanggal_ukur) = YEAR(NOW())`,
     );
 
-    // SAW adalah prioritas pemantauan, bukan diagnosis stunting.
     const latestList = await PengukuranModel.findLatestPerAnak();
-    let totalPrioritasTinggi = 0;
-    for (const row of latestList) {
-        const zscores = zscoreService.hitungSemuaZScore({
-            berat_badan: parseFloat(row.berat_badan),
-            tinggi_badan: parseFloat(row.tinggi_badan),
-            tanggal_lahir: row.tanggal_lahir,
-            tanggal_ukur: row.tanggal_ukur,
-            jenis_kelamin: row.jenis_kelamin,
-        });
-        const saw = sawService.hitungSAW(inputSAW(zscores));
-        if (saw.kategori_prioritas === "tinggi") totalPrioritasTinggi++;
-    }
-
-    return {
-        total_anak: parseInt(totalAnak),
-        total_prioritas_tinggi: totalPrioritasTinggi,
-        total_rujukan_aktif: parseInt(totalRujukanAktif),
-        total_pengukuran_bulan: parseInt(totalPengukuranBulan),
-    };
+    const enriched = latestList.map((row) =>
+        enrichPengukuranDenganPrioritas(row, row));
+    return buatStatistikDashboard({
+        totalAnak,
+        totalRujukanAktif,
+        totalPengukuranBulan,
+        pengukuranTerbaru: enriched,
+    });
 };
 
 export const getDistribusiGizi = async () => {
@@ -246,23 +308,9 @@ export const getDistribusiGizi = async () => {
 
 export const getDistribusiRisiko = async () => {
     const latestList = await PengukuranModel.findLatestPerAnak();
-
-    const distribusi = { rendah: 0, sedang: 0, tinggi: 0 };
-
-    for (const row of latestList) {
-        const zscores = zscoreService.hitungSemuaZScore({
-            berat_badan: parseFloat(row.berat_badan),
-            tinggi_badan: parseFloat(row.tinggi_badan),
-            tanggal_lahir: row.tanggal_lahir,
-            tanggal_ukur: row.tanggal_ukur,
-            jenis_kelamin: row.jenis_kelamin,
-        });
-
-        const saw = sawService.hitungSAW(inputSAW(zscores));
-        distribusi[saw.kategori_prioritas]++;
-    }
-
-    return distribusi;
+    const enriched = latestList.map((row) =>
+        enrichPengukuranDenganPrioritas(row, row));
+    return buatDistribusiPrioritasPemantauan(enriched);
 };
 
 export const getTrenGizi = async (bulan) => {

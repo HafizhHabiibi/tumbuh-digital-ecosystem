@@ -7,9 +7,10 @@ GET /api/orang-tua/anak/:id/pengukuran
 ```
 
 Kontrak ini khusus untuk role `orang_tua`. Kontrak teknis kader dan Puskesmas
-tidak berubah. Z-score dan SAW tetap dihitung di backend untuk menghasilkan
-status antropometri dan prioritas pemantauan, tetapi nilai serta istilah
-teknisnya tidak dikirim kepada orang tua.
+tidak berubah. Z-score dan SAW tetap dihitung di backend. Prioritas pemantauan
+akhir mengambil tingkat tertinggi antara kategori SAW dan batas minimum
+antropometri, tetapi nilai serta istilah teknisnya tidak dikirim kepada orang
+tua.
 
 ## Pemisahan kontrak berdasarkan peran
 
@@ -78,7 +79,7 @@ objek sumber seperti `...pengukuran` tidak diperbolehkan.
 | `status_tbu` | string enum | tidak | kategori tinggi badan menurut umur |
 | `status_bbtb` | string enum | tidak | kategori berat badan menurut tinggi badan |
 | `status_imtu` | string enum | tidak | kategori IMT menurut umur |
-| `status_pemantauan` | string enum | tidak | hasil pemetaan prioritas internal |
+| `status_pemantauan` | string enum | tidak | hasil pemetaan prioritas pemantauan akhir |
 | `created_at` | string | tidak | timestamp ISO 8601 UTC |
 
 Nilai desimal harus dikirim sebagai JSON number, bukan string hasil tipe
@@ -117,7 +118,9 @@ obesitas
 
 ## Pemetaan status pemantauan
 
-Pemetaan dilakukan di backend setelah perhitungan internal selesai.
+Pemetaan dilakukan di backend dari `prioritas_pemantauan.kategori` setelah
+perhitungan internal selesai. Kategori SAW murni tidak dipetakan langsung ke
+kontrak orang tua.
 
 | Kategori internal | `status_pemantauan` | Label UI orang tua |
 | --- | --- | --- |
@@ -145,6 +148,9 @@ zscore_bbtb
 zscore_imtu
 skor_saw
 kategori_prioritas
+prioritas_pemantauan
+sumber_utama
+kode_alasan_prioritas
 detail_saw
 bobot
 nilai_normalisasi
@@ -162,7 +168,8 @@ regresi kebocoran data.
    dan review kebocoran data;
 3. field teknis baru bersifat ditolak secara default untuk kontrak orang tua;
 4. perubahan ini tidak memerlukan migrasi database; dan
-5. perhitungan Z-score, SAW, AI Insight, serta laporan teknis tidak diubah.
+5. perhitungan Z-score dan SAW tidak diubah; prioritas pemantauan akhir
+   melengkapinya dengan batas minimum antropometri.
 
 ## Status implementasi
 

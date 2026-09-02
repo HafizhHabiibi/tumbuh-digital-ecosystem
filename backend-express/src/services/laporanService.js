@@ -1,6 +1,7 @@
 import * as laporanModel from "../models/laporanModel.js";
 import { hitungSemuaZScore } from "./zscoreService.js";
 import { hitungSAW } from "./sawService.js";
+import { gabungkanPrioritasPemantauan } from "./monitoringPriorityService.js";
 
 export const VERSI_KONTRAK_LAPORAN = "1.0";
 
@@ -159,7 +160,7 @@ const buatPrioritasOrangTua = (kategori) => {
 const buatBarisRiwayatOrangTua = (pengukuran) => ({
     ...buatPengukuranDasar(pengukuran),
     status: buatStatusOrangTua(pengukuran),
-    prioritas: pengukuran.kategori_prioritas || null,
+    prioritas: pengukuran.prioritas_pemantauan?.kategori || null,
 });
 
 const buatBarisRiwayatTeknis = (pengukuran) => ({
@@ -176,6 +177,11 @@ const buatBarisRiwayatTeknis = (pengukuran) => ({
                 skor: item.skor,
             }))
             : [],
+    },
+    prioritas_pemantauan: {
+        kategori: pengukuran.prioritas_pemantauan.kategori,
+        sumber_utama: pengukuran.prioritas_pemantauan.sumber_utama,
+        alasan: [...pengukuran.prioritas_pemantauan.alasan],
     },
 });
 
@@ -196,7 +202,7 @@ export const buatLaporanIndividualOrangTua = (data) => {
             status: buatStatusOrangTua(terakhir),
         },
         prioritas_pemantauan: buatPrioritasOrangTua(
-            terakhir.kategori_prioritas,
+            terakhir.prioritas_pemantauan?.kategori,
         ),
         riwayat_pengukuran: riwayat.map(buatBarisRiwayatOrangTua),
     };
@@ -264,7 +270,9 @@ export const buatLaporanRekapPetugas = (data) => {
             nama_anak: item.nama_anak,
             nama_orang_tua: item.nama_orang_tua,
             tanggal_ukur: item.tanggal_ukur,
-            kategori_prioritas: item.kategori_prioritas,
+            kategori_prioritas: item.prioritas_pemantauan.kategori,
+            kategori_prioritas_saw: item.kategori_prioritas,
+            sumber_prioritas: item.prioritas_pemantauan.sumber_utama,
             skor_saw: item.skor_saw,
             status_bbu: item.status_bbu,
             status_tbu: item.status_tbu,
@@ -313,7 +321,13 @@ const inputSAW = (zscores) => ({
     zscore_imtu: zscores.zscore_imtu,
 });
 
-const tambahPerhitungan = (raw, anak, hitungZScoreFn, hitungSAWFn) => {
+const tambahPerhitungan = (
+    raw,
+    anak,
+    hitungZScoreFn,
+    hitungSAWFn,
+    gabungkanPrioritasFn,
+) => {
     const beratBadan = Number(raw.berat_badan);
     const tinggiBadan = Number(raw.tinggi_badan);
     const zscores = hitungZScoreFn({
@@ -324,6 +338,13 @@ const tambahPerhitungan = (raw, anak, hitungZScoreFn, hitungSAWFn) => {
         jenis_kelamin: anak.jenis_kelamin,
     });
     const saw = hitungSAWFn(inputSAW(zscores));
+    const prioritasPemantauan = gabungkanPrioritasFn({
+        kategori_prioritas_saw: saw.kategori_prioritas,
+        status_bbu: zscores.status_bbu,
+        status_tbu: zscores.status_tbu,
+        status_bbtb: zscores.status_bbtb,
+        status_imtu: zscores.status_imtu,
+    });
 
     return {
         ...raw,
@@ -338,6 +359,7 @@ const tambahPerhitungan = (raw, anak, hitungZScoreFn, hitungSAWFn) => {
         ...zscores,
         skor_saw: saw.skor_akhir,
         kategori_prioritas: saw.kategori_prioritas,
+        prioritas_pemantauan: prioritasPemantauan,
         detail_saw: saw.detail,
     };
 };
@@ -368,6 +390,7 @@ export const buatPenyusunLaporan = ({
     model = laporanModel,
     hitungZScoreFn = hitungSemuaZScore,
     hitungSAWFn = hitungSAW,
+    gabungkanPrioritasFn = gabungkanPrioritasPemantauan,
     sekarang = () => new Date(),
     identitasFasilitas = {
         nama_posyandu: process.env.NAMA_POSYANDU || "Posyandu",
@@ -396,6 +419,7 @@ export const buatPenyusunLaporan = ({
                 data.anak,
                 hitungZScoreFn,
                 hitungSAWFn,
+                gabungkanPrioritasFn,
             ));
 
         return {
@@ -435,19 +459,26 @@ export const buatPenyusunLaporan = ({
                     raw,
                     hitungZScoreFn,
                     hitungSAWFn,
+                    gabungkanPrioritasFn,
                 );
                 tambahDistribusi(distribusiAntropometri, pengukuran);
-                distribusiPrioritas[pengukuran.kategori_prioritas]++;
+                distribusiPrioritas[
+                    pengukuran.prioritas_pemantauan.kategori
+                ]++;
                 return pengukuran;
             });
 
             const daftarPrioritas = hasilPerAnak
-                .filter(({ kategori_prioritas }) =>
-                    kategori_prioritas === "tinggi" ||
-                    kategori_prioritas === "sedang")
-                .sort((a, b) =>
-                    b.skor_saw - a.skor_saw ||
-                    a.nama_anak.localeCompare(b.nama_anak, "id"));
+                .filter(({ prioritas_pemantauan: prioritas }) =>
+                    prioritas.kategori === "tinggi" ||
+                    prioritas.kategori === "sedang")
+                .sort((a, b) => {
+                    const tingkat = { rendah: 1, sedang: 2, tinggi: 3 };
+                    return tingkat[b.prioritas_pemantauan.kategori] -
+                        tingkat[a.prioritas_pemantauan.kategori] ||
+                        b.skor_saw - a.skor_saw ||
+                        a.nama_anak.localeCompare(b.nama_anak, "id");
+                });
 
             return buatLaporanRekapPetugas({
                 ...data,

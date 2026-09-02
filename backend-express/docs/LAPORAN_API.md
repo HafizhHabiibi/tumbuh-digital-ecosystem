@@ -60,8 +60,9 @@ Perilaku berdasarkan role:
 
 - Orang tua menerima ringkasan yang mudah dipahami tanpa Z-Score, skor SAW,
   bobot, atau ranking.
-- Kader dan Puskesmas menerima laporan teknis berisi Z-Score, rincian SAW,
-  riwayat pengukuran, dan rujukan.
+- Kader dan Puskesmas menerima laporan teknis berisi Z-Score, rincian SAW
+  risiko kekurangan gizi, prioritas pemantauan akhir, riwayat pengukuran, dan
+  rujukan.
 - Orang tua yang meminta ID anak lain menerima `404`, sama seperti ID yang tidak
   tersedia. Kebijakan ini mencegah enumerasi ID anak.
 
@@ -145,8 +146,11 @@ Respons error tetap berupa JSON standar backend, bukan PDF.
 
 - Kategori antropometri dihitung dari Z-Score referensi pertumbuhan WHO dan
   ambang kategori Permenkes.
-- SAW menggunakan BB/U, TB/U, BB/TB, dan IMT/U untuk mengurutkan prioritas
-  pemantauan.
+- SAW menggunakan BB/U, TB/U, BB/TB, dan IMT/U untuk membantu pemeringkatan
+  risiko kekurangan gizi.
+- Prioritas pemantauan akhir mengambil tingkat tertinggi antara kategori SAW
+  dan batas minimum kategori antropometri agar gizi lebih serta obesitas tidak
+  terlewat.
 - SAW bukan metode diagnosis dan tidak menyatakan seorang anak mengalami
   stunting.
 - PDF dibuat saat diminta dan tidak disimpan di database maupun filesystem
@@ -190,7 +194,8 @@ Checklist pemeriksaan visual manual:
 - Tidak ada baris tabel yang terpotong di batas bawah halaman.
 - Footer dan nomor halaman tampil pada seluruh halaman.
 - Laporan orang tua tidak menampilkan Z-Score, skor, atau bobot SAW.
-- Laporan teknis menampilkan empat indeks dan empat detail kriteria SAW.
+- Laporan teknis menampilkan empat indeks, prioritas pemantauan akhir, serta
+  empat detail kriteria SAW secara terpisah.
 - Rekap menampilkan tabel lanjutan secara konsisten pada beberapa halaman.
 
 ## Verifikasi otomatis

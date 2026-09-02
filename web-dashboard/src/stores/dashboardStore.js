@@ -24,7 +24,7 @@ export const useDashboardStore = defineStore("dashboard", {
         // Data tren antropometri bulanan dengan kelompok bbu/tbu/bbtb/imtu
         trenGizi: [],
 
-        // Data distribusi prioritas pemantauan SAW
+        // Data distribusi prioritas pemantauan akhir
         distribusiRisiko: {
             rendah: 0,
             sedang: 0,

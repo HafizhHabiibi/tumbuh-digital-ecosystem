@@ -312,19 +312,37 @@ export const renderLaporanIndividualTeknis = async (laporan) => {
         saatHalamanBaru: header,
     });
 
-    tulisJudulBagian(doc, "Prioritas SAW", { saatHalamanBaru: header });
+    tulisJudulBagian(doc, "Prioritas Pemantauan", {
+        saatHalamanBaru: header,
+    });
     pastikanRuang(doc, 34, header);
     tulisBadge(doc, {
         x: doc.page.margins.left,
         y: doc.y,
-        teks: `Prioritas ${kapital(terakhir.saw.kategori_prioritas)}`,
-        kategori: terakhir.saw.kategori_prioritas,
+        teks: `Prioritas ${kapital(terakhir.prioritas_pemantauan.kategori)}`,
+        kategori: terakhir.prioritas_pemantauan.kategori,
     });
     doc.font("Helvetica-Bold")
         .fontSize(10)
         .fillColor(WARNA_LAPORAN.teks)
-        .text(`Skor SAW: ${formatAngka(terakhir.saw.skor, 4)}`, 230, doc.y + 5);
+        .text(
+            `Sumber: ${kapital(terakhir.prioritas_pemantauan.sumber_utama)}`,
+            230,
+            doc.y + 5,
+        );
     doc.y += 34;
+
+    tulisJudulBagian(doc, "SAW Risiko Kekurangan Gizi", {
+        saatHalamanBaru: header,
+    });
+    doc.font("Helvetica-Bold")
+        .fontSize(10)
+        .fillColor(WARNA_LAPORAN.teks)
+        .text(
+            `Kategori SAW: ${kapital(terakhir.saw.kategori_prioritas)}  |  ` +
+            `Skor: ${formatAngka(terakhir.saw.skor, 4)}`,
+        );
+    doc.moveDown(0.5);
     tulisTabel(doc, {
         columns: [
             { key: "kriteria", label: "Kriteria", width: 199 },
@@ -365,7 +383,7 @@ export const renderLaporanIndividualTeknis = async (laporan) => {
             bbtb: formatAngka(item.status.bbtb.zscore, 3),
             imtu: formatAngka(item.status.imtu.zscore, 3),
             saw: formatAngka(item.saw.skor, 4),
-            prioritas: kapital(item.saw.kategori_prioritas),
+            prioritas: kapital(item.prioritas_pemantauan.kategori),
         })),
         saatHalamanBaru: header,
     });
@@ -454,8 +472,8 @@ export const renderLaporanRekapPetugas = async (laporan) => {
             { key: "anak", label: "Nama Anak", width: 95 },
             { key: "orang_tua", label: "Orang Tua", width: 105 },
             { key: "tanggal", label: "Tanggal Ukur", width: 70 },
-            { key: "prioritas", label: "Prioritas", width: 80 },
-            { key: "skor", label: "Skor SAW", width: 60, align: "center" },
+            { key: "prioritas", label: "Prioritas Pantau", width: 80 },
+            { key: "skor", label: "SAW Kurang Gizi", width: 60, align: "center" },
         ],
         rows: laporan.daftar_prioritas.map((item, index) => ({
             nomor: index + 1,

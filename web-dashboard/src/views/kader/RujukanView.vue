@@ -186,10 +186,10 @@
                                 <th class="th-cell">Tanggal</th>
                                 <th class="th-cell">Status</th>
                                 <th class="th-cell hidden md:table-cell">
-                                    Prioritas SAW
+                                    Prioritas Pemantauan
                                 </th>
                                 <th class="th-cell hidden md:table-cell">
-                                    Skor
+                                    Skor SAW
                                 </th>
                                 <th class="th-cell hidden lg:table-cell">
                                     Ditangani Oleh
@@ -229,9 +229,9 @@
                                 <td class="px-4 py-3 hidden md:table-cell">
                                     <span
                                         class="text-xs px-2 py-1 rounded-full font-medium capitalize"
-                                        :style="`background: ${warnaBg[r.kategori_prioritas]}; color: ${warnaHex[r.kategori_prioritas]}`"
+                                        :style="`background: ${warnaBg[r.prioritas_pemantauan?.kategori]}; color: ${warnaHex[r.prioritas_pemantauan?.kategori]}`"
                                     >
-                                        {{ r.kategori_prioritas ?? "—" }}
+                                        {{ r.prioritas_pemantauan?.kategori ?? "—" }}
                                     </span>
                                 </td>
                                 <td

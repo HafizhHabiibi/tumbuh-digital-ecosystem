@@ -77,7 +77,7 @@
                     :loading="dashboardStore.loading.statistik"
                 />
                 <StatCard
-                    label="Prioritas Tinggi"
+                    label="Prioritas Pemantauan Tinggi"
                     icon="pi-chart-line"
                     color="red"
                     :value="dashboardStore.statistik.total_prioritas_tinggi"

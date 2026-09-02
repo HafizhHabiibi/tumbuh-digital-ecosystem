@@ -139,9 +139,9 @@
                     </p>
                     <span
                         class="text-xs px-2 py-0.5 rounded-full font-semibold capitalize"
-                        :style="`background: ${warnaBg[rujukan.kategori_prioritas]}; color: ${warnaHex[rujukan.kategori_prioritas]}`"
+                        :style="`background: ${warnaBg[rujukan.prioritas_pemantauan?.kategori]}; color: ${warnaHex[rujukan.prioritas_pemantauan?.kategori]}`"
                     >
-                        {{ rujukan.kategori_prioritas ?? "—" }}
+                        {{ rujukan.prioritas_pemantauan?.kategori ?? "—" }}
                     </span>
                 </div>
                 <div>

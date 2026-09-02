@@ -24,7 +24,7 @@ const measurement = {
     status_tbu: "pendek",
     status_bbtb: "gizi_baik",
     status_imtu: "gizi_baik",
-    kategori_prioritas: "sedang",
+    prioritas_pemantauan: "sedang",
 };
 
 const validInsight = {
@@ -44,7 +44,8 @@ test("prompt insight tidak mengirim Z-Score mentah", () => {
     assert.doesNotMatch(prompt, /-1\.2|-2\.1|0\.1|0\.2/);
     assert.match(prompt, /Usia saat pengukuran: 24 bulan/);
     assert.match(prompt, /Kategori TB\/U: lebih pendek/);
-    assert.match(prompt, /Prioritas pemantauan SAW: sedang/);
+    assert.match(prompt, /Prioritas pemantauan: sedang/);
+    assert.doesNotMatch(prompt, /prioritas pemantauan SAW/i);
 });
 
 test("validator insight mewajibkan tepat tiga tips dan membatasi teks", () => {
@@ -112,7 +113,7 @@ const chatContext = {
         status_tbu: "normal",
         status_bbtb: "gizi_baik",
         status_imtu: "gizi_baik",
-        kategori_prioritas: "rendah",
+        prioritas_pemantauan: "rendah",
     },
     insight_awal: "Pertahankan kebiasaan makan yang beragam.",
     riwayat_pesan: [

@@ -30,7 +30,7 @@
                 >
                 <StatusBadge
                     type="prioritas"
-                    :value="rujukan.kategori_prioritas"
+                    :value="rujukan.prioritas_pemantauan?.kategori"
                 />
             </div>
         </div>

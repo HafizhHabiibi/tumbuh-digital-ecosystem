@@ -39,13 +39,28 @@ test("measurement context dibangun dari whitelist tanpa identitas dan Z-Score", 
         "status_tbu",
         "status_bbtb",
         "status_imtu",
-        "kategori_prioritas",
+        "prioritas_pemantauan",
     ]);
     assert.equal(context.usia_bulan, 24);
     assert.equal(context.status_bbu, "berat_badan_normal");
+    assert.equal(context.prioritas_pemantauan, "rendah");
     assert.equal("zscore_bbu" in context, false);
     assert.equal("nama" in context, false);
     assert.equal("anak_id" in context, false);
+});
+
+test("measurement context memakai prioritas akhir untuk obesitas tanpa data SAW", () => {
+    const context = buildMeasurementAiContext({
+        ...source,
+        berat_badan: "20.00",
+        tinggi_badan: "85.00",
+    });
+
+    assert.equal(context.status_bbtb, "obesitas");
+    assert.equal(context.status_imtu, "obesitas");
+    assert.equal(context.prioritas_pemantauan, "tinggi");
+    assert.equal("kategori_prioritas" in context, false);
+    assert.equal("skor_saw" in context, false);
 });
 
 test("conversation context hanya mempertahankan 10 pesan terakhir", () => {

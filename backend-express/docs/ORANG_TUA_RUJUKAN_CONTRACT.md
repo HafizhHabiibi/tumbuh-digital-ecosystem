@@ -83,6 +83,7 @@ prioritas, termasuk:
 pengukuran_id
 skor_saw
 kategori_prioritas
+prioritas_pemantauan
 usia_hari
 zscore_bbu
 zscore_tbu
@@ -98,8 +99,10 @@ Field internal baru juga tidak ikut terkirim secara otomatis. Penambahannya ke
 kontrak orang tua harus melalui review kontrak dan test kebocoran data.
 
 Keberadaan rujukan menjelaskan bahwa anak memerlukan tindak lanjut, tetapi
-bukan diagnosis klinis. Skor SAW hanya dapat menjadi informasi prioritas bagi
-petugas dan tidak menentukan kelayakan rujukan secara otomatis.
+bukan diagnosis klinis. Bagi petugas, skor SAW adalah pemeringkatan risiko
+kekurangan gizi, sedangkan prioritas pemantauan akhir juga mempertimbangkan
+kategori antropometri. Keduanya tidak menentukan kelayakan rujukan secara
+otomatis.
 
 ## Batas peran dan rilis
 

@@ -44,6 +44,11 @@ const pengukuran = {
     status_imtu: "gizi_baik",
     skor_saw: 0.1533,
     kategori_prioritas: "rendah",
+    prioritas_pemantauan: {
+        kategori: "rendah",
+        sumber_utama: "saw",
+        alasan: [],
+    },
     detail_saw: [
         { nama_kriteria: "zscore_bbu", bobot: 0.25, nilai: 0.1333, skor: 0.0333 },
     ],
@@ -100,6 +105,10 @@ test("kontrak teknis memuat Z-score, SAW, dan rujukan", () => {
     );
     assert.equal(laporan.pengukuran_terakhir.status.tbu.zscore, -1.2);
     assert.equal(laporan.pengukuran_terakhir.saw.skor, 0.1533);
+    assert.equal(
+        laporan.pengukuran_terakhir.prioritas_pemantauan.kategori,
+        "rendah",
+    );
     assert.equal(laporan.pengukuran_terakhir.saw.detail.length, 1);
     assert.equal(laporan.rujukan[0].status, "diajukan");
 });
@@ -129,6 +138,11 @@ test("kontrak rekap hanya memuat data operasional petugas", () => {
             nama_orang_tua: "Aminah",
             tanggal_ukur: "2026-08-27",
             kategori_prioritas: "tinggi",
+            prioritas_pemantauan: {
+                kategori: "tinggi",
+                sumber_utama: "saw",
+                alasan: [],
+            },
             skor_saw: 0.8,
             status_bbu: "berat_badan_kurang",
             status_tbu: "pendek",
@@ -150,7 +164,11 @@ test("kontrak laporan menolak kategori prioritas tidak valid", () => {
             ...dataIndividual,
             pengukuran_terakhir: {
                 ...pengukuran,
-                kategori_prioritas: "darurat",
+                prioritas_pemantauan: {
+                    kategori: "darurat",
+                    sumber_utama: "antropometri",
+                    alasan: [],
+                },
             },
         }),
         LaporanContractError,

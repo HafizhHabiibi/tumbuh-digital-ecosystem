@@ -7,13 +7,13 @@
                     class="text-2xl font-bold m-0"
                     style="color: var(--color-text-heading)"
                 >
-                    Prioritas Intervensi (SAW)
+                    Prioritas Pemantauan
                 </h1>
                 <p
                     class="text-sm mt-1 m-0"
                     style="color: var(--color-text-muted)"
                 >
-                    Urutan prioritas pemantauan balita di wilayah kerja Puskesmas berdasarkan pengukuran terakhir
+                    Urutan pemantauan berdasarkan hasil antropometri dan skor SAW risiko kekurangan gizi
                 </p>
             </div>
         </div>
@@ -41,7 +41,7 @@
                     class="text-sm font-semibold flex-shrink-0"
                     style="color: var(--color-text-body)"
                 >
-                    Prioritas:
+                    Prioritas Pemantauan:
                 </label>
                 <div class="relative flex-1 md:w-48">
                     <select
@@ -49,7 +49,7 @@
                         v-model="selectedPrioritas"
                         class="input-field w-full px-4 py-2.5 rounded-xl text-sm appearance-none"
                     >
-                        <option value="">Semua Prioritas</option>
+                        <option value="">Semua Prioritas Pemantauan</option>
                         <option value="tinggi">Tinggi</option>
                         <option value="sedang">Sedang</option>
                         <option value="rendah">Rendah</option>
@@ -108,7 +108,7 @@
 
             <!-- Table -->
             <div v-else class="overflow-x-auto">
-                <table class="w-full text-sm" aria-label="Tabel Perangkingan SAW Puskesmas">
+                <table class="w-full text-sm" aria-label="Tabel prioritas pemantauan balita Puskesmas">
                     <thead>
                         <tr
                             style="
@@ -122,7 +122,7 @@
                             <th class="th-cell hidden md:table-cell">Usia</th>
                             <th class="th-cell">Pengukuran Terakhir</th>
                             <th class="th-cell hidden lg:table-cell">Status TB/U</th>
-                            <th class="th-cell">Prioritas</th>
+                            <th class="th-cell">Prioritas Pemantauan</th>
                             <th class="th-cell text-right">Skor SAW</th>
                             <th class="th-cell text-center w-40">Aksi</th>
                         </tr>
@@ -189,7 +189,7 @@
                             <td class="px-4 py-3">
                                 <StatusBadge
                                     type="prioritas"
-                                    :value="row.kategori_prioritas"
+                                    :value="row.prioritas_pemantauan?.kategori"
                                 />
                             </td>
 
@@ -256,7 +256,9 @@ const filteredRanking = computed(() => {
 
     if (selectedPrioritas.value) {
         list = list.filter(
-            (item) => item.kategori_prioritas === selectedPrioritas.value,
+            (item) =>
+                item.prioritas_pemantauan?.kategori ===
+                selectedPrioritas.value,
         );
     }
 

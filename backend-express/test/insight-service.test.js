@@ -42,7 +42,7 @@ test("processor menghitung konteks dan menyelesaikan insight yang berhasil", asy
 
     assert.deepEqual(result, { processed: true, success: true, reason: null });
     assert.equal(generatedInput.status_bbu, "berat_badan_normal");
-    assert.equal(generatedInput.kategori_prioritas, "rendah");
+    assert.equal(generatedInput.prioritas_pemantauan, "rendah");
     assert.equal("zscore_bbu" in generatedInput, false);
     assert.deepEqual(completion, [
         11,

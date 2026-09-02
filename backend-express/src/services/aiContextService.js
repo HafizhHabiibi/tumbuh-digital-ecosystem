@@ -4,6 +4,7 @@ import {
 } from "../constants/aiPolicy.js";
 import { labelStatusAntropometri } from "../constants/anthropometryLabels.js";
 import ChatModel from "../models/chatModel.js";
+import * as monitoringPriorityService from "./monitoringPriorityService.js";
 import * as sawService from "./sawService.js";
 import * as zscoreService from "./zscoreService.js";
 
@@ -36,6 +37,14 @@ export const buildMeasurementAiContext = (source) => {
         zscore_bbtb: zscores.zscore_bbtb,
         zscore_imtu: zscores.zscore_imtu,
     });
+    const prioritasPemantauan =
+        monitoringPriorityService.gabungkanPrioritasPemantauan({
+            kategori_prioritas_saw: saw.kategori_prioritas,
+            status_bbu: zscores.status_bbu,
+            status_tbu: zscores.status_tbu,
+            status_bbtb: zscores.status_bbtb,
+            status_imtu: zscores.status_imtu,
+        });
 
     // Bentuk object secara eksplisit agar nilai teknis dan identitas tidak ikut
     // terbawa ketika row database bertambah kolom pada masa mendatang.
@@ -49,7 +58,7 @@ export const buildMeasurementAiContext = (source) => {
         status_tbu: zscores.status_tbu,
         status_bbtb: zscores.status_bbtb,
         status_imtu: zscores.status_imtu,
-        kategori_prioritas: saw.kategori_prioritas,
+        prioritas_pemantauan: prioritasPemantauan.kategori,
     });
 };
 
@@ -91,7 +100,7 @@ export const serializeConversationContext = (context) => {
         `TB/U: ${labelStatusAntropometri("tbu", p.status_tbu)}`,
         `BB/TB: ${labelStatusAntropometri("bbtb", p.status_bbtb)}`,
         `IMT/U: ${labelStatusAntropometri("imtu", p.status_imtu)}`,
-        `Prioritas pemantauan: ${p.kategori_prioritas}`,
+        `Prioritas pemantauan: ${p.prioritas_pemantauan}`,
         `Insight awal: ${context.insight_awal || "belum tersedia"}`,
     ].join("\n");
 };

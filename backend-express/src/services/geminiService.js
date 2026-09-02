@@ -99,7 +99,7 @@ export const susunPromptInsight = (data) => {
         status_tbu,
         status_bbtb,
         status_imtu,
-        kategori_prioritas,
+        prioritas_pemantauan,
     } = data;
 
     const gender = jenis_kelamin === "L" ? "laki-laki" : "perempuan";
@@ -112,7 +112,7 @@ export const susunPromptInsight = (data) => {
         `Kategori TB/U: ${LABEL_STATUS_TBU[status_tbu] || status_tbu}`,
         `Kategori BB/TB: ${LABEL_STATUS_PROPORSI[status_bbtb] || status_bbtb}`,
         `Kategori IMT/U: ${LABEL_STATUS_PROPORSI[status_imtu] || status_imtu}`,
-        `Prioritas pemantauan SAW: ${kategori_prioritas}`,
+        `Prioritas pemantauan: ${prioritas_pemantauan}`,
         "Susun insight singkat dalam Bahasa Indonesia sesuai struktur yang diminta.",
     ].join("\n");
 };

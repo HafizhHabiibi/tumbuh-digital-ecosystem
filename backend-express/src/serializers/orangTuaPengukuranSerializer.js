@@ -91,7 +91,8 @@ const toIsoTimestamp = (value) => {
     return date.toISOString();
 };
 
-const toStatusPemantauan = (kategoriPrioritas) => {
+const toStatusPemantauan = (prioritasPemantauan) => {
+    const kategoriPrioritas = prioritasPemantauan?.kategori;
     const status = Object.hasOwn(
         STATUS_PEMANTAUAN_DARI_PRIORITAS,
         kategoriPrioritas,
@@ -100,7 +101,7 @@ const toStatusPemantauan = (kategoriPrioritas) => {
         : null;
     if (!status) {
         throw new TypeError(
-            "Kategori prioritas tidak valid untuk kontrak orang tua",
+            "Prioritas pemantauan tidak valid untuk kontrak orang tua",
         );
     }
     return status;
@@ -156,7 +157,7 @@ export const toOrangTuaPengukuran = (pengukuran) => {
             STATUS_BBTB_DAN_IMTU,
         ),
         status_pemantauan: toStatusPemantauan(
-            pengukuran.kategori_prioritas,
+            pengukuran.prioritas_pemantauan,
         ),
         created_at: toIsoTimestamp(pengukuran.created_at),
     };

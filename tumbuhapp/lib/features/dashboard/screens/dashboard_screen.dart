@@ -407,8 +407,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   _buildMiniStat('Tinggi Badan',
                       FormatUtils.formatTinggiBadan(terakhir.tinggiBadan)),
                   _buildMiniStat(
-                    'Status Gizi',
-                    formatStatusAntropometri(terakhir.statusBbtb),
+                    'Tinggi/Usia',
+                    formatStatusAntropometri(terakhir.statusTbu),
                     isBadge: true,
                   ),
                 ],

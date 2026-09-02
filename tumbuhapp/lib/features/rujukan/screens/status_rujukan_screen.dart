@@ -73,16 +73,35 @@ class _StatusRujukanScreenState extends ConsumerState<StatusRujukanScreen> {
     return RefreshIndicator(
       color: AppColors.primary,
       onRefresh: _refresh,
-      child: ListView.separated(
+      child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(16),
-        itemCount: state.rujukan.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
-        itemBuilder: (_, index) {
-          final rujukan = state.rujukan[index];
-          final isAktif = state.rujukanAktif.contains(rujukan);
-          return _buildRujukanCard(rujukan, isAktif);
-        },
+        children: [
+          if (state.rujukanAktif.isNotEmpty) ...[
+            _buildSectionHeader(
+              title: 'Rujukan Aktif',
+              description: state.rujukanAktif.length == 1
+                  ? '1 rujukan sedang menunggu atau menerima tindak lanjut.'
+                  : '${state.rujukanAktif.length} rujukan sedang menunggu atau menerima tindak lanjut.',
+            ),
+            const SizedBox(height: 12),
+            ..._buildCardList(state.rujukanAktif, isAktif: true),
+          ],
+          if (state.rujukanAktif.isNotEmpty &&
+              state.rujukan.any((item) => item.status == 'selesai'))
+            const SizedBox(height: 24),
+          if (state.rujukan.any((item) => item.status == 'selesai')) ...[
+            _buildSectionHeader(
+              title: 'Riwayat Rujukan',
+              description: 'Rujukan yang penanganannya telah selesai.',
+            ),
+            const SizedBox(height: 12),
+            ..._buildCardList(
+              state.rujukan.where((item) => item.status == 'selesai'),
+              isAktif: false,
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -90,111 +109,152 @@ class _StatusRujukanScreenState extends ConsumerState<StatusRujukanScreen> {
   Future<void> _refresh() =>
       ref.read(rujukanProvider(widget.anakId).notifier).fetchRujukan();
 
+  Widget _buildSectionHeader({
+    required String title,
+    required String description,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: AppTextStyles.heading3),
+        const SizedBox(height: 4),
+        Text(description, style: AppTextStyles.bodySecondary),
+      ],
+    );
+  }
+
+  List<Widget> _buildCardList(
+    Iterable<RujukanModel> items, {
+    required bool isAktif,
+  }) {
+    final cards = <Widget>[];
+    for (final item in items) {
+      if (cards.isNotEmpty) cards.add(const SizedBox(height: 12));
+      cards.add(_buildRujukanCard(item, isAktif));
+    }
+    return cards;
+  }
+
   // ── Rujukan Card ──────────────────────────────
 
   Widget _buildRujukanCard(RujukanModel rujukan, bool isAktif) {
     return Container(
+      key: ValueKey('rujukan-card-${rujukan.id}'),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isAktif ? AppColors.primary : AppColors.border,
-          width: isAktif ? 2 : 1,
+          color: isAktif
+              ? AppColors.primary.withValues(alpha: 0.45)
+              : AppColors.border,
         ),
-        boxShadow: isAktif
-            ? [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ]
-            : [],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Header ────────────────────────
-          _buildCardHeader(rujukan, isAktif),
-
-          // ── Stepper Status ────────────────
+          _buildCardOverview(rujukan),
+          const SizedBox(height: 16),
+          const Divider(height: 1, color: AppColors.divider),
+          const SizedBox(height: 16),
           _buildStepper(rujukan),
-
-          // ── Detail Info ───────────────────
+          const SizedBox(height: 16),
+          const Divider(height: 1, color: AppColors.divider),
+          const SizedBox(height: 16),
           _buildDetailInfo(rujukan),
         ],
       ),
     );
   }
 
-  // ── Card Header ───────────────────────────────
-
-  Widget _buildCardHeader(RujukanModel rujukan, bool isAktif) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isAktif ? AppColors.primarySurface : AppColors.background,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(16),
-          topRight: Radius.circular(16),
-        ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: isAktif
-                        ? AppColors.primary
-                        : AppColors.textSecondary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    Icons.local_hospital_outlined,
-                    color: isAktif ? Colors.white : AppColors.textSecondary,
-                    size: 20,
-                  ),
+  Widget _buildCardOverview(RujukanModel rujukan) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Text(
+                'Pengukuran ${FormatUtils.formatTanggal(rujukan.tanggalUkur)}',
+                style: AppTextStyles.body.copyWith(
+                  fontWeight: FontWeight.w700,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        isAktif ? 'Rujukan Aktif' : 'Riwayat Rujukan',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: isAktif
-                              ? AppColors.primary
-                              : AppColors.textPrimary,
-                        ),
-                      ),
-                      Text(
-                        'Diajukan ${FormatUtils.formatTanggal(rujukan.createdAt)}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.caption,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
-          Flexible(
-            child: StatusBadge(
+            const SizedBox(width: 12),
+            StatusBadge(
               label: rujukan.status,
               type: StatusType.statusRujukan,
             ),
-          ),
-        ],
+          ],
+        ),
+        const SizedBox(height: 6),
+        Text(_statusDescription(rujukan.status),
+            style: AppTextStyles.bodySecondary),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _buildMeasurementChip(
+              'Berat Badan',
+              FormatUtils.formatBeratBadan(rujukan.beratBadan),
+            ),
+            _buildMeasurementChip(
+              'Tinggi Badan',
+              FormatUtils.formatTinggiBadan(rujukan.tinggiBadan),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Text(
+          'Diajukan ${FormatUtils.formatTanggal(rujukan.createdAt)}',
+          style: AppTextStyles.caption,
+        ),
+      ],
+    );
+  }
+
+  String _statusDescription(String status) {
+    switch (status) {
+      case 'ditangani':
+        return 'Rujukan sedang ditangani oleh Puskesmas.';
+      case 'selesai':
+        return 'Proses penanganan rujukan telah selesai.';
+      default:
+        return 'Rujukan telah diajukan dan menunggu tindak lanjut Puskesmas.';
+    }
+  }
+
+  Widget _buildMeasurementChip(String label, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text.rich(
+        TextSpan(
+          style: AppTextStyles.caption,
+          children: [
+            TextSpan(text: '$label  '),
+            TextSpan(
+              text: value,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -219,76 +279,86 @@ class _StatusRujukanScreenState extends ConsumerState<StatusRujukanScreen> {
 
     final currentIndex = _getStepIndex(rujukan.status);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: steps.asMap().entries.expand((entry) {
-          final index = entry.key;
-          final step = entry.value;
-          final isDone = index <= currentIndex;
-          final isActive = index == currentIndex;
-          final isLast = index == steps.length - 1;
-
-          final indicator = Expanded(
-            child: Column(
-              children: [
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  width: isActive ? 36 : 32,
-                  height: isActive ? 36 : 32,
-                  decoration: BoxDecoration(
-                    color: isDone ? AppColors.primary : AppColors.background,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: isActive
-                          ? AppColors.primaryDark
-                          : isDone
-                              ? AppColors.primary
-                              : AppColors.border,
-                      width: isActive ? 3 : 1,
-                    ),
-                    boxShadow: isActive
-                        ? [
-                            BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.2),
-                              blurRadius: 6,
-                            ),
-                          ]
-                        : null,
-                  ),
-                  child: Icon(
-                    step.icon,
-                    size: 16,
-                    color: isDone ? Colors.white : AppColors.textSecondary,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Progres Rujukan',
+          style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            for (var index = 0; index < steps.length; index++) ...[
+              _buildStepIndicator(
+                steps[index],
+                isDone: index <= currentIndex,
+                isActive: index == currentIndex,
+              ),
+              if (index < steps.length - 1)
+                Expanded(
+                  child: Container(
+                    height: 2,
+                    color: index < currentIndex
+                        ? AppColors.primary
+                        : AppColors.border,
                   ),
                 ),
-                const SizedBox(height: 6),
-                Text(
+            ],
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            for (final step in steps)
+              Expanded(
+                child: Text(
                   step.label,
                   style: AppTextStyles.caption.copyWith(
-                    color: isDone ? AppColors.primary : AppColors.textSecondary,
-                    fontWeight: isActive ? FontWeight.w700 : FontWeight.normal,
+                    color: steps.indexOf(step) <= currentIndex
+                        ? AppColors.primary
+                        : AppColors.textSecondary,
+                    fontWeight: steps.indexOf(step) == currentIndex
+                        ? FontWeight.w700
+                        : FontWeight.normal,
                   ),
-                  textAlign: TextAlign.center,
+                  textAlign: steps.indexOf(step) == 0
+                      ? TextAlign.left
+                      : steps.indexOf(step) == steps.length - 1
+                          ? TextAlign.right
+                          : TextAlign.center,
                 ),
-              ],
-            ),
-          );
-
-          if (isLast) return [indicator];
-          return [
-            indicator,
-            Expanded(
-              child: Container(
-                height: 2,
-                margin: const EdgeInsets.only(top: 16),
-                color:
-                    index < currentIndex ? AppColors.primary : AppColors.border,
               ),
-            ),
-          ];
-        }).toList(),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStepIndicator(
+    _StepItem step, {
+    required bool isDone,
+    required bool isActive,
+  }) {
+    return Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        color: isDone ? AppColors.primary : AppColors.background,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: isActive
+              ? AppColors.primaryDark
+              : isDone
+                  ? AppColors.primary
+                  : AppColors.border,
+          width: isActive ? 2 : 1,
+        ),
+      ),
+      child: Icon(
+        step.icon,
+        size: 16,
+        color: isDone ? Colors.white : AppColors.textSecondary,
       ),
     );
   }
@@ -309,71 +379,55 @@ class _StatusRujukanScreenState extends ConsumerState<StatusRujukanScreen> {
   // ── Detail Info ───────────────────────────────
 
   Widget _buildDetailInfo(RujukanModel rujukan) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Divider(color: AppColors.divider),
-          const SizedBox(height: 8),
+    final details = <Widget>[];
 
-          _buildInfoRow(
-            icon: Icons.monitor_weight_outlined,
-            label: 'Dasar Rujukan',
-            value:
-                'Pengukuran ${FormatUtils.formatTanggal(rujukan.tanggalUkur)}',
-          ),
-          const SizedBox(height: 8),
+    void addDetail(IconData icon, String label, String value) {
+      if (details.isNotEmpty) details.add(const SizedBox(height: 14));
+      details.add(_buildInfoRow(icon: icon, label: label, value: value));
+    }
 
-          // Alasan atau catatan dari kader
-          if (rujukan.catatanKader?.trim().isNotEmpty ?? false) ...[
-            _buildInfoRow(
-              icon: Icons.note_outlined,
-              label: 'Alasan / Catatan Kader',
-              value: rujukan.catatanKader!,
-            ),
-            const SizedBox(height: 8),
-          ],
+    if (rujukan.catatanKader?.trim().isNotEmpty ?? false) {
+      addDetail(Icons.notes_outlined, 'Catatan Kader', rujukan.catatanKader!);
+    }
+    if (rujukan.catatanPuskesmas?.trim().isNotEmpty ?? false) {
+      addDetail(
+        Icons.local_hospital_outlined,
+        'Tindak Lanjut Puskesmas',
+        rujukan.catatanPuskesmas!,
+      );
+    }
+    if (rujukan.ditanganiOleh?.trim().isNotEmpty ?? false) {
+      addDetail(
+        Icons.person_outline,
+        'Ditangani Oleh',
+        rujukan.ditanganiOleh!,
+      );
+    }
+    if (rujukan.validatedAt != null) {
+      addDetail(
+        Icons.event_available_outlined,
+        'Mulai Ditangani',
+        FormatUtils.formatTanggalJam(rujukan.validatedAt!),
+      );
+    }
+    if (rujukan.completedAt != null) {
+      addDetail(
+        Icons.task_alt_outlined,
+        'Selesai Ditangani',
+        FormatUtils.formatTanggalJam(rujukan.completedAt!),
+      );
+    }
 
-          // Tindak lanjut dari Puskesmas
-          if (rujukan.catatanPuskesmas?.trim().isNotEmpty ?? false) ...[
-            _buildInfoRow(
-              icon: Icons.local_hospital_outlined,
-              label: 'Tindak Lanjut Puskesmas',
-              value: rujukan.catatanPuskesmas!,
-            ),
-            const SizedBox(height: 8),
-          ],
+    if (details.isEmpty) {
+      return const Text(
+        'Belum ada catatan tindak lanjut untuk rujukan ini.',
+        style: AppTextStyles.bodySecondary,
+      );
+    }
 
-          // Ditangani oleh
-          if (rujukan.ditanganiOleh?.trim().isNotEmpty ?? false) ...[
-            _buildInfoRow(
-              icon: Icons.person_outline,
-              label: 'Ditangani Oleh',
-              value: rujukan.ditanganiOleh!,
-            ),
-            const SizedBox(height: 8),
-          ],
-
-          // Waktu pertama kali rujukan ditangani/divalidasi
-          if (rujukan.validatedAt != null)
-            _buildInfoRow(
-              icon: Icons.event_available_outlined,
-              label: 'Mulai Ditangani',
-              value: FormatUtils.formatTanggalJam(rujukan.validatedAt!),
-            ),
-
-          if (rujukan.validatedAt != null && rujukan.completedAt != null)
-            const SizedBox(height: 8),
-
-          if (rujukan.completedAt != null)
-            _buildInfoRow(
-              icon: Icons.task_alt_outlined,
-              label: 'Selesai Ditangani',
-              value: FormatUtils.formatTanggalJam(rujukan.completedAt!),
-            ),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: details,
     );
   }
 
@@ -382,19 +436,31 @@ class _StatusRujukanScreenState extends ConsumerState<StatusRujukanScreen> {
     required String label,
     required String value,
   }) {
-    return Row(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 16, color: AppColors.primary),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: AppTextStyles.caption),
-              const SizedBox(height: 2),
-              Text(value, style: AppTextStyles.body),
-            ],
+        Row(
+          children: [
+            Icon(icon, size: 16, color: AppColors.primary),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                label,
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 5),
+        Padding(
+          padding: const EdgeInsets.only(left: 24),
+          child: Text(
+            value,
+            style: AppTextStyles.body,
+            softWrap: true,
           ),
         ),
       ],

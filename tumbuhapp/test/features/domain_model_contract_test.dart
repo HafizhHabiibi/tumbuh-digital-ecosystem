@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:tumbuhapp/core/constant/app_constants.dart';
 import 'package:tumbuhapp/shared/models/anak_model.dart';
 import 'package:tumbuhapp/shared/models/pemberian_model.dart';
 import 'package:tumbuhapp/shared/models/pengukuran_model.dart';
@@ -6,6 +8,35 @@ import 'package:tumbuhapp/shared/models/rujukan_model.dart';
 import 'package:tumbuhapp/shared/widgets/status_badge_widget.dart';
 
 void main() {
+  test('status pemantauan sedang memakai bahasa yang tidak menghakimi', () {
+    expect(formatStatusPemantauan('perlu_perhatian'), 'Pantau Pertumbuhan');
+  });
+
+  testWidgets('status pantau pertumbuhan memakai warna biru', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: StatusBadge(
+            label: 'perlu_perhatian',
+            type: StatusType.statusPemantauan,
+          ),
+        ),
+      ),
+    );
+
+    final container = tester.widget<Container>(
+      find.descendant(
+        of: find.byType(StatusBadge),
+        matching: find.byType(Container),
+      ),
+    );
+    final decoration = container.decoration! as BoxDecoration;
+    final label = tester.widget<Text>(find.text('Pantau Pertumbuhan'));
+
+    expect(decoration.color, AppColors.risikoSedangBg);
+    expect(label.style?.color, AppColors.risikoSedangText);
+  });
+
   test('AnakModel membaca NIK dari kontrak backend', () {
     final anak = AnakModel.fromJson({
       'id': 'anak-id',

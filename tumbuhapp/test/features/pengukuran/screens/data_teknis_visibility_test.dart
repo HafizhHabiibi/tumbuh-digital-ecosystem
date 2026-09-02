@@ -155,7 +155,7 @@ void main() {
       expect(find.text('AI Insight Perkembangan'), findsOneWidget);
       expect(find.text('Status BB/TB'), findsNothing);
       expect(find.text('Gizi Baik'), findsNWidgets(2));
-      expect(find.text('Perlu Perhatian'), findsOneWidget);
+      expect(find.text('Pantau Pertumbuhan'), findsOneWidget);
       expect(find.text('26 Agustus 2026'), findsOneWidget);
       expect(
         tester.getRect(find.text('26 Agustus 2026')).top -
@@ -203,7 +203,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Gizi Baik'), findsOneWidget);
-      expect(find.text('Perlu Perhatian'), findsOneWidget);
+      expect(find.text('Pantau Pertumbuhan'), findsOneWidget);
       expect(find.text('Berat Badan'), findsOneWidget);
       expect(find.text('Tinggi Badan'), findsOneWidget);
       expect(find.text('Usia saat diukur: 2 tahun'), findsOneWidget);
@@ -242,6 +242,7 @@ void main() {
       expect(find.text('Perkembangan Berat Badan'), findsOneWidget);
       expect(find.text('Perkembangan Tinggi Badan'), findsOneWidget);
       expect(find.text('Ringkasan Perubahan Terakhir'), findsOneWidget);
+      expect(find.byIcon(Icons.trending_up), findsNothing);
       expect(
         find.text('Belum cukup data untuk melihat perubahan pertumbuhan.'),
         findsOneWidget,
@@ -277,6 +278,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Ringkasan Perubahan Terakhir'), findsOneWidget);
+      expect(find.byIcon(Icons.trending_up), findsNothing);
       expect(
         find.text('Dibandingkan dengan pengukuran 31 hari sebelumnya'),
         findsOneWidget,
@@ -305,7 +307,7 @@ void main() {
       await tester.pump();
 
       expect(find.text('Ditangani'), findsWidgets);
-      expect(find.text('Alasan / Catatan Kader'), findsOneWidget);
+      expect(find.text('Catatan Kader'), findsOneWidget);
       expect(find.text('Tindak Lanjut Puskesmas'), findsOneWidget);
       _expectDataTeknisTidakTampil();
     },

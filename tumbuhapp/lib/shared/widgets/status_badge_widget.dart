@@ -41,7 +41,7 @@ String formatStatusPemantauan(String status) {
     case 'rutin':
       return 'Pemantauan Rutin';
     case 'perlu_perhatian':
-      return 'Perlu Perhatian';
+      return 'Pantau Pertumbuhan';
     case 'konsultasi':
       return 'Disarankan Konsultasi';
     default:

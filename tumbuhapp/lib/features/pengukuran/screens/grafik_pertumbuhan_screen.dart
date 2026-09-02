@@ -309,17 +309,9 @@ class GrafikPertumbuhanScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
-            children: [
-              Icon(Icons.trending_up, color: AppColors.primary, size: 22),
-              SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'Ringkasan Perubahan Terakhir',
-                  style: AppTextStyles.heading3,
-                ),
-              ),
-            ],
+          const Text(
+            'Ringkasan Perubahan Terakhir',
+            style: AppTextStyles.heading3,
           ),
           const SizedBox(height: 6),
           Text(

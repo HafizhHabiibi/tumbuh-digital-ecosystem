@@ -45,8 +45,8 @@ class AppColors {
   static const Color risikoRendahBg = Color(0xFFDCFCE7);
 
   // ...
-  static const Color risikoSedangText = Color(0xFFD97706);
-  static const Color risikoSedangBg = Color(0xFFFEF3C7);
+  static const Color risikoSedangText = Color(0xFF1D4ED8);
+  static const Color risikoSedangBg = Color(0xFFDBEAFE);
 
   static const Color risikoTinggiText = Color(0xFFDC2626);
   static const Color risikoTinggiBg = Color(0xFFFEE2E2);

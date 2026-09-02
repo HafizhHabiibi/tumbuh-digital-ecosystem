@@ -30,7 +30,7 @@ const LABEL_STATUS = Object.freeze({
 
 const NARASI_PRIORITAS = Object.freeze({
     rendah: "Hasil pertumbuhan anak saat ini tidak menunjukkan kebutuhan pemantauan khusus berdasarkan sistem. Tetap ikuti kegiatan Posyandu dan pemantauan pertumbuhan secara rutin.",
-    sedang: "Hasil pertumbuhan anak memerlukan perhatian lebih. Silakan mengikuti pemantauan rutin dan berkonsultasi dengan kader atau petugas Puskesmas untuk mendapatkan saran pendampingan yang sesuai.",
+    sedang: "Pertumbuhan anak perlu dipantau lebih dekat. Tetap ikuti kegiatan Posyandu secara rutin dan konsultasikan perkembangannya dengan kader atau petugas Puskesmas untuk memperoleh saran yang sesuai.",
     tinggi: "Hasil pertumbuhan anak memerlukan tindak lanjut lebih awal. Silakan menghubungi kader atau petugas Puskesmas untuk memperoleh arahan dan pendampingan lebih lanjut.",
 });
 
@@ -145,13 +145,19 @@ const buatPengukuranDasar = (pengukuran) => {
     };
 };
 
+const LABEL_PRIORITAS_ORANG_TUA = Object.freeze({
+    rendah: "Pemantauan Rutin",
+    sedang: "Pantau Pertumbuhan",
+    tinggi: "Disarankan Konsultasi",
+});
+
 const buatPrioritasOrangTua = (kategori) => {
     if (!NARASI_PRIORITAS[kategori]) {
         throw new LaporanContractError("Kategori prioritas tidak valid");
     }
     return {
         kategori,
-        label: `Prioritas ${kategori}`,
+        label: LABEL_PRIORITAS_ORANG_TUA[kategori],
         narasi: NARASI_PRIORITAS[kategori],
         catatan: "Prioritas pemantauan merupakan alat bantu kader dan petugas Puskesmas dalam menentukan urutan tindak lanjut, bukan diagnosis medis.",
     };

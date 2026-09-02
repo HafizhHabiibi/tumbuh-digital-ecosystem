@@ -81,11 +81,38 @@ test("kontrak orang tua hanya memuat informasi yang mudah dipahami", () => {
     );
     assert.equal(laporan.pengukuran_terakhir.status.bbu.label, "Berat badan normal");
     assert.equal(laporan.prioritas_pemantauan.kategori, "rendah");
+    assert.equal(laporan.prioritas_pemantauan.label, "Pemantauan Rutin");
     assert.equal(keys.some((key) => key.includes("zscore")), false);
     assert.equal(keys.includes("skor_saw"), false);
     assert.equal(keys.includes("detail_saw"), false);
     assert.equal(keys.includes("no_hp_orang_tua"), false);
     assert.equal(keys.includes("alamat_orang_tua"), false);
+});
+
+test("kontrak orang tua memakai label pemantauan yang ramah pengguna", () => {
+    const labels = {
+        rendah: "Pemantauan Rutin",
+        sedang: "Pantau Pertumbuhan",
+        tinggi: "Disarankan Konsultasi",
+    };
+
+    for (const [kategori, label] of Object.entries(labels)) {
+        const terakhir = {
+            ...pengukuran,
+            prioritas_pemantauan: {
+                kategori,
+                sumber_utama: "saw",
+                alasan: [],
+            },
+        };
+        const laporan = buatLaporanIndividualOrangTua({
+            ...dataIndividual,
+            pengukuran_terakhir: terakhir,
+            riwayat_pengukuran: [terakhir],
+        });
+
+        assert.equal(laporan.prioritas_pemantauan.label, label);
+    }
 });
 
 test("kontrak teknis memuat Z-score, SAW, dan rujukan", () => {

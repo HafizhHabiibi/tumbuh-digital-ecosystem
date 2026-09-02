@@ -2,10 +2,11 @@ import {
     buatDokumenPdf,
     finalisasiPdf,
     pastikanRuang,
-    tulisBadge,
+    tulisCatatan,
     tulisHeaderLaporan,
     tulisJudulBagian,
-    tulisKartuRingkasan,
+    tulisKeyValue,
+    tulisPieChart,
     tulisTabel,
     WARNA_LAPORAN,
 } from "./laporanPdfService.js";
@@ -87,8 +88,8 @@ const formatAngka = (value, maksimumDesimal = 2) => {
 };
 
 const formatUsia = (bulan, hari) => {
-    if (Number.isFinite(Number(bulan))) return `${Number(bulan)} bulan`;
-    if (Number.isFinite(Number(hari))) return `${Number(hari)} hari`;
+    if (Number.isFinite(Number(bulan))) return `${Number(bulan)} Bulan`;
+    if (Number.isFinite(Number(hari))) return `${Number(hari)} Hari`;
     return "-";
 };
 
@@ -101,6 +102,12 @@ const kapital = (value) => {
     const text = teksAman(value);
     return text === "-" ? text : text.charAt(0).toUpperCase() + text.slice(1);
 };
+
+const formatSumberPrioritas = (value) => ({
+    saw: "SAW",
+    antropometri: "Antropometri",
+    gabungan: "SAW dan Antropometri",
+})[value] || kapital(value);
 
 const pastikanJenis = (laporan, jenis) => {
     if (laporan?.metadata?.jenis_laporan !== jenis) {
@@ -117,53 +124,21 @@ const buatHeader = (laporan, subjudul) => (doc) => tulisHeaderLaporan(doc, {
     subjudul,
 });
 
-const tulisInformasi = (doc, items, saatHalamanBaru) => {
-    tulisTabel(doc, {
-        columns: [
-            { key: "label", label: "Informasi", width: 120 },
-            { key: "nilai", label: "Keterangan", width: 379 },
-        ],
-        rows: items.map(({ label, nilai }) => ({
-            label,
-            nilai: teksAman(nilai),
-        })),
-        saatHalamanBaru,
-    });
-};
-
-const tulisCatatan = (doc, { judul, isi, kategori = "rendah" }, saatHalamanBaru) => {
-    doc.font("Helvetica").fontSize(9);
-    const lebar = 499;
-    const tinggiIsi = doc.heightOfString(teksAman(isi), { width: lebar - 28 });
-    const tinggi = Math.max(68, tinggiIsi + 42);
-    pastikanRuang(doc, tinggi + 10, saatHalamanBaru);
-    const x = doc.page.margins.left;
-    const y = doc.y;
-    const warna = WARNA_LAPORAN[kategori] || WARNA_LAPORAN.utama;
-
-    doc.save()
-        .fillColor(WARNA_LAPORAN.latarBaris)
-        .strokeColor(warna)
-        .lineWidth(1)
-        .roundedRect(x, y, lebar, tinggi, 6)
-        .fillAndStroke()
-        .restore();
-    doc.font("Helvetica-Bold")
-        .fontSize(10)
-        .fillColor(warna)
-        .text(teksAman(judul), x + 14, y + 12, { width: lebar - 28 });
-    doc.font("Helvetica")
-        .fontSize(9)
-        .fillColor(WARNA_LAPORAN.teks)
-        .text(teksAman(isi), x + 14, y + 31, { width: lebar - 28 });
-    doc.x = x;
-    doc.y = y + tinggi + 12;
+const tulisIdentitasAnak = (doc, anak, saatHalamanBaru) => {
+    tulisJudulBagian(doc, "Identitas Anak", { saatHalamanBaru });
+    tulisKeyValue(doc, [
+        { label: "Nama anak", nilai: anak.nama },
+        { label: "NIK", nilai: anak.nik || "Tidak dicantumkan" },
+        { label: "Jenis kelamin", nilai: formatJenisKelamin(anak.jenis_kelamin) },
+        { label: "Tanggal lahir", nilai: formatTanggal(anak.tanggal_lahir) },
+        { label: "Orang tua", nilai: anak.nama_orang_tua },
+    ], saatHalamanBaru);
 };
 
 const tulisMetadataPembuatan = (doc, laporan, saatHalamanBaru) => {
-    pastikanRuang(doc, 34, saatHalamanBaru);
+    pastikanRuang(doc, 30, saatHalamanBaru);
     doc.font("Helvetica")
-        .fontSize(8)
+        .fontSize(7.5)
         .fillColor(WARNA_LAPORAN.teksSekunder)
         .text(
             `Dibuat ${formatTanggal(laporan.metadata.dibuat_pada, true)} oleh ${teksAman(laporan.metadata.dibuat_oleh)}.`,
@@ -178,6 +153,84 @@ const statusIndividualKeBaris = (status) => [
     { indeks: "IMT/U", status: status.imtu.label, zscore: status.imtu.zscore },
 ];
 
+const tulisAntropometriTerakhir = (
+    doc,
+    pengukuran,
+    usia,
+    saatHalamanBaru,
+) => tulisTabel(doc, {
+    columns: [
+        { key: "parameter", label: "Parameter", width: 249 },
+        { key: "hasil", label: "Hasil", width: 250 },
+    ],
+    rows: [
+        {
+            parameter: "Berat badan",
+            hasil: `${formatAngka(pengukuran.berat_badan)} KG`,
+        },
+        {
+            parameter: "Tinggi badan",
+            hasil: `${formatAngka(pengukuran.tinggi_badan)} CM`,
+        },
+        {
+            parameter: "IMT",
+            hasil: `${formatAngka(pengukuran.nilai_imt)} KG/m²`,
+        },
+        { parameter: "Usia saat diukur", hasil: usia },
+    ],
+    saatHalamanBaru,
+});
+
+const tulisRiwayatRujukan = (doc, rujukan, saatHalamanBaru) => {
+    tulisTabel(doc, {
+        columns: [
+            { key: "nomor", label: "No.", width: 35, align: "center" },
+            { key: "tanggal", label: "Tanggal Diajukan", width: 125 },
+            { key: "status", label: "Status", width: 100 },
+            { key: "petugas", label: "Ditangani Oleh", width: 239 },
+        ],
+        rows: rujukan.map((item, index) => ({
+            nomor: index + 1,
+            tanggal: formatTanggal(item.tanggal),
+            status: kapital(item.status),
+            petugas: item.ditangani_oleh || "Belum ditangani",
+        })),
+        saatHalamanBaru,
+        teksKosong: "Belum ada riwayat rujukan.",
+    });
+
+    const memilikiCatatan = rujukan.some((item) =>
+        item.catatan_kader || item.catatan_puskesmas,
+    );
+    if (!memilikiCatatan) return;
+
+    pastikanRuang(doc, 30, saatHalamanBaru);
+    doc.font("Helvetica-Bold")
+        .fontSize(9.5)
+        .fillColor(WARNA_LAPORAN.teks)
+        .text("Catatan Rujukan", doc.page.margins.left, doc.y);
+    doc.y += 6;
+
+    rujukan.forEach((item, index) => {
+        if (item.catatan_kader) {
+            tulisCatatan(doc, {
+                judul: `Rujukan ${index + 1} Catatan Kader`,
+                isi: item.catatan_kader,
+            }, saatHalamanBaru);
+        }
+        if (item.catatan_puskesmas) {
+            tulisCatatan(doc, {
+                judul: `Rujukan ${index + 1} Catatan Puskesmas`,
+                isi: item.catatan_puskesmas,
+            }, saatHalamanBaru);
+        }
+    });
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LAPORAN INDIVIDUAL ORANG TUA
+// ─────────────────────────────────────────────────────────────────────────────
+
 export const renderLaporanIndividualOrangTua = async (laporan) => {
     pastikanJenis(laporan, JENIS_LAPORAN.INDIVIDUAL_ORANG_TUA);
     const doc = buatDokumenPdf({
@@ -190,23 +243,21 @@ export const renderLaporanIndividualOrangTua = async (laporan) => {
     );
     header(doc);
 
-    tulisJudulBagian(doc, "Identitas Anak", { saatHalamanBaru: header });
-    tulisInformasi(doc, [
-        { label: "Nama anak", nilai: laporan.anak.nama },
-        { label: "NIK", nilai: laporan.anak.nik || "Tidak dicantumkan" },
-        { label: "Jenis kelamin", nilai: formatJenisKelamin(laporan.anak.jenis_kelamin) },
-        { label: "Tanggal lahir", nilai: formatTanggal(laporan.anak.tanggal_lahir) },
-        { label: "Orang tua", nilai: laporan.anak.nama_orang_tua },
-    ], header);
+    // Identitas anak
+    tulisIdentitasAnak(doc, laporan.anak, header);
 
+    // Antropometri terakhir
     const terakhir = laporan.pengukuran_terakhir;
-    tulisJudulBagian(doc, "Ringkasan Pengukuran Terakhir", { saatHalamanBaru: header });
-    tulisKartuRingkasan(doc, [
-        { label: "Berat Badan", nilai: `${formatAngka(terakhir.berat_badan)} kg` },
-        { label: "Tinggi Badan", nilai: `${formatAngka(terakhir.tinggi_badan)} cm` },
-        { label: "IMT", nilai: formatAngka(terakhir.nilai_imt) },
-        { label: "Usia Saat Diukur", nilai: formatUsia(terakhir.usia_bulan, terakhir.usia_hari) },
-    ], { saatHalamanBaru: header });
+    tulisJudulBagian(doc, "Antropometri Terakhir", { saatHalamanBaru: header });
+    tulisAntropometriTerakhir(
+        doc,
+        terakhir,
+        formatUsia(terakhir.usia_bulan, terakhir.usia_hari),
+        header,
+    );
+
+    // Status antropometri
+    tulisJudulBagian(doc, "Status Antropometri", { saatHalamanBaru: header });
     tulisTabel(doc, {
         columns: [
             { key: "indeks", label: "Indeks", width: 100 },
@@ -216,39 +267,35 @@ export const renderLaporanIndividualOrangTua = async (laporan) => {
         saatHalamanBaru: header,
     });
 
+    // Prioritas pemantauan
     const prioritas = laporan.prioritas_pemantauan;
-    tulisJudulBagian(doc, "Prioritas Pemantauan", { saatHalamanBaru: header });
-    pastikanRuang(doc, 34, header);
-    tulisBadge(doc, {
-        x: doc.page.margins.left,
-        y: doc.y,
-        teks: prioritas.label,
-        kategori: prioritas.kategori,
-    });
-    doc.y += 32;
+    tulisJudulBagian(doc, "Status Pemantauan", { saatHalamanBaru: header });
+    tulisKeyValue(doc, [
+        { label: "Status", nilai: prioritas.label },
+    ], header);
     tulisCatatan(doc, {
         judul: "Saran pemantauan",
         isi: prioritas.narasi,
-        kategori: prioritas.kategori,
     }, header);
 
+    // Riwayat pertumbuhan
     tulisJudulBagian(doc, "Riwayat Pertumbuhan", { saatHalamanBaru: header });
     tulisTabel(doc, {
         columns: [
-            { key: "tanggal", label: "Tanggal", width: 72 },
-            { key: "usia", label: "Usia", width: 42 },
-            { key: "bb", label: "BB", width: 42, align: "center" },
-            { key: "tb", label: "TB", width: 42, align: "center" },
-            { key: "bbu", label: "BB/U", width: 80 },
+            { key: "tanggal", label: "Tanggal", width: 68 },
+            { key: "usia", label: "Usia", width: 54 },
+            { key: "bb", label: "BB", width: 46, align: "center" },
+            { key: "tb", label: "TB", width: 46, align: "center" },
+            { key: "bbu", label: "BB/U", width: 76 },
             { key: "tbu", label: "TB/U", width: 60 },
-            { key: "bbtb", label: "BB/TB", width: 80 },
-            { key: "imtu", label: "IMT/U", width: 80 },
+            { key: "bbtb", label: "BB/TB", width: 75 },
+            { key: "imtu", label: "IMT/U", width: 74 },
         ],
         rows: laporan.riwayat_pengukuran.map((item) => ({
             tanggal: formatTanggal(item.tanggal_ukur),
-            usia: `${item.usia_bulan} bln`,
-            bb: `${formatAngka(item.berat_badan)} kg`,
-            tb: `${formatAngka(item.tinggi_badan)} cm`,
+            usia: `${item.usia_bulan} Bulan`,
+            bb: `${formatAngka(item.berat_badan)} KG`,
+            tb: `${formatAngka(item.tinggi_badan)} CM`,
             bbu: item.status.bbu.label,
             tbu: item.status.tbu.label,
             bbtb: item.status.bbtb.label,
@@ -256,6 +303,8 @@ export const renderLaporanIndividualOrangTua = async (laporan) => {
         })),
         saatHalamanBaru: header,
     });
+
+    // Catatan
     tulisCatatan(doc, {
         judul: "Catatan penting",
         isi: `${prioritas.catatan} Hasil pada dokumen ini bukan diagnosis medis.`,
@@ -263,9 +312,13 @@ export const renderLaporanIndividualOrangTua = async (laporan) => {
     tulisMetadataPembuatan(doc, laporan, header);
 
     return finalisasiPdf(doc, {
-        teksFooter: "Ringkasan pemantauan pertumbuhan — bukan diagnosis medis",
+        teksFooter: "Ringkasan pemantauan pertumbuhan bukan diagnosis medis",
     });
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LAPORAN INDIVIDUAL TEKNIS
+// ─────────────────────────────────────────────────────────────────────────────
 
 export const renderLaporanIndividualTeknis = async (laporan) => {
     pastikanJenis(laporan, JENIS_LAPORAN.INDIVIDUAL_TEKNIS);
@@ -279,23 +332,21 @@ export const renderLaporanIndividualTeknis = async (laporan) => {
     );
     header(doc);
 
-    tulisJudulBagian(doc, "Identitas Anak", { saatHalamanBaru: header });
-    tulisInformasi(doc, [
-        { label: "Nama anak", nilai: laporan.anak.nama },
-        { label: "NIK", nilai: laporan.anak.nik || "Tidak dicantumkan" },
-        { label: "Jenis kelamin", nilai: formatJenisKelamin(laporan.anak.jenis_kelamin) },
-        { label: "Tanggal lahir", nilai: formatTanggal(laporan.anak.tanggal_lahir) },
-        { label: "Orang tua", nilai: laporan.anak.nama_orang_tua },
-    ], header);
+    // Identitas anak
+    tulisIdentitasAnak(doc, laporan.anak, header);
 
+    // Antropometri terakhir
     const terakhir = laporan.pengukuran_terakhir;
     tulisJudulBagian(doc, "Antropometri Terakhir", { saatHalamanBaru: header });
-    tulisKartuRingkasan(doc, [
-        { label: "Berat Badan", nilai: `${formatAngka(terakhir.berat_badan)} kg` },
-        { label: "Tinggi Badan", nilai: `${formatAngka(terakhir.tinggi_badan)} cm` },
-        { label: "IMT", nilai: formatAngka(terakhir.nilai_imt) },
-        { label: "Usia", nilai: `${terakhir.usia_hari} hari` },
-    ], { saatHalamanBaru: header });
+    tulisAntropometriTerakhir(
+        doc,
+        terakhir,
+        `${terakhir.usia_hari} Hari`,
+        header,
+    );
+
+    // Status + Z-Score
+    tulisJudulBagian(doc, "Status Antropometri dan Z-Score", { saatHalamanBaru: header });
     tulisTabel(doc, {
         columns: [
             { key: "indeks", label: "Indeks", width: 100 },
@@ -312,37 +363,24 @@ export const renderLaporanIndividualTeknis = async (laporan) => {
         saatHalamanBaru: header,
     });
 
-    tulisJudulBagian(doc, "Prioritas Pemantauan", {
-        saatHalamanBaru: header,
-    });
-    pastikanRuang(doc, 34, header);
-    tulisBadge(doc, {
-        x: doc.page.margins.left,
-        y: doc.y,
-        teks: `Prioritas ${kapital(terakhir.prioritas_pemantauan.kategori)}`,
-        kategori: terakhir.prioritas_pemantauan.kategori,
-    });
-    doc.font("Helvetica-Bold")
-        .fontSize(10)
-        .fillColor(WARNA_LAPORAN.teks)
-        .text(
-            `Sumber: ${kapital(terakhir.prioritas_pemantauan.sumber_utama)}`,
-            230,
-            doc.y + 5,
-        );
-    doc.y += 34;
+    // Prioritas pemantauan
+    tulisJudulBagian(doc, "Prioritas Pemantauan", { saatHalamanBaru: header });
+    tulisKeyValue(doc, [
+        { label: "Kategori", nilai: kapital(terakhir.prioritas_pemantauan.kategori) },
+        {
+            label: "Sumber utama",
+            nilai: formatSumberPrioritas(
+                terakhir.prioritas_pemantauan.sumber_utama,
+            ),
+        },
+    ], header);
 
-    tulisJudulBagian(doc, "SAW Risiko Kekurangan Gizi", {
-        saatHalamanBaru: header,
-    });
-    doc.font("Helvetica-Bold")
-        .fontSize(10)
-        .fillColor(WARNA_LAPORAN.teks)
-        .text(
-            `Kategori SAW: ${kapital(terakhir.saw.kategori_prioritas)}  |  ` +
-            `Skor: ${formatAngka(terakhir.saw.skor, 4)}`,
-        );
-    doc.moveDown(0.5);
+    // SAW risiko kekurangan gizi
+    tulisJudulBagian(doc, "SAW Risiko Kekurangan Gizi", { saatHalamanBaru: header });
+    tulisKeyValue(doc, [
+        { label: "Kategori SAW", nilai: kapital(terakhir.saw.kategori_prioritas) },
+        { label: "Skor akhir", nilai: formatAngka(terakhir.saw.skor, 4) },
+    ], header);
     tulisTabel(doc, {
         columns: [
             { key: "kriteria", label: "Kriteria", width: 199 },
@@ -359,25 +397,26 @@ export const renderLaporanIndividualTeknis = async (laporan) => {
         saatHalamanBaru: header,
     });
 
+    // Riwayat teknis
     tulisJudulBagian(doc, "Riwayat Teknis", { saatHalamanBaru: header });
     tulisTabel(doc, {
         columns: [
-            { key: "tanggal", label: "Tanggal", width: 62 },
-            { key: "usia", label: "Usia", width: 38 },
-            { key: "bb", label: "BB", width: 38 },
-            { key: "tb", label: "TB", width: 38 },
-            { key: "bbu", label: "Z BB/U", width: 46 },
-            { key: "tbu", label: "Z TB/U", width: 46 },
-            { key: "bbtb", label: "Z BB/TB", width: 48 },
-            { key: "imtu", label: "Z IMT/U", width: 48 },
-            { key: "saw", label: "SAW", width: 55 },
-            { key: "prioritas", label: "Prioritas", width: 80 },
+            { key: "tanggal", label: "Tanggal", width: 60 },
+            { key: "usia", label: "Usia", width: 52 },
+            { key: "bb", label: "BB", width: 42 },
+            { key: "tb", label: "TB", width: 42 },
+            { key: "bbu", label: "Z BB/U", width: 44 },
+            { key: "tbu", label: "Z TB/U", width: 44 },
+            { key: "bbtb", label: "Z BB/TB", width: 46 },
+            { key: "imtu", label: "Z IMT/U", width: 46 },
+            { key: "saw", label: "SAW", width: 52 },
+            { key: "prioritas", label: "Prioritas", width: 71 },
         ],
         rows: laporan.riwayat_pengukuran.map((item) => ({
             tanggal: formatTanggal(item.tanggal_ukur),
-            usia: `${item.usia_bulan} bln`,
-            bb: formatAngka(item.berat_badan),
-            tb: formatAngka(item.tinggi_badan),
+            usia: `${item.usia_bulan} Bulan`,
+            bb: `${formatAngka(item.berat_badan)} KG`,
+            tb: `${formatAngka(item.tinggi_badan)} CM`,
             bbu: formatAngka(item.status.bbu.zscore, 3),
             tbu: formatAngka(item.status.tbu.zscore, 3),
             bbtb: formatAngka(item.status.bbtb.zscore, 3),
@@ -388,25 +427,11 @@ export const renderLaporanIndividualTeknis = async (laporan) => {
         saatHalamanBaru: header,
     });
 
+    // Riwayat rujukan
     tulisJudulBagian(doc, "Riwayat Rujukan", { saatHalamanBaru: header });
-    tulisTabel(doc, {
-        columns: [
-            { key: "tanggal", label: "Tanggal", width: 70 },
-            { key: "status", label: "Status", width: 60 },
-            { key: "kader", label: "Catatan Kader", width: 115 },
-            { key: "puskesmas", label: "Catatan Puskesmas", width: 115 },
-            { key: "petugas", label: "Ditangani Oleh", width: 139 },
-        ],
-        rows: laporan.rujukan.map((item) => ({
-            tanggal: formatTanggal(item.tanggal),
-            status: kapital(item.status),
-            kader: item.catatan_kader,
-            puskesmas: item.catatan_puskesmas,
-            petugas: item.ditangani_oleh,
-        })),
-        saatHalamanBaru: header,
-        teksKosong: "Belum ada riwayat rujukan.",
-    });
+    tulisRiwayatRujukan(doc, laporan.rujukan, header);
+
+    // Catatan interpretasi
     tulisCatatan(doc, {
         judul: "Interpretasi",
         isi: "Z-Score mengikuti referensi pertumbuhan WHO dan kategori antropometri mengikuti ambang Permenkes. SAW hanya digunakan untuk membantu pengurutan prioritas pemantauan, bukan menentukan diagnosis.",
@@ -414,9 +439,13 @@ export const renderLaporanIndividualTeknis = async (laporan) => {
     tulisMetadataPembuatan(doc, laporan, header);
 
     return finalisasiPdf(doc, {
-        teksFooter: "Laporan teknis antropometri — SAW untuk prioritas, bukan diagnosis",
+        teksFooter: "Laporan teknis antropometri anak",
     });
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LAPORAN REKAP PETUGAS
+// ─────────────────────────────────────────────────────────────────────────────
 
 const barisDistribusi = (distribusi) => {
     const hasil = [];
@@ -442,38 +471,54 @@ export const renderLaporanRekapPetugas = async (laporan) => {
     const header = buatHeader(laporan, `Periode ${periode}`);
     header(doc);
 
+    // Ringkasan periode
     tulisJudulBagian(doc, "Ringkasan Periode", { saatHalamanBaru: header });
-    tulisKartuRingkasan(doc, [
-        { label: "Anak Diukur", nilai: laporan.ringkasan.total_anak },
-        { label: "Total Pengukuran", nilai: laporan.ringkasan.total_pengukuran },
-        { label: "Rujukan Aktif", nilai: laporan.ringkasan.total_rujukan_aktif },
-    ], { saatHalamanBaru: header });
-    tulisKartuRingkasan(doc, [
-        { label: "Prioritas Rendah", nilai: laporan.distribusi_prioritas.rendah },
-        { label: "Prioritas Sedang", nilai: laporan.distribusi_prioritas.sedang },
-        { label: "Prioritas Tinggi", nilai: laporan.distribusi_prioritas.tinggi },
-    ], { saatHalamanBaru: header });
+    tulisTabel(doc, {
+        columns: [
+            { key: "indikator", label: "Ringkasan", width: 399 },
+            { key: "jumlah", label: "Jumlah", width: 100, align: "center" },
+        ],
+        rows: [
+            { indikator: "Anak diukur", jumlah: laporan.ringkasan.total_anak },
+            { indikator: "Total pengukuran", jumlah: laporan.ringkasan.total_pengukuran },
+            { indikator: "Rujukan aktif", jumlah: laporan.ringkasan.total_rujukan_aktif },
+        ],
+        saatHalamanBaru: header,
+    });
 
+    // Distribusi prioritas + pie chart
+    tulisJudulBagian(doc, "Distribusi Prioritas Pemantauan", { saatHalamanBaru: header });
+    tulisPieChart(doc, {
+        data: [
+            { label: "Rendah", nilai: laporan.distribusi_prioritas.rendah, warna: WARNA_LAPORAN.rendah },
+            { label: "Sedang", nilai: laporan.distribusi_prioritas.sedang, warna: WARNA_LAPORAN.sedang },
+            { label: "Tinggi", nilai: laporan.distribusi_prioritas.tinggi, warna: WARNA_LAPORAN.tinggi },
+        ],
+        saatHalamanBaru: header,
+    });
+
+    // Distribusi antropometri
     tulisJudulBagian(doc, "Distribusi Antropometri", { saatHalamanBaru: header });
     tulisTabel(doc, {
         columns: [
             { key: "indeks", label: "Indeks", width: 70 },
-            { key: "kategori", label: "Kategori", width: 300 },
+            { key: "kategori", label: "Kategori", width: 329 },
             { key: "jumlah", label: "Jumlah Anak", width: 100, align: "center" },
         ],
         rows: barisDistribusi(laporan.distribusi_antropometri),
         saatHalamanBaru: header,
     });
 
+    // Daftar tindak lanjut
     tulisJudulBagian(doc, "Daftar Tindak Lanjut", { saatHalamanBaru: header });
     tulisTabel(doc, {
         columns: [
             { key: "nomor", label: "No.", width: 28, align: "center" },
-            { key: "anak", label: "Nama Anak", width: 95 },
-            { key: "orang_tua", label: "Orang Tua", width: 105 },
-            { key: "tanggal", label: "Tanggal Ukur", width: 70 },
-            { key: "prioritas", label: "Prioritas Pantau", width: 80 },
-            { key: "skor", label: "SAW Kurang Gizi", width: 60, align: "center" },
+            { key: "anak", label: "Nama Anak", width: 108 },
+            { key: "orang_tua", label: "Orang Tua", width: 115 },
+            { key: "tanggal", label: "Tanggal Ukur", width: 78 },
+            { key: "prioritas", label: "Prioritas Pantau", width: 90 },
+            { key: "skor", label: "SAW Kurang Gizi", width: 80, align: "center" },
         ],
         rows: laporan.daftar_prioritas.map((item, index) => ({
             nomor: index + 1,
@@ -506,12 +551,15 @@ export const renderLaporanRekapPetugas = async (laporan) => {
         });
     }
 
+    // Rekap rujukan
     tulisJudulBagian(doc, "Rekap Rujukan", { saatHalamanBaru: header });
-    tulisKartuRingkasan(doc, [
+    tulisKeyValue(doc, [
         { label: "Diajukan", nilai: laporan.rekap_rujukan.diajukan || 0 },
         { label: "Ditangani", nilai: laporan.rekap_rujukan.ditangani || 0 },
         { label: "Selesai", nilai: laporan.rekap_rujukan.selesai || 0 },
-    ], { saatHalamanBaru: header });
+    ], header);
+
+    // Catatan keterangan
     tulisCatatan(doc, {
         judul: "Keterangan penggunaan",
         isi: "Rekap menggunakan satu pengukuran terakhir setiap anak dalam periode untuk distribusi dan daftar prioritas. Total pengukuran tetap menghitung seluruh kunjungan. Hasil ini merupakan alat bantu pemantauan dan bukan diagnosis medis.",
@@ -519,6 +567,6 @@ export const renderLaporanRekapPetugas = async (laporan) => {
     tulisMetadataPembuatan(doc, laporan, header);
 
     return finalisasiPdf(doc, {
-        teksFooter: "Rekap pemantauan pertumbuhan — bukan diagnosis medis",
+        teksFooter: "Rekap pemantauan pertumbuhan bukan diagnosis medis",
     });
 };

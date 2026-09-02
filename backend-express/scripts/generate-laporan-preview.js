@@ -60,6 +60,11 @@ const buatPengukuran = (index) => {
             { nama_kriteria: "zscore_bbtb", bobot: 0.25, nilai: 0.267, skor: 0.0668 },
             { nama_kriteria: "zscore_imtu", bobot: 0.20, nilai: 0.233, skor: 0.0466 },
         ],
+        prioritas_pemantauan: {
+            kategori,
+            sumber_utama: "saw",
+            alasan: [],
+        },
     };
 };
 
@@ -110,6 +115,11 @@ const daftarPrioritas = Array.from({ length: 32 }, (_, index) => ({
     status_tbu: index % 4 === 0 ? "sangat_pendek" : "pendek",
     status_bbtb: index % 4 === 0 ? "gizi_kurang" : "gizi_baik",
     status_imtu: "gizi_baik",
+    prioritas_pemantauan: {
+        kategori: index % 4 === 0 ? "tinggi" : "sedang",
+        sumber_utama: "saw",
+        alasan: [],
+    },
 }));
 
 const laporanRekap = buatLaporanRekapPetugas({

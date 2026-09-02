@@ -3,10 +3,10 @@ import assert from "node:assert/strict";
 import {
     buatDokumenPdf,
     finalisasiPdf,
-    tulisBadge,
     tulisHeaderLaporan,
     tulisJudulBagian,
-    tulisKartuRingkasan,
+    tulisKeyValue,
+    tulisPieChart,
     tulisTabel,
 } from "../src/services/laporanPdfService.js";
 
@@ -20,20 +20,13 @@ const tulisHeader = (doc) => tulisHeaderLaporan(doc, {
 test("komponen layout menghasilkan PDF A4 multi-halaman yang valid", async () => {
     const doc = buatDokumenPdf({ judul: "Laporan Test" });
     tulisHeader(doc);
-    tulisKartuRingkasan(doc, [
-        { label: "Total Anak", nilai: 75 },
-        { label: "Prioritas Rendah", nilai: 50 },
-        { label: "Prioritas Sedang", nilai: 20 },
-        { label: "Prioritas Tinggi", nilai: 5 },
+    tulisKeyValue(doc, [
+        { label: "Total Anak", nilai: "75" },
+        { label: "Prioritas Rendah", nilai: "50" },
+        { label: "Prioritas Sedang", nilai: "20" },
+        { label: "Prioritas Tinggi", nilai: "5" },
     ]);
     tulisJudulBagian(doc, "Daftar Prioritas", { saatHalamanBaru: tulisHeader });
-    tulisBadge(doc, {
-        x: doc.page.margins.left,
-        y: doc.y,
-        teks: "Prioritas Tinggi",
-        kategori: "tinggi",
-    });
-    doc.y += 32;
 
     const rows = Array.from({ length: 75 }, (_, index) => ({
         nomor: index + 1,
@@ -54,7 +47,7 @@ test("komponen layout menghasilkan PDF A4 multi-halaman yang valid", async () =>
 
     const buffer = await finalisasiPdf(doc);
     assert.equal(buffer.subarray(0, 5).toString("ascii"), "%PDF-");
-    assert.ok(buffer.length > 10_000);
+    assert.ok(buffer.length > 4_000);
 
     const raw = buffer.toString("latin1");
     const jumlahPageObject = raw.match(/\/Type\s*\/Page\b/g)?.length || 0;
@@ -76,14 +69,72 @@ test("layout menolak definisi tabel yang melampaui area A4", () => {
     doc.end();
 });
 
-test("kartu ringkasan membatasi maksimal empat item", () => {
-    const doc = buatDokumenPdf({ judul: "Test kartu invalid" });
+test("tulisKeyValue menampilkan item tanpa error", async () => {
+    const doc = buatDokumenPdf({ judul: "Test key-value" });
+    tulisHeader(doc);
+    tulisKeyValue(doc, [
+        { label: "Nama", nilai: "Rizki" },
+        { label: "Usia", nilai: "24 bulan" },
+    ]);
+    const buffer = await finalisasiPdf(doc);
+    assert.equal(buffer.subarray(0, 5).toString("ascii"), "%PDF-");
+    assert.ok(buffer.length > 1_000);
+});
+
+test("tulisKeyValue membungkus nilai panjang dan melanjutkan halaman", async () => {
+    const doc = buatDokumenPdf({ judul: "Test key-value panjang" });
+    tulisHeader(doc);
+    tulisKeyValue(
+        doc,
+        Array.from({ length: 30 }, (_, index) => ({
+            label: `Keterangan ${index + 1}`,
+            nilai: "Informasi pertumbuhan anak yang panjang tetap ditampilkan secara utuh dan membungkus ke baris berikutnya tanpa melewati batas dokumen.",
+        })),
+        tulisHeader,
+    );
+    const buffer = await finalisasiPdf(doc);
+    const jumlahHalaman = buffer.toString("latin1")
+        .match(/\/Type\s*\/Page\b/g)?.length || 0;
+
+    assert.ok(jumlahHalaman >= 2);
+});
+
+test("tulisPieChart menghasilkan output yang valid", async () => {
+    const doc = buatDokumenPdf({ judul: "Test pie chart" });
+    tulisHeader(doc);
+    tulisPieChart(doc, {
+        judul: "Distribusi Prioritas",
+        data: [
+            { label: "Rendah", nilai: 46, warna: "#2E7D32" },
+            { label: "Sedang", nilai: 24, warna: "#EF6C00" },
+            { label: "Tinggi", nilai: 8, warna: "#C62828" },
+        ],
+    });
+    const buffer = await finalisasiPdf(doc);
+    assert.equal(buffer.subarray(0, 5).toString("ascii"), "%PDF-");
+    assert.ok(buffer.length > 2_000);
+});
+
+test("tulisPieChart menangani data kosong (total nol)", async () => {
+    const doc = buatDokumenPdf({ judul: "Test pie chart kosong" });
+    tulisHeader(doc);
+    tulisPieChart(doc, {
+        data: [
+            { label: "Rendah", nilai: 0, warna: "#2E7D32" },
+            { label: "Sedang", nilai: 0, warna: "#EF6C00" },
+        ],
+    });
+    const buffer = await finalisasiPdf(doc);
+    assert.equal(buffer.subarray(0, 5).toString("ascii"), "%PDF-");
+});
+
+test("tulisPieChart menolak nilai negatif", () => {
+    const doc = buatDokumenPdf({ judul: "Test pie chart invalid" });
     assert.throws(
-        () => tulisKartuRingkasan(doc, Array.from({ length: 5 }, () => ({
-            label: "Item",
-            nilai: 1,
-        }))),
-        /1 sampai 4 item/,
+        () => tulisPieChart(doc, {
+            data: [{ label: "Tidak valid", nilai: -1, warna: "#000000" }],
+        }),
+        /non-negatif/,
     );
     doc.end();
 });

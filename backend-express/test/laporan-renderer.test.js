@@ -88,8 +88,8 @@ test("renderer membuat PDF individual teknis beserta rujukan", async () => {
             id: 1,
             status: "ditangani",
             created_at: "2026-08-27T08:00:00.000Z",
-            catatan_kader: "Mohon ditinjau",
-            catatan_puskesmas: "Pemantauan lanjutan",
+            catatan_kader: "Mohon ditinjau karena hasil pemantauan membutuhkan tindak lanjut yang dijelaskan secara lengkap kepada orang tua. ".repeat(20).slice(0, 2000),
+            catatan_puskesmas: "Pemantauan lanjutan dilakukan bersama petugas gizi dan seluruh catatan harus tetap tercetak tanpa dipotong. ".repeat(20).slice(0, 2000),
             ditangani_oleh: "Bidan Sari",
         }],
     });

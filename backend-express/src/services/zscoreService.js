@@ -9,11 +9,17 @@ const WHO = JSON.parse(
 );
 
 export class ZScoreValidationError extends Error {
-    constructor(message) {
+    constructor(message, code = null) {
         super(message);
         this.name = "ZScoreValidationError";
+        this.code = code;
     }
 }
+
+export const WHO_MIN_AGE_DAYS = 0;
+export const WHO_MAX_AGE_DAYS = 1856;
+export const PENGUKURAN_USIA_DI_LUAR_REFERENSI =
+    "PENGUKURAN_USIA_DI_LUAR_REFERENSI";
 
 const parseTanggal = (value, fieldName) => {
     if (value instanceof Date && !Number.isNaN(value.getTime())) {
@@ -48,15 +54,6 @@ const parseTanggal = (value, fieldName) => {
         throw new ZScoreValidationError(`${fieldName} bukan tanggal kalender yang valid`);
     }
     return date;
-};
-
-const startOfTodayUtc = () => {
-    const now = new Date();
-    return new Date(Date.UTC(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-    ));
 };
 
 const nilaiPadaZScore = (z, L, M, S) => {
@@ -103,6 +100,42 @@ export const hitungUsiaHari = (tanggal_lahir, tanggal_ukur) => {
     const lahir = parseTanggal(tanggal_lahir, "tanggal_lahir");
     const ukur = parseTanggal(tanggal_ukur, "tanggal_ukur");
     return Math.floor((ukur - lahir) / (1000 * 60 * 60 * 24));
+};
+
+/**
+ * Kelayakan referensi ditentukan oleh usia pada tanggal pengukuran, bukan usia
+ * anak saat ini. Semua perhitungan memakai hari kalender UTC agar tidak berubah
+ * karena DST atau timezone server.
+ */
+export const validasiRentangUsiaPengukuran = (
+    tanggal_lahir,
+    tanggal_ukur,
+    { hariIni = new Date() } = {},
+) => {
+    const lahir = parseTanggal(tanggal_lahir, "tanggal_lahir");
+    const ukur = parseTanggal(tanggal_ukur, "tanggal_ukur");
+    const batasHariIni = parseTanggal(hariIni, "hariIni");
+
+    if (ukur < lahir) {
+        throw new ZScoreValidationError(
+            "Tanggal ukur tidak boleh sebelum tanggal lahir",
+        );
+    }
+    if (ukur > batasHariIni) {
+        throw new ZScoreValidationError(
+            "Tanggal ukur tidak boleh di masa depan",
+        );
+    }
+
+    const usiaHari = Math.floor((ukur - lahir) / (1000 * 60 * 60 * 24));
+    if (usiaHari < WHO_MIN_AGE_DAYS || usiaHari > WHO_MAX_AGE_DAYS) {
+        throw new ZScoreValidationError(
+            `Usia anak di luar rentang WHO yang didukung (${WHO_MIN_AGE_DAYS}-${WHO_MAX_AGE_DAYS} hari)`,
+            PENGUKURAN_USIA_DI_LUAR_REFERENSI,
+        );
+    }
+
+    return usiaHari;
 };
 
 const genderKey = (jenisKelamin) => jenisKelamin === "L" ? "boys" : "girls";
@@ -227,24 +260,16 @@ export const hitungSemuaZScore = (data) => {
         throw new ZScoreValidationError("Jenis kelamin harus L atau P");
     }
 
-    const lahir = parseTanggal(tanggal_lahir, "tanggal_lahir");
-    const ukur = parseTanggal(tanggal_ukur, "tanggal_ukur");
-    if (ukur < lahir) {
-        throw new ZScoreValidationError("Tanggal ukur tidak boleh sebelum tanggal lahir");
-    }
-    if (ukur > startOfTodayUtc()) {
-        throw new ZScoreValidationError("Tanggal ukur tidak boleh di masa depan");
-    }
-
     const gender = genderKey(jenis_kelamin);
     const usia_bulan = hitungUsiaBulan(tanggal_lahir, tanggal_ukur);
-    const usia_hari = hitungUsiaHari(tanggal_lahir, tanggal_ukur);
+    const usia_hari = validasiRentangUsiaPengukuran(
+        tanggal_lahir,
+        tanggal_ukur,
+    );
 
-    const maxUsiaHari = WHO[`wfa_${gender}`]?.at(-1)?.day;
-    if (!Number.isInteger(maxUsiaHari) || usia_hari > maxUsiaHari) {
-        throw new ZScoreValidationError(
-            "Usia anak di luar rentang WHO yang didukung (0-1856 hari)",
-        );
+    const maxUsiaReferensi = WHO[`wfa_${gender}`]?.at(-1)?.day;
+    if (maxUsiaReferensi !== WHO_MAX_AGE_DAYS) {
+        throw new ZScoreValidationError("Referensi usia WHO tidak konsisten");
     }
 
     const zscore_bbu = hitungZScoreBBU(berat, usia_hari, gender);

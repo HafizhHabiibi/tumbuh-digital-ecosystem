@@ -22,6 +22,7 @@ import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/authStore";
 import LoginBranding from "@/components/layout/LoginBranding.vue";
 import LoginForm from "@/components/forms/FormLogin.vue";
+import { dashboardPathForRole } from "@/utils/authRouting.js";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -52,9 +53,12 @@ const handleLogin = async () => {
     );
 
     if (success) {
-        router.push({
-            name: authStore.isKader ? "KaderDashboard" : "PuskesmasDashboard",
-        });
+        const dashboardPath = dashboardPathForRole(authStore.role);
+        if (dashboardPath) {
+            router.push(dashboardPath);
+        } else {
+            authStore.clearAuth();
+        }
     } else {
         // [2] Login gagal: kosongkan token lalu reset widget Turnstile
         // Mengosongkan token dulu membuat tombol langsung ke-disable

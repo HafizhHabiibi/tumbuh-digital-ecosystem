@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "../stores/authStore.js";
+import { resolveAuthNavigation } from "../utils/authRouting.js";
 
 const routes = [
     // ── Auth ────────────────────────────────
@@ -157,20 +158,17 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
     const auth = useAuthStore();
+    const decision = resolveAuthNavigation({
+        isLoggedIn: auth.isLoggedIn,
+        role: auth.role,
+        requiresAuth: to.meta.requiresAuth,
+        requiresGuest: to.meta.requiresGuest,
+        requiredRole: to.meta.role,
+        currentPath: to.path,
+    });
 
-    if (to.meta.requiresAuth && !auth.isLoggedIn) {
-        return next("/login");
-    }
-
-    if (to.meta.requiresGuest && auth.isLoggedIn) {
-        return next(auth.isKader ? "/kader/dashboard" : "/puskesmas/dashboard");
-    }
-
-    if (to.meta.role && auth.role !== to.meta.role) {
-        return next(auth.isKader ? "/kader/dashboard" : "/puskesmas/dashboard");
-    }
-
-    next();
+    if (decision.clearSession) auth.clearAuth();
+    return decision.redirect ? next(decision.redirect) : next();
 });
 
 export default router;

@@ -66,7 +66,10 @@
                 </div>
                 <div class="summary-card">
                     <span>Berat / Tinggi</span>
-                    <strong>{{ store.pengukuranTerakhir.berat_badan }} kg / {{ store.pengukuranTerakhir.tinggi_badan }} cm</strong>
+                    <strong>
+                        {{ formatUkuran(store.pengukuranTerakhir.berat_badan) }} kg /
+                        {{ formatUkuran(store.pengukuranTerakhir.tinggi_badan) }} cm
+                    </strong>
                 </div>
                 <div class="summary-card">
                     <span>Status TB/U</span>
@@ -123,7 +126,8 @@
                                     {{ formatTanggal(item.tanggal_ukur) }}
                                 </td>
                                 <td class="px-4 py-3 whitespace-nowrap font-semibold">
-                                    {{ item.berat_badan }} kg / {{ item.tinggi_badan }} cm
+                                    {{ formatUkuran(item.berat_badan) }} kg /
+                                    {{ formatUkuran(item.tinggi_badan) }} cm
                                 </td>
                                 <td class="px-4 py-3 min-w-72">
                                     <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
@@ -218,7 +222,7 @@ import laporanService, {
     getDownloadErrorMessage,
     savePdfResponse,
 } from "@/services/laporanService";
-import { formatTanggal } from "@/utils/format";
+import { formatTanggal, formatUkuran } from "@/utils/format";
 import { formatStatusAntropometri } from "@/utils/antropometri";
 import AnakCard from "@/components/cards/AnakCard.vue";
 import StatusBadge from "@/components/ui/StatusBadge.vue";

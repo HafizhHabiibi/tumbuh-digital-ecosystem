@@ -11,14 +11,22 @@ import { authenticate } from "../middlewares/auth.js";
 import { authorizeRole } from "../middlewares/role.js";
 import { requireKader } from "../middlewares/requireKader.js";
 import { requireOrangTua } from "../middlewares/requireOrangTua.js";
-import { validateBody } from "../middlewares/validate.js";
-import { pengukuranSchema } from "../validation/schemas.js";
+import { validateBody, validateQuery } from "../middlewares/validate.js";
+import {
+    pengukuranSchema,
+    rankingListQuerySchema,
+} from "../validation/schemas.js";
 
 const router = express.Router();
 
 router.use(authenticate);
 
-router.get("/ranking", authorizeRole("kader", "puskesmas"), getRankingAnak);
+router.get(
+    "/ranking",
+    authorizeRole("kader", "puskesmas"),
+    validateQuery(rankingListQuerySchema),
+    getRankingAnak,
+);
 
 // requireKader dipakai per-route karena POST ini hanya untuk kader
 router.post(

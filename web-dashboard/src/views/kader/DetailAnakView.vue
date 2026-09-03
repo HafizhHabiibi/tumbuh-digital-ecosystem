@@ -231,13 +231,13 @@
                                         class="px-4 py-3 font-semibold"
                                         style="color: var(--color-text-heading)"
                                     >
-                                        {{ p.berat_badan }}
+                                        {{ formatUkuran(p.berat_badan) }}
                                     </td>
                                     <td
                                         class="px-4 py-3 font-semibold"
                                         style="color: var(--color-text-heading)"
                                     >
-                                        {{ p.tinggi_badan }}
+                                        {{ formatUkuran(p.tinggi_badan) }}
                                     </td>
                                     <td class="px-4 py-3 hidden md:table-cell">
                                         <div class="grid grid-cols-2 gap-x-2 gap-y-1 text-[10px]">
@@ -544,6 +544,7 @@ import { usePengukuranStore } from "@/stores/pengukuranStore";
 import { usePemberianStore, LABEL_JENIS } from "@/stores/pemberianStore";
 import { useRujukanStore } from "@/stores/rujukanStore";
 import { formatStatusAntropometri } from "@/utils/antropometri";
+import { formatUkuran } from "@/utils/format.js";
 
 import AnakCard from "@/components/cards/AnakCard.vue";
 import StatusBadge from "@/components/ui/StatusBadge.vue";

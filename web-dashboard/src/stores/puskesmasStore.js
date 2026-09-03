@@ -13,6 +13,7 @@ export const usePuskesmasStore = defineStore("puskesmas", {
         riwayatPengukuran: [],
         riwayatPemberian: [],
         pagination: createPagination(),
+        anakListRequestId: 0,
         loading: {
             anakList: false,
             anakDetail: false,
@@ -31,25 +32,31 @@ export const usePuskesmasStore = defineStore("puskesmas", {
 
     actions: {
         async fetchAllAnak(params = {}) {
+            const requestId = ++this.anakListRequestId;
             this.loading.anakList = true;
             this.error.anakList = null;
             try {
                 const page = params.page ?? this.pagination.page;
                 const limit = params.limit ?? this.pagination.limit;
                 const response = await puskesmasService.getAllAnak({
+                    ...params,
                     page,
                     limit,
                 });
+                if (requestId !== this.anakListRequestId) return;
                 const data = extractPaginatedData(response);
                 this.anakList = data.items;
                 this.pagination = data.pagination;
             } catch (error) {
+                if (requestId !== this.anakListRequestId) return;
                 this.error.anakList =
                     error.response?.data?.message ||
                     error.message ||
                     "Gagal memuat daftar anak";
             } finally {
-                this.loading.anakList = false;
+                if (requestId === this.anakListRequestId) {
+                    this.loading.anakList = false;
+                }
             }
         },
 

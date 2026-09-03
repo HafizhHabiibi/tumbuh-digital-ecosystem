@@ -11,14 +11,14 @@
 
 <br/>
 
-**Konversi data [WHO Child Growth Standards](https://www.who.int/tools/child-growth-standards/standards) dari format Excel (.xlsx) menjadi satu file JSON yang siap digunakan oleh aplikasi backend untuk menghitung Z-Score pertumbuhan anak usia 0–60 bulan.**
+**Tool mandiri untuk mengonversi 10 tabel [WHO Child Growth Standards](https://www.who.int/tools/child-growth-standards/standards) dari format Excel (.xlsx) menjadi satu file JSON.**
 
 <br/>
 
 ```
 ┌──────────────────────┐       ┌──────────────┐       ┌──────────────────────┐
-│  📁 10 File Excel    │──────▶│  🔄 convert  │──────▶│  📄 whoTables.json   │
-│  (WHO Z-Score Tables)│       │     .js      │       │  (L, M, S per index) │
+│  📁 10 File Excel    │──────▶│  🔄 convert  │──────▶│ 📄 whoTables.json   │
+│  (WHO Z-Score Tables)│       │     .js      │       │ (10 dataset WHO)    │
 └──────────────────────┘       └──────────────┘       └──────────────────────┘
 ```
 
@@ -58,17 +58,20 @@ npm install
 
 ## Penggunaan
 
-Jalankan script converter:
+Konversi seluruh tabel Excel menjadi JSON di direktori converter:
 
 ```bash
-node convert.js
+npm run generate
 ```
 
-Output file `whoTables.json` akan dibuat di root directory. Copy file ini ke project backend Anda, misalnya:
+Verifikasi struktur dan integritas hasil konversi:
 
 ```bash
-cp whoTables.json ../backend/src/constants/
+npm test
 ```
+
+`who-converter` berdiri sendiri. Script di folder ini tidak membaca atau menulis
+file milik backend, web, maupun mobile. Output hanya dibuat di folder ini.
 
 ---
 
@@ -114,20 +117,22 @@ Setiap indikator dipisah berdasarkan jenis kelamin: `_boys` (laki-laki) dan `_gi
 
 File `whoTables.json` berisi **10 dataset** dengan struktur sebagai berikut:
 
-### Indikator berbasis umur (`wfa`, `lhfa`, `bfa`)
+### Hasil konversi: `whoTables.json`
+
+Indikator berbasis umur (`wfa`, `lhfa`, `bfa`) mempertahankan granularitas
+harian resmi dari hari 0 sampai 1856. Tabel `wfl` dan `wfh` mempertahankan
+interval 0,1 cm.
 
 ```json
 {
   "wfa_boys": [
-    { "month": 0, "L": 0.3487, "M": 3.3464, "S": 0.14602 },
-    { "month": 1, "L": 0.2303, "M": 4.4525, "S": 0.13413 },
+    { "day": 0, "L": 0.3487, "M": 3.3464, "S": 0.14602 },
+    { "day": 1, "L": 0.3127, "M": 3.3174, "S": 0.14693 },
     ...
-    { "month": 60, "L": ..., "M": ..., "S": ... }
+    { "day": 1856, "L": ..., "M": ..., "S": ... }
   ]
 }
 ```
-
-> Data asli WHO disimpan **per hari** (0–1856 hari). Converter ini mengambil representasi **per bulan** (0–60) menggunakan konversi _nearest neighbor_ dengan rumus: `hari = bulan × 30.4375` (rata-rata hari/bulan dalam setahun).
 
 ### Indikator berbasis pengukuran fisik (`wfl`, `wfh`)
 
@@ -150,9 +155,9 @@ File `whoTables.json` berisi **10 dataset** dengan struktur sebagai berikut:
 
 | Key | Jumlah Data | Satuan |
 |-----|-------------|--------|
-| `wfa_boys` / `wfa_girls` | 61 | Bulan (0–60) |
-| `lhfa_boys` / `lhfa_girls` | 61 | Bulan (0–60) |
-| `bfa_boys` / `bfa_girls` | 61 | Bulan (0–60) |
+| `wfa_boys` / `wfa_girls` | 1857 | Hari (0–1856) |
+| `lhfa_boys` / `lhfa_girls` | 1857 | Hari (0–1856) |
+| `bfa_boys` / `bfa_girls` | 1857 | Hari (0–1856) |
 | `wfl_boys` / `wfl_girls` | 651 | Per 0.1 cm |
 | `wfh_boys` / `wfh_girls` | 551 | Per 0.1 cm |
 
@@ -215,7 +220,7 @@ who-converter/
 │   ├── wfh-girls-*.xlsx
 │   ├── bfa-boys-*.xlsx
 │   └── bfa-girls-*.xlsx
-└── whoTables.json           ← Output: data JSON siap pakai
+└── whoTables.json           ← Output berisi 10 dataset WHO
 ```
 
 ---

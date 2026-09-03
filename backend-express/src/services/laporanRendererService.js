@@ -166,15 +166,15 @@ const tulisAntropometriTerakhir = (
     rows: [
         {
             parameter: "Berat badan",
-            hasil: `${formatAngka(pengukuran.berat_badan)} KG`,
+            hasil: `${formatAngka(pengukuran.berat_badan)} kg`,
         },
         {
             parameter: "Tinggi badan",
-            hasil: `${formatAngka(pengukuran.tinggi_badan)} CM`,
+            hasil: `${formatAngka(pengukuran.tinggi_badan)} cm`,
         },
         {
             parameter: "IMT",
-            hasil: `${formatAngka(pengukuran.nilai_imt)} KG/m²`,
+            hasil: `${formatAngka(pengukuran.nilai_imt)} kg/m²`,
         },
         { parameter: "Usia saat diukur", hasil: usia },
     ],
@@ -294,8 +294,8 @@ export const renderLaporanIndividualOrangTua = async (laporan) => {
         rows: laporan.riwayat_pengukuran.map((item) => ({
             tanggal: formatTanggal(item.tanggal_ukur),
             usia: `${item.usia_bulan} Bulan`,
-            bb: `${formatAngka(item.berat_badan)} KG`,
-            tb: `${formatAngka(item.tinggi_badan)} CM`,
+            bb: `${formatAngka(item.berat_badan)} kg`,
+            tb: `${formatAngka(item.tinggi_badan)} cm`,
             bbu: item.status.bbu.label,
             tbu: item.status.tbu.label,
             bbtb: item.status.bbtb.label,
@@ -415,8 +415,8 @@ export const renderLaporanIndividualTeknis = async (laporan) => {
         rows: laporan.riwayat_pengukuran.map((item) => ({
             tanggal: formatTanggal(item.tanggal_ukur),
             usia: `${item.usia_bulan} Bulan`,
-            bb: `${formatAngka(item.berat_badan)} KG`,
-            tb: `${formatAngka(item.tinggi_badan)} CM`,
+            bb: `${formatAngka(item.berat_badan)} kg`,
+            tb: `${formatAngka(item.tinggi_badan)} cm`,
             bbu: formatAngka(item.status.bbu.zscore, 3),
             tbu: formatAngka(item.status.tbu.zscore, 3),
             bbtb: formatAngka(item.status.bbtb.zscore, 3),

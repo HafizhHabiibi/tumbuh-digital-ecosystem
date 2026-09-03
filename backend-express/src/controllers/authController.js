@@ -13,9 +13,26 @@ import {
 } from "../utils/jwt.js";
 import { verifyTurnstile } from "../utils/turnstile.js";
 import { success, error } from "../utils/response.js";
+import {
+    isRoleAllowedOnPlatform,
+    normalizeAuthPlatform,
+} from "../utils/authAccess.js";
 
 // Unified login: web (with turnstile) & mobile (orang_tua only)
-export const login = async (req, res) => {
+export const buatLogin = ({
+    findByEmail = UserModel.findByEmail,
+    comparePassword = bcrypt.compare,
+    findKaderByUserId = KaderModel.findByUserId,
+    findPuskesmasByUserId = PuskesmasModel.findByUserId,
+    findOrangTuaByUserId = OrangTuaModel.findByUserId,
+    updateOrangTuaFcmToken = OrangTuaModel.updateFcmToken,
+    verifyTurnstileFn = verifyTurnstile,
+    generateTokenFn = generateToken,
+    generateRefreshTokenFn = generateRefreshToken,
+    saveRefreshToken = RefreshTokenModel.save,
+    getNodeEnv = () => process.env.NODE_ENV,
+    now = () => Date.now(),
+} = {}) => async (req, res) => {
     try {
         const { email, password, fcm_token, turnstileToken, platform } =
             req.body;
@@ -24,9 +41,10 @@ export const login = async (req, res) => {
             return error(res, "Email dan password wajib diisi", 400);
         }
 
-        const isMobile = platform === "mobile";
+        const normalizedPlatform = normalizeAuthPlatform(platform);
+        const isMobile = normalizedPlatform === "mobile";
 
-        const isDev = process.env.NODE_ENV === "development";
+        const isDev = getNodeEnv() === "development";
 
         // Web login: require Turnstile CAPTCHA (skip di development)
         if (!isMobile && !isDev) {
@@ -34,7 +52,7 @@ export const login = async (req, res) => {
                 return error(res, "turnstileToken wajib disertakan", 400);
             }
             try {
-                const ts = await verifyTurnstile(turnstileToken, req.ip);
+                const ts = await verifyTurnstileFn(turnstileToken, req.ip);
                 if (!ts.success || (ts.action && ts.action !== "login")) {
                     return error(res, "Turnstile verification failed", 400);
                 }
@@ -43,17 +61,12 @@ export const login = async (req, res) => {
             }
         }
 
-        const user = await UserModel.findByEmail(email);
+        const user = await findByEmail(email);
         if (!user) {
             return error(res, "Email atau password salah", 400);
         }
 
-        // Mobile login: hanya orang_tua yang boleh
-        if (isMobile && user.role !== "orang_tua") {
-            return error(res, "Akses ditolak", 403);
-        }
-
-        const passwordMatch = await bcrypt.compare(
+        const passwordMatch = await comparePassword(
             password,
             user.password_hash,
         );
@@ -61,14 +74,21 @@ export const login = async (req, res) => {
             return error(res, "Email atau password salah", 400);
         }
 
-        const token = generateToken({ id: user.id, role: user.role });
+        if (!isRoleAllowedOnPlatform(normalizedPlatform, user.role)) {
+            const message = isMobile
+                ? "Akun ini tidak tersedia pada aplikasi mobile"
+                : "Akun ini tidak tersedia pada dashboard web";
+            return error(res, message, 403);
+        }
+
+        const token = generateTokenFn({ id: user.id, role: user.role });
 
         let profil = null;
 
         if (user.role === "kader") {
-            profil = await KaderModel.findByUserId(user.id);
+            profil = await findKaderByUserId(user.id);
         } else if (user.role === "puskesmas") {
-            profil = await PuskesmasModel.findByUserId(user.id);
+            profil = await findPuskesmasByUserId(user.id);
         } else if (user.role === "orang_tua") {
             // Update FCM token if provided
             if (
@@ -76,19 +96,19 @@ export const login = async (req, res) => {
                 typeof fcm_token === "string" &&
                 fcm_token.length < 4096
             ) {
-                await OrangTuaModel.updateFcmToken(user.id, fcm_token);
+                await updateOrangTuaFcmToken(user.id, fcm_token);
             }
-            profil = await OrangTuaModel.findByUserId(user.id);
+            profil = await findOrangTuaByUserId(user.id);
         }
 
         // Mobile: issue refresh token
-        if (isMobile || user.role === "orang_tua") {
-            const refreshToken = generateRefreshToken({
+        if (isMobile) {
+            const refreshToken = generateRefreshTokenFn({
                 id: user.id,
                 role: user.role,
             });
-            const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-            await RefreshTokenModel.save(user.id, refreshToken, expiresAt);
+            const expiresAt = new Date(now() + 30 * 24 * 60 * 60 * 1000);
+            await saveRefreshToken(user.id, refreshToken, expiresAt);
 
             return success(
                 res,
@@ -125,6 +145,8 @@ export const login = async (req, res) => {
         return error(res, "Terjadi kesalahan server", 500);
     }
 };
+
+export const login = buatLogin();
 
 export const changePassword = async (req, res) => {
     try {

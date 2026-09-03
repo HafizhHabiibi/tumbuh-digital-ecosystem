@@ -346,7 +346,7 @@ class GrafikPertumbuhanScreen extends ConsumerWidget {
                     change: latest.beratBadan - previous.beratBadan,
                     currentValue:
                         FormatUtils.formatBeratBadan(latest.beratBadan),
-                    unit: 'KG',
+                    unit: 'kg',
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -356,7 +356,7 @@ class GrafikPertumbuhanScreen extends ConsumerWidget {
                     change: latest.tinggiBadan - previous.tinggiBadan,
                     currentValue:
                         FormatUtils.formatTinggiBadan(latest.tinggiBadan),
-                    unit: 'CM',
+                    unit: 'cm',
                   ),
                 ),
               ],
@@ -479,8 +479,8 @@ extension on _GrowthMetric {
       };
 
   String get shortUnit => switch (this) {
-        _GrowthMetric.weight => 'KG',
-        _GrowthMetric.height => 'CM',
+        _GrowthMetric.weight => 'kg',
+        _GrowthMetric.height => 'cm',
       };
 
   String get legend => switch (this) {

@@ -114,6 +114,15 @@
                                 {{ hitungUsia(anakTerpilih.tanggal_lahir) }}
                             </span>
                         </div>
+                        <p
+                            v-if="currentAgeWarning"
+                            class="text-xs m-0 px-3 py-2 rounded-lg"
+                            style="background: #fffbeb; color: #92400e"
+                            role="status"
+                        >
+                            <i class="pi pi-exclamation-triangle mr-1" />
+                            {{ currentAgeWarning.message }}
+                        </p>
                     </div>
 
                     <!-- Tanggal Ukur -->
@@ -124,7 +133,8 @@
                         <DatePicker
                             id="tanggal_ukur"
                             v-model="form.tanggal_ukur"
-                            :max-date="todayDate"
+                            :min-date="measurementDateLimits.minDate"
+                            :max-date="measurementDateLimits.maxDate || todayDate"
                             :disabled="pengukuranStore.loading.create"
                             date-format="dd/mm/yy"
                             placeholder="Pilih tanggal pengukuran"
@@ -133,7 +143,11 @@
                             fluid
                             class="w-full"
                             aria-required="true"
+                            :aria-invalid="!!fieldError.tanggal_ukur"
                         />
+                        <p v-if="fieldError.tanggal_ukur" class="error-hint">
+                            {{ fieldError.tanggal_ukur }}
+                        </p>
                     </div>
 
                     <!-- Berat & Tinggi Badan — 2 kolom -->
@@ -152,9 +166,9 @@
                                     id="berat_badan"
                                     v-model.number="form.berat_badan"
                                     type="number"
-                                    placeholder="0.0"
-                                    step="0.1"
-                                    min="0.5"
+                                    placeholder="0.00"
+                                    step="0.01"
+                                    min="0.01"
                                     max="30"
                                     :disabled="pengukuranStore.loading.create"
                                     class="input-field w-full px-4 py-2.5 rounded-xl text-sm"
@@ -179,9 +193,9 @@
                                     id="tinggi_badan"
                                     v-model.number="form.tinggi_badan"
                                     type="number"
-                                    placeholder="0.0"
-                                    step="0.1"
-                                    min="10"
+                                    placeholder="0.00"
+                                    step="0.01"
+                                    min="0.01"
                                     max="120"
                                     :disabled="pengukuranStore.loading.create"
                                     class="input-field w-full px-4 py-2.5 rounded-xl text-sm"
@@ -213,12 +227,15 @@
                                 v-model.number="form.lingkar_kepala"
                                 type="number"
                                 placeholder="—"
-                                step="0.1"
-                                min="10"
-                                max="60"
+                                step="0.01"
+                                min="1"
+                                max="80"
                                 :disabled="pengukuranStore.loading.create"
                                 class="input-field w-full px-4 py-2.5 rounded-xl text-sm"
                             />
+                            <p v-if="fieldError.lingkar_kepala" class="error-hint">
+                                {{ fieldError.lingkar_kepala }}
+                            </p>
                         </div>
                         <div class="space-y-1.5">
                             <label for="lingkar_lengan" class="field-label">
@@ -234,12 +251,15 @@
                                 v-model.number="form.lingkar_lengan"
                                 type="number"
                                 placeholder="—"
-                                step="0.1"
-                                min="5"
-                                max="30"
+                                step="0.01"
+                                min="1"
+                                max="60"
                                 :disabled="pengukuranStore.loading.create"
                                 class="input-field w-full px-4 py-2.5 rounded-xl text-sm"
                             />
+                            <p v-if="fieldError.lingkar_lengan" class="error-hint">
+                                {{ fieldError.lingkar_lengan }}
+                            </p>
                         </div>
                     </div>
 
@@ -303,6 +323,12 @@ import { usePengukuranStore } from "@/stores/pengukuranStore";
 import { useKaderStore } from "@/stores/kaderStore";
 import PengukuranResultCard from "@/components/cards/PengukuranResultCard.vue";
 import { hitungUsia, toLocalDateStr } from "@/utils/format.js";
+import { validateMeasurement } from "@/utils/measurementValidation.js";
+import {
+    getCurrentAgeMeasurementWarning,
+    getMeasurementDateLimits,
+    validateMeasurementDate,
+} from "@/utils/measurementEligibility.js";
 
 const pengukuranStore = usePengukuranStore();
 const kaderStore = useKaderStore();
@@ -323,29 +349,42 @@ const anakTerpilih = computed(
     () => kaderStore.anakOptions.find((a) => a.id === form.anak_id) || null,
 );
 
+const measurementDateLimits = computed(() =>
+    getMeasurementDateLimits(anakTerpilih.value?.tanggal_lahir, todayDate),
+);
+
+const currentAgeWarning = computed(() =>
+    getCurrentAgeMeasurementWarning(
+        anakTerpilih.value?.tanggal_lahir,
+        todayDate,
+    ),
+);
+
 
 /* ── Validasi ────────────────────────────────────────────────────── */
 const fieldError = computed(() => {
-    const e = {};
-    if (
-        form.berat_badan !== null &&
-        (form.berat_badan <= 0 || form.berat_badan > 30)
-    )
-        e.berat_badan = "Berat badan harus antara 0–30 kg";
-    if (
-        form.tinggi_badan !== null &&
-        (form.tinggi_badan <= 0 || form.tinggi_badan > 120)
-    )
-        e.tinggi_badan = "Tinggi badan harus antara 0–120 cm";
-    return e;
+    const errors = validateMeasurement(form);
+    if (anakTerpilih.value && form.tanggal_ukur) {
+        const eligibility = validateMeasurementDate(
+            anakTerpilih.value.tanggal_lahir,
+            form.tanggal_ukur,
+            todayDate,
+        );
+        if (!eligibility.eligible) {
+            errors.tanggal_ukur = eligibility.message;
+        }
+    }
+    return errors;
 });
 
 const isValid = computed(
     () =>
         form.anak_id &&
         form.tanggal_ukur &&
-        form.berat_badan > 0 &&
-        form.tinggi_badan > 0 &&
+        form.berat_badan !== null &&
+        form.berat_badan !== "" &&
+        form.tinggi_badan !== null &&
+        form.tinggi_badan !== "" &&
         Object.keys(fieldError.value).length === 0,
 );
 
@@ -360,8 +399,12 @@ const handleSubmit = async () => {
         berat_badan: form.berat_badan,
         tinggi_badan: form.tinggi_badan,
     };
-    if (form.lingkar_kepala) payload.lingkar_kepala = form.lingkar_kepala;
-    if (form.lingkar_lengan) payload.lingkar_lengan = form.lingkar_lengan;
+    if (form.lingkar_kepala !== null && form.lingkar_kepala !== "") {
+        payload.lingkar_kepala = form.lingkar_kepala;
+    }
+    if (form.lingkar_lengan !== null && form.lingkar_lengan !== "") {
+        payload.lingkar_lengan = form.lingkar_lengan;
+    }
 
     await pengukuranStore.createPengukuran(payload);
 };

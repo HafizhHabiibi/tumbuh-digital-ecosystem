@@ -2,20 +2,31 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import * as authService from "../services/authService";
+import { isWebRole } from "../utils/authRouting.js";
 
 export const useAuthStore = defineStore("auth", () => {
     // ========== STATE ==========
-    const token = ref(localStorage.getItem("token") || null);
-    const parseStoredUser = () => {
+    const readStoredAuth = () => {
+        const storedToken = localStorage.getItem("token");
         try {
-            return JSON.parse(localStorage.getItem("user") || "null");
+            const storedUser = JSON.parse(
+                localStorage.getItem("user") || "null",
+            );
+            if (!storedToken || !storedUser || !isWebRole(storedUser.role)) {
+                localStorage.removeItem("user");
+                localStorage.removeItem("token");
+                return { token: null, user: null };
+            }
+            return { token: storedToken, user: storedUser };
         } catch {
             localStorage.removeItem("user");
             localStorage.removeItem("token");
-            return null;
+            return { token: null, user: null };
         }
     };
-    const user = ref(parseStoredUser());
+    const storedAuth = readStoredAuth();
+    const token = ref(storedAuth.token);
+    const user = ref(storedAuth.user);
 
     // Loading & error per aksi
     const loading = ref({
@@ -46,10 +57,15 @@ export const useAuthStore = defineStore("auth", () => {
 
     // ========== HELPERS ==========
     const setAuth = (data) => {
+        if (!data?.token || !data?.user || !isWebRole(data.user.role)) {
+            clearAuth();
+            return false;
+        }
         token.value = data.token;
         user.value = data.user;
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
+        return true;
     };
 
     const clearAuth = () => {
@@ -70,7 +86,11 @@ export const useAuthStore = defineStore("auth", () => {
                 password,
                 turnstileToken,
             );
-            setAuth(res.data);
+            if (!setAuth(res.data)) {
+                error.value.login =
+                    "Akun ini tidak tersedia pada dashboard web";
+                return false;
+            }
             return true;
         } catch (err) {
             error.value.login = err.response?.data?.message || "Login gagal";

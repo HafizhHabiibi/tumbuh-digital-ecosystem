@@ -20,7 +20,7 @@
             <button
                 class="btn-refresh flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-all"
                 :disabled="pengukuranStore.loading.ranking"
-                @click="loadData"
+                @click="loadData()"
             >
                 <i
                     class="pi pi-refresh"
@@ -98,7 +98,7 @@
                 </p>
                 <button
                     class="btn-primary px-4 py-2 rounded-lg text-sm font-semibold text-white"
-                    @click="loadData"
+                    @click="loadData()"
                 >
                     Coba Lagi
                 </button>
@@ -183,7 +183,8 @@
                             <!-- Pengukuran -->
                             <td class="px-4 py-3">
                                 <div class="font-medium text-slate-800">
-                                    {{ row.berat_badan }} kg / {{ row.tinggi_badan }} cm
+                                    {{ formatUkuran(row.berat_badan) }} kg /
+                                    {{ formatUkuran(row.tinggi_badan) }} cm
                                 </div>
                                 <div class="text-[10px] text-slate-500">
                                     Diukur: {{ formatTanggal(row.tanggal_ukur) }}
@@ -257,11 +258,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onBeforeUnmount, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { usePengukuranStore } from "@/stores/pengukuranStore";
 import StatusBadge from "@/components/ui/StatusBadge.vue";
 import PaginationControls from "@/components/ui/PaginationControls.vue";
+import { formatUkuran } from "@/utils/format.js";
+import { debounce } from "@/utils/debounce.js";
 
 const router = useRouter();
 const pengukuranStore = usePengukuranStore();
@@ -271,33 +274,16 @@ const selectedPrioritas = ref("");
 
 /* ── Load data ranking balita ────────────────────────────────────── */
 const loadData = (page = pengukuranStore.rankingPagination.page) => {
-    pengukuranStore.fetchRankingAnak({ page });
+    pengukuranStore.fetchRankingAnak({
+        page,
+        search: searchQuery.value.trim() || undefined,
+        prioritas: selectedPrioritas.value || undefined,
+    });
 };
 
-/* ── Filter & Search logic ────────────────────────────────────────── */
-const filteredRanking = computed(() => {
-    let list = pengukuranStore.rankingAnak || [];
-
-    // Filter by search query
-    if (searchQuery.value.trim()) {
-        const query = searchQuery.value.toLowerCase().trim();
-        list = list.filter(
-            (item) =>
-                item.nama_anak.toLowerCase().includes(query) ||
-                item.nama_orang_tua.toLowerCase().includes(query),
-        );
-    }
-
-    if (selectedPrioritas.value) {
-        list = list.filter(
-            (item) =>
-                item.prioritas_pemantauan?.kategori ===
-                selectedPrioritas.value,
-        );
-    }
-
-    return list;
-});
+const filteredRanking = computed(() => pengukuranStore.rankingAnak || []);
+const reloadFromFirstPage = debounce(() => loadData(1));
+watch([searchQuery, selectedPrioritas], reloadFromFirstPage);
 
 /* ── Helpers ─────────────────────────────────────────────────────── */
 const formatTanggal = (tgl) => {
@@ -330,6 +316,8 @@ const nomorPeringkat = (index) =>
 onMounted(() => {
     loadData();
 });
+
+onBeforeUnmount(reloadFromFirstPage.cancel);
 </script>
 
 <style scoped>

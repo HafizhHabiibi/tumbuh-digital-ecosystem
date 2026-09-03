@@ -9,10 +9,11 @@ import {
 import { authenticate } from "../middlewares/auth.js";
 import { authorizeRole } from "../middlewares/role.js";
 import { requireKader } from "../middlewares/requireKader.js";
-import { validateBody } from "../middlewares/validate.js";
+import { validateBody, validateQuery } from "../middlewares/validate.js";
 import {
     rujukanCreateSchema,
     rujukanStatusSchema,
+    rujukanListQuerySchema,
 } from "../validation/schemas.js";
 
 const router = express.Router();
@@ -34,7 +35,12 @@ router.post(
     createRujukan,
 );
 
-router.get("/", authorizeRole("kader", "puskesmas"), getAllRujukan);
+router.get(
+    "/",
+    authorizeRole("kader", "puskesmas"),
+    validateQuery(rujukanListQuerySchema),
+    getAllRujukan,
+);
 
 router.get("/:id", authorizeRole("kader", "puskesmas"), getDetailRujukan);
 

@@ -1,9 +1,29 @@
 import db from "../database/connection.js";
 import { uuidv7 } from "uuidv7";
+import { toLikePattern } from "../utils/sqlFilter.js";
 
-export const findAll = async (page = 1, limit = 20) => {
+const buildListFilter = ({ search } = {}) => {
+    if (!search) return { sql: "", params: [] };
+    const pattern = toLikePattern(search);
+    return {
+        sql: `WHERE (
+            ot.nama_lengkap LIKE ? ESCAPE '!'
+            OR ot.nik LIKE ? ESCAPE '!'
+            OR ot.alamat LIKE ? ESCAPE '!'
+            OR u.email LIKE ? ESCAPE '!'
+        )`,
+        params: [pattern, pattern, pattern, pattern],
+    };
+};
+
+export const buatFindAll = (database = db) => async ({
+    page = 1,
+    limit = 20,
+    search,
+} = {}) => {
     const offset = (page - 1) * limit;
-    const [rows] = await db.query(
+    const filter = buildListFilter({ search });
+    const [rows] = await database.query(
         `SELECT
             ot.id,
             ot.nama_lengkap,
@@ -16,15 +36,22 @@ export const findAll = async (page = 1, limit = 20) => {
         FROM orang_tua ot
         JOIN users u ON u.id = ot.user_id
         LEFT JOIN kader k ON k.id = ot.dibuat_oleh_kader_id
+        ${filter.sql}
         ORDER BY ot.created_at DESC
         LIMIT ? OFFSET ?`,
-        [limit, offset],
+        [...filter.params, limit, offset],
     );
-    const [[{ total }]] = await db.query(
-        "SELECT COUNT(*) AS total FROM orang_tua",
+    const [[{ total }]] = await database.query(
+        `SELECT COUNT(*) AS total
+         FROM orang_tua ot
+         JOIN users u ON u.id = ot.user_id
+         ${filter.sql}`,
+        filter.params,
     );
     return { items: rows, total: Number(total) };
 };
+
+export const findAll = buatFindAll();
 
 export const findById = async (id) => {
     const [rows] = await db.query(

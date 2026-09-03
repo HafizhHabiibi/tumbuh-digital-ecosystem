@@ -16,6 +16,7 @@ export const usePengukuranStore = defineStore("pengukuran", {
         createResult: null,
         rankingAnak: [],
         rankingPagination: createPagination(),
+        rankingRequestId: 0,
         detailSAW: null,
 
         loading: {
@@ -95,22 +96,28 @@ export const usePengukuranStore = defineStore("pengukuran", {
         },
 
         async fetchRankingAnak(params = {}) {
+            const requestId = ++this.rankingRequestId;
             this.loading.ranking = true;
             this.error.ranking = null;
             try {
                 const page = params.page ?? this.rankingPagination.page;
                 const limit = params.limit ?? this.rankingPagination.limit;
                 const res = await pengukuranService.getRankingAnak({
+                    ...params,
                     page,
                     limit,
                 });
+                if (requestId !== this.rankingRequestId) return;
                 const data = extractPaginatedData(res);
                 this.rankingAnak = data.items;
                 this.rankingPagination = data.pagination;
             } catch (err) {
+                if (requestId !== this.rankingRequestId) return;
                 this.error.ranking = err.response?.data?.message || err.message;
             } finally {
-                this.loading.ranking = false;
+                if (requestId === this.rankingRequestId) {
+                    this.loading.ranking = false;
+                }
             }
         },
 

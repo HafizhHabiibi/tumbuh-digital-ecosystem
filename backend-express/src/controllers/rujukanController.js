@@ -126,11 +126,18 @@ export const createRujukan = async (req, res) => {
 
 export const getAllRujukan = async (req, res) => {
     try {
-        const { page, limit } = parsePagination(req.query);
-        const result = await RujukanModel.findAll(page, limit);
+        const query = req.validatedQuery ?? req.query;
+        const { page, limit } = parsePagination(query);
+        const result = await RujukanModel.findAll({
+            page,
+            limit,
+            search: query.search,
+            status: query.status,
+        });
         return success(res, {
             items: result.items.map((rujukan) => enrichRujukan(rujukan)),
             pagination: paginationMeta(page, limit, result.total),
+            summary: result.summary,
         }, "Daftar rujukan berhasil diambil");
     } catch (err) {
         return error(res, err.message);

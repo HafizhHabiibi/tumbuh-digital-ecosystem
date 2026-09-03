@@ -113,7 +113,7 @@
                         class="font-semibold m-0"
                         style="color: var(--color-text-heading)"
                     >
-                        {{ rujukan.berat_badan }} kg
+                        {{ formatUkuran(rujukan.berat_badan) }} kg
                     </p>
                 </div>
                 <div>
@@ -127,7 +127,7 @@
                         class="font-semibold m-0"
                         style="color: var(--color-text-heading)"
                     >
-                        {{ rujukan.tinggi_badan }} cm
+                        {{ formatUkuran(rujukan.tinggi_badan) }} cm
                     </p>
                 </div>
                 <div>
@@ -233,6 +233,7 @@
 
 <script setup>
 import { LABEL_STATUS } from "@/stores/rujukanStore";
+import { formatUkuran } from "@/utils/format.js";
 
 const props = defineProps({
     rujukan: { type: Object, required: true },

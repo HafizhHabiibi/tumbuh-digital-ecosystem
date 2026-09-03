@@ -15,8 +15,8 @@ export const buatCreatePengukuran = (database = db) => async (data) => {
                 data.tanggal_ukur,
                 data.berat_badan,
                 data.tinggi_badan,
-                data.lingkar_kepala || null,
-                data.lingkar_lengan || null,
+                data.lingkar_kepala ?? null,
+                data.lingkar_lengan ?? null,
             ],
         );
 

@@ -127,42 +127,38 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { usePuskesmasStore } from "@/stores/puskesmasStore";
 import { formatTanggal, hitungUsia } from "@/utils/format";
 import StatusBadge from "@/components/ui/StatusBadge.vue";
 import PaginationControls from "@/components/ui/PaginationControls.vue";
+import { debounce } from "@/utils/debounce.js";
 
 const router = useRouter();
 const store = usePuskesmasStore();
 const search = ref("");
 const filterJenisKelamin = ref("semua");
 
-const filteredAnak = computed(() => {
-    const query = search.value.trim().toLocaleLowerCase("id-ID");
-    return store.anakList.filter((anak) => {
-        const cocokJenisKelamin =
-            filterJenisKelamin.value === "semua" ||
-            anak.jenis_kelamin === filterJenisKelamin.value;
-        const cocokPencarian =
-            !query ||
-            [anak.nama, anak.nama_orang_tua]
-                .filter(Boolean)
-                .some((value) =>
-                    String(value).toLocaleLowerCase("id-ID").includes(query),
-                );
-        return cocokJenisKelamin && cocokPencarian;
-    });
-});
+const filteredAnak = computed(() => store.anakList);
 
 const loadData = (page = store.pagination.page) =>
-    store.fetchAllAnak({ page });
+    store.fetchAllAnak({
+        page,
+        search: search.value.trim() || undefined,
+        jenis_kelamin:
+            filterJenisKelamin.value === "semua"
+                ? undefined
+                : filterJenisKelamin.value,
+    });
+const reloadFromFirstPage = debounce(() => loadData(1));
+watch([search, filterJenisKelamin], reloadFromFirstPage);
 
 const lihatDetail = (id) =>
     router.push({ name: "PuskesmasDetailAnak", params: { id } });
 
 onMounted(() => loadData());
+onBeforeUnmount(reloadFromFirstPage.cancel);
 </script>
 
 <style scoped>

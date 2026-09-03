@@ -73,7 +73,8 @@
                         :value="p.id"
                     >
                         {{ formatTanggal(p.tanggal_ukur) }} — BB:
-                        {{ p.berat_badan }}kg, TB: {{ p.tinggi_badan }}cm
+                        {{ formatUkuran(p.berat_badan) }} kg, TB:
+                        {{ formatUkuran(p.tinggi_badan) }} cm
                         (prioritas {{ p.prioritas_pemantauan?.kategori ?? "—" }})
                     </option>
                 </select>
@@ -186,6 +187,7 @@
 
 <script setup>
 import { reactive, computed } from "vue";
+import { formatUkuran } from "@/utils/format.js";
 
 const props = defineProps({
     loading: { type: Boolean, default: false },

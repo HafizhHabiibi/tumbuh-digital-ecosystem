@@ -1,4 +1,5 @@
 import db from "../database/connection.js";
+import { toLikePattern } from "../utils/sqlFilter.js";
 
 export const create = async (data) => {
     const conn = await db.getConnection();
@@ -35,9 +36,47 @@ export const create = async (data) => {
     }
 };
 
-export const findAll = async (page = 1, limit = 20) => {
+const buildListFilter = ({ search, status } = {}, { includeStatus = true } = {}) => {
+    const clauses = [];
+    const params = [];
+    if (search) {
+        clauses.push(
+            "(a.nama LIKE ? ESCAPE '!' OR ot.nama_lengkap LIKE ? ESCAPE '!')",
+        );
+        const pattern = toLikePattern(search);
+        params.push(pattern, pattern);
+    }
+    if (includeStatus && status === "aktif") {
+        clauses.push("r.status != 'selesai'");
+    } else if (includeStatus && status) {
+        clauses.push("r.status = ?");
+        params.push(status);
+    }
+    return {
+        sql: clauses.length ? `WHERE ${clauses.join(" AND ")}` : "",
+        params,
+    };
+};
+
+const listJoins = `
+    FROM rujukan r
+    JOIN pengukuran p ON p.id = r.pengukuran_id
+    JOIN anak a ON a.id = p.anak_id
+    JOIN orang_tua ot ON ot.id = a.orang_tua_id`;
+
+export const buatFindAll = (database = db) => async ({
+    page = 1,
+    limit = 20,
+    search,
+    status,
+} = {}) => {
     const offset = (page - 1) * limit;
-    const [rows] = await db.query(
+    const filter = buildListFilter({ search, status });
+    const summaryFilter = buildListFilter(
+        { search },
+        { includeStatus: false },
+    );
+    const [rows] = await database.query(
         `SELECT
             r.id,
             r.pengukuran_id,
@@ -63,15 +102,36 @@ export const findAll = async (page = 1, limit = 20) => {
         JOIN orang_tua ot ON ot.id = a.orang_tua_id
         JOIN kader k ON k.id = r.kader_id
         LEFT JOIN puskesmas pu ON pu.id = r.puskesmas_id
+        ${filter.sql}
         ORDER BY r.created_at DESC
         LIMIT ? OFFSET ?`,
-        [limit, offset],
+        [...filter.params, limit, offset],
     );
-    const [[{ total }]] = await db.query(
-        "SELECT COUNT(*) AS total FROM rujukan",
+    const [[{ total }]] = await database.query(
+        `SELECT COUNT(*) AS total ${listJoins} ${filter.sql}`,
+        filter.params,
     );
-    return { items: rows, total: Number(total) };
+    const [[summary = {}]] = await database.query(
+        `SELECT
+            SUM(r.status = 'diajukan') AS diajukan,
+            SUM(r.status = 'ditangani') AS ditangani,
+            SUM(r.status = 'selesai') AS selesai
+         ${listJoins}
+         ${summaryFilter.sql}`,
+        summaryFilter.params,
+    );
+    return {
+        items: rows,
+        total: Number(total),
+        summary: {
+            diajukan: Number(summary.diajukan || 0),
+            ditangani: Number(summary.ditangani || 0),
+            selesai: Number(summary.selesai || 0),
+        },
+    };
 };
+
+export const findAll = buatFindAll();
 
 export const findById = async (id) => {
     const [rows] = await db.query(

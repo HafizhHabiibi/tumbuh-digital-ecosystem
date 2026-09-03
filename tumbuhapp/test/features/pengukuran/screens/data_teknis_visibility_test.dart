@@ -283,10 +283,10 @@ void main() {
         find.text('Dibandingkan dengan pengukuran 31 hari sebelumnya'),
         findsOneWidget,
       );
-      expect(find.text('Naik 0,4 KG'), findsOneWidget);
-      expect(find.text('Naik 1,2 CM'), findsOneWidget);
-      expect(find.text('Menjadi 11 KG'), findsOneWidget);
-      expect(find.text('Menjadi 85,5 CM'), findsOneWidget);
+      expect(find.text('Naik 0,4 kg'), findsOneWidget);
+      expect(find.text('Naik 1,2 cm'), findsOneWidget);
+      expect(find.text('Menjadi 11 kg'), findsOneWidget);
+      expect(find.text('Menjadi 85,5 cm'), findsOneWidget);
       expect(find.text('Status Gizi per Pengukuran'), findsNothing);
       _expectDataTeknisTidakTampil();
     },

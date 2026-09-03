@@ -68,8 +68,13 @@ export const createOrangTua = async (req, res) => {
 
 export const getOrangTua = async (req, res) => {
     try {
-        const { page, limit } = parsePagination(req.query);
-        const result = await OrangTuaModel.findAll(page, limit);
+        const query = req.validatedQuery ?? req.query;
+        const { page, limit } = parsePagination(query);
+        const result = await OrangTuaModel.findAll({
+            page,
+            limit,
+            search: query.search,
+        });
         return success(res, {
             items: result.items,
             pagination: paginationMeta(page, limit, result.total),
@@ -160,8 +165,14 @@ export const createAnak = async (req, res) => {
 
 export const getAllAnak = async (req, res) => {
     try {
-        const { page, limit } = parsePagination(req.query);
-        const result = await AnakModel.findAll(page, limit);
+        const query = req.validatedQuery ?? req.query;
+        const { page, limit } = parsePagination(query);
+        const result = await AnakModel.findAll({
+            page,
+            limit,
+            search: query.search,
+            jenis_kelamin: query.jenis_kelamin,
+        });
         return success(res, {
             items: result.items,
             pagination: paginationMeta(page, limit, result.total),

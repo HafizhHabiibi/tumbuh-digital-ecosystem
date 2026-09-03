@@ -1,9 +1,36 @@
 import db from "../database/connection.js";
 import { uuidv7 } from "uuidv7";
+import { toLikePattern } from "../utils/sqlFilter.js";
 
-export const findAll = async (page = 1, limit = 20) => {
+const buildListFilter = ({ search, jenis_kelamin } = {}) => {
+    const clauses = [];
+    const params = [];
+    if (search) {
+        clauses.push(
+            "(a.nama LIKE ? ESCAPE '!' OR ot.nama_lengkap LIKE ? ESCAPE '!')",
+        );
+        const pattern = toLikePattern(search);
+        params.push(pattern, pattern);
+    }
+    if (jenis_kelamin) {
+        clauses.push("a.jenis_kelamin = ?");
+        params.push(jenis_kelamin);
+    }
+    return {
+        sql: clauses.length ? `WHERE ${clauses.join(" AND ")}` : "",
+        params,
+    };
+};
+
+export const buatFindAll = (database = db) => async ({
+    page = 1,
+    limit = 20,
+    search,
+    jenis_kelamin,
+} = {}) => {
     const offset = (page - 1) * limit;
-    const [rows] = await db.query(
+    const filter = buildListFilter({ search, jenis_kelamin });
+    const [rows] = await database.query(
         `SELECT
             a.id,
             a.orang_tua_id,
@@ -16,13 +43,22 @@ export const findAll = async (page = 1, limit = 20) => {
             ot.no_hp AS no_hp_orang_tua
             FROM anak a
             JOIN orang_tua ot ON ot.id = a.orang_tua_id
+            ${filter.sql}
             ORDER BY a.created_at DESC
             LIMIT ? OFFSET ?`,
-        [limit, offset],
+        [...filter.params, limit, offset],
     );
-    const [[{ total }]] = await db.query("SELECT COUNT(*) AS total FROM anak");
+    const [[{ total }]] = await database.query(
+        `SELECT COUNT(*) AS total
+         FROM anak a
+         JOIN orang_tua ot ON ot.id = a.orang_tua_id
+         ${filter.sql}`,
+        filter.params,
+    );
     return { items: rows, total: Number(total) };
 };
+
+export const findAll = buatFindAll();
 
 export const findById = async (id) => {
     const [rows] = await db.query(

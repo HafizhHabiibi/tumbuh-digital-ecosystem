@@ -94,7 +94,7 @@
                             : 'background: transparent; color: var(--color-text-muted)'
                     "
                     :aria-pressed="activeTab === tab.key"
-                    @click="activeTab = tab.key"
+                    @click="selectTab(tab.key)"
                 >
                     {{ tab.label }}
                     <span
@@ -107,8 +107,8 @@
                     >
                         {{
                             tab.key === "aktif"
-                                ? rujukanStore.rujukanAktif.length
-                                : rujukanStore.rujukanArsip.length
+                                ? rujukanStore.totalRujukanAktif
+                                : rujukanStore.totalRujukanArsip
                         }}
                     </span>
                 </button>
@@ -339,13 +339,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onBeforeUnmount, onMounted, watch } from "vue";
 import { Dialog } from "primevue";
 import { useRujukanStore, LABEL_STATUS } from "@/stores/rujukanStore";
 import StatusBadge from "@/components/ui/StatusBadge.vue";
 import RujukanDetailCard from "@/components/cards/RujukanDetailCard.vue";
 import FormUpdateStatus from "@/components/forms/FormUpdateStatus.vue";
 import PaginationControls from "@/components/ui/PaginationControls.vue";
+import { debounce } from "@/utils/debounce.js";
 
 const rujukanStore = useRujukanStore();
 
@@ -373,25 +374,19 @@ const warnaBg = {
     selesai: "#f3f4f6",
 };
 
-/* ── Filter list ─────────────────────────────────────────────────── */
-const rujukanTampil = computed(() => {
-    let list =
-        activeTab.value === "aktif"
-            ? rujukanStore.rujukanAktif
-            : rujukanStore.rujukanArsip;
+const rujukanTampil = computed(() => rujukanStore.rujukanList);
 
-    if (filterStatus.value !== "semua")
-        list = list.filter((r) => r.status === filterStatus.value);
-
-    const q = search.value.toLowerCase().trim();
-    if (q)
-        list = list.filter(
-            (r) =>
-                r.nama_anak?.toLowerCase().includes(q) ||
-                r.nama_orang_tua?.toLowerCase().includes(q),
-        );
-    return list;
-});
+const loadData = (page = rujukanStore.pagination.page) =>
+    rujukanStore.fetchAllRujukan({
+        page,
+        search: search.value.trim() || undefined,
+        status:
+            filterStatus.value === "semua"
+                ? activeTab.value === "aktif" ? "aktif" : "selesai"
+                : filterStatus.value,
+    });
+const reloadFromFirstPage = debounce(() => loadData(1));
+watch([search, activeTab, filterStatus], reloadFromFirstPage);
 
 /* ── Format tanggal ──────────────────────────────────────────────── */
 const formatTanggal = (tgl) =>
@@ -422,7 +417,10 @@ const handleUpdateStatus = async (payload) => {
         rujukanDipilih.value.id,
         payload,
     );
-    if (ok) showUpdateStatus.value = false;
+    if (ok) {
+        showUpdateStatus.value = false;
+        await loadData();
+    }
 };
 
 /* ── Klik card status ────────────────────────────────────────────── */
@@ -438,9 +436,15 @@ const handleKlikCard = (key) => {
     }
 };
 
-const changePage = (page) => rujukanStore.fetchAllRujukan({ page });
+const selectTab = (key) => {
+    activeTab.value = key;
+    filterStatus.value = "semua";
+};
 
-onMounted(() => rujukanStore.fetchAllRujukan());
+const changePage = (page) => loadData(page);
+
+onMounted(() => loadData());
+onBeforeUnmount(reloadFromFirstPage.cancel);
 </script>
 
 <style scoped>

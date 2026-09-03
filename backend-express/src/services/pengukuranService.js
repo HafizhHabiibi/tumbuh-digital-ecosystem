@@ -147,8 +147,12 @@ export const enrichPengukuran = (raw, anak) => {
         ...raw,
         berat_badan: parseFloat(raw.berat_badan),
         tinggi_badan: parseFloat(raw.tinggi_badan),
-        lingkar_kepala: raw.lingkar_kepala ? parseFloat(raw.lingkar_kepala) : null,
-        lingkar_lengan: raw.lingkar_lengan ? parseFloat(raw.lingkar_lengan) : null,
+        lingkar_kepala: raw.lingkar_kepala == null
+            ? null
+            : parseFloat(raw.lingkar_kepala),
+        lingkar_lengan: raw.lingkar_lengan == null
+            ? null
+            : parseFloat(raw.lingkar_lengan),
         usia_bulan: zscores.usia_bulan,
         usia_hari: zscores.usia_hari,
         nilai_imt: zscores.nilai_imt,
@@ -198,8 +202,15 @@ export const enrichPengukuranList = (rawList, anak) => {
 // RANKING — Semua anak diurutkan dari prioritas pemantauan tertinggi
 // =============================================================================
 
-export const getRankingAllAnak = async (page = 1, limit = 20) => {
-    const latestList = await PengukuranModel.findLatestPerAnak();
+export const buatGetRankingAllAnak = ({
+    findLatestPerAnak = PengukuranModel.findLatestPerAnak,
+} = {}) => async ({
+    page = 1,
+    limit = 20,
+    search,
+    prioritas,
+} = {}) => {
+    const latestList = await findLatestPerAnak();
 
     const ranked = latestList.map((row) => {
         const item = enrichPengukuranDenganPrioritas(row, row);
@@ -226,13 +237,28 @@ export const getRankingAllAnak = async (page = 1, limit = 20) => {
         };
     });
 
-    ranked.sort(bandingkanRankingPrioritas);
+    const normalizedSearch = search?.trim().toLocaleLowerCase("id-ID");
+    const filtered = ranked.filter((item) => {
+        const cocokPencarian = !normalizedSearch || [
+            item.nama_anak,
+            item.nama_orang_tua,
+        ].some((value) => String(value ?? "")
+            .toLocaleLowerCase("id-ID")
+            .includes(normalizedSearch));
+        const cocokPrioritas = !prioritas ||
+            item.prioritas_pemantauan.kategori === prioritas;
+        return cocokPencarian && cocokPrioritas;
+    });
+
+    filtered.sort(bandingkanRankingPrioritas);
     const offset = (page - 1) * limit;
     return {
-        items: ranked.slice(offset, offset + limit),
-        total: ranked.length,
+        items: filtered.slice(offset, offset + limit),
+        total: filtered.length,
     };
 };
+
+export const getRankingAllAnak = buatGetRankingAllAnak();
 
 // =============================================================================
 // DETAIL SAW — Breakdown lengkap per pengukuran

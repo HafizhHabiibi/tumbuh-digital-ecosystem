@@ -74,3 +74,30 @@ export const formatAngka = (angka, desimal = 2) => {
     if (angka === null || angka === undefined) return "-";
     return parseFloat(angka).toFixed(desimal);
 };
+
+const measurementNumberFormatter = new Intl.NumberFormat("id-ID", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+    useGrouping: false,
+});
+
+export const formatUkuran = (angka) => {
+    if (angka === null || angka === undefined || angka === "") return "—";
+    const numeric = Number(angka);
+    return Number.isFinite(numeric)
+        ? measurementNumberFormatter.format(numeric)
+        : "—";
+};
+
+const measurementUnits = Object.freeze({
+    berat: "kg",
+    panjang: "cm",
+    imt: "kg/m²",
+});
+
+export const formatUkuranDenganSatuan = (angka, jenis) => {
+    const unit = measurementUnits[jenis];
+    if (!unit) throw new TypeError("Jenis satuan ukuran tidak valid");
+    const formatted = formatUkuran(angka);
+    return formatted === "—" ? formatted : `${formatted} ${unit}`;
+};

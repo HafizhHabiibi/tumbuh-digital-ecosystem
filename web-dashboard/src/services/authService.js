@@ -5,6 +5,7 @@ export const login = async (email, password, turnstileToken) => {
         email,
         password,
         turnstileToken,
+        platform: "web",
     });
     return res.data;
 };
@@ -13,6 +14,7 @@ export const forgotPassword = async (email, turnstileToken) => {
     const res = await api.post("/auth/forgot-password", {
         email,
         turnstileToken,
+        platform: "web",
     });
     return res.data;
 };

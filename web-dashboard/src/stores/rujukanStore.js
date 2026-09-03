@@ -30,6 +30,8 @@ export const useRujukanStore = defineStore("rujukan", {
         // Semua rujukan (dipakai halaman puskesmas)
         rujukanList: [],
         pagination: createPagination(),
+        summary: { diajukan: 0, ditangani: 0, selesai: 0 },
+        listRequestId: 0,
 
         // Detail satu rujukan
         rujukanDetail: null,
@@ -85,14 +87,13 @@ export const useRujukanStore = defineStore("rujukan", {
          * { diajukan: 2, ditangani: 3, selesai: 10 }
          */
         jumlahPerStatus: (state) => {
-            const semua = ["diajukan", ...STATUS_VALID];
-            return semua.reduce((acc, status) => {
-                acc[status] = state.rujukanList.filter(
-                    (r) => r.status === status,
-                ).length;
-                return acc;
-            }, {});
+            return state.summary;
         },
+
+        totalRujukanAktif: (state) =>
+            state.summary.diajukan + state.summary.ditangani,
+
+        totalRujukanArsip: (state) => state.summary.selesai,
 
         /**
          * Cek apakah anak masih punya rujukan aktif
@@ -150,20 +151,35 @@ export const useRujukanStore = defineStore("rujukan", {
         // PUSKESMAS: Ambil semua rujukan
         // --------------------------------------------------
         async fetchAllRujukan(params = {}) {
+            const requestId = ++this.listRequestId;
             this.loading.fetchAll = true;
             this.error.fetchAll = null;
             try {
                 const page = params.page ?? this.pagination.page;
                 const limit = params.limit ?? this.pagination.limit;
-                const res = await rujukanService.getAllRujukan({ page, limit });
+                const res = await rujukanService.getAllRujukan({
+                    ...params,
+                    page,
+                    limit,
+                });
+                if (requestId !== this.listRequestId) return;
                 const data = extractPaginatedData(res);
                 this.rujukanList = data.items;
                 this.pagination = data.pagination;
+                this.summary = {
+                    diajukan: 0,
+                    ditangani: 0,
+                    selesai: 0,
+                    ...res.data.data.summary,
+                };
             } catch (err) {
+                if (requestId !== this.listRequestId) return;
                 this.error.fetchAll =
                     err.response?.data?.message || err.message;
             } finally {
-                this.loading.fetchAll = false;
+                if (requestId === this.listRequestId) {
+                    this.loading.fetchAll = false;
+                }
             }
         },
 

@@ -1,12 +1,16 @@
 import ExcelJS from 'exceljs'
 import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
 
 const result = {}
+const toolDirectory = path.dirname(fileURLToPath(import.meta.url))
+const sourceDirectory = path.join(toolDirectory, 'who-data')
 
 // ── Helper: baca file Excel dan ambil kolom L, M, S ─────────
 const readExcel = async (filename, keyCol) => {
     const workbook = new ExcelJS.Workbook()
-    await workbook.xlsx.readFile(`./who-data/${filename}`)
+    await workbook.xlsx.readFile(path.join(sourceDirectory, filename))
 
     const sheet = workbook.worksheets[0]
     const data  = []
@@ -64,8 +68,8 @@ const readExcel = async (filename, keyCol) => {
     return data
 }
 
-// Pertahankan granularitas harian dari WHO Expanded Tables agar tidak ada
-// pemilihan hari terdekat atau interpolasi ulang di backend.
+// Pertahankan granularitas harian dari WHO Expanded Tables tanpa pemilihan
+// hari terdekat atau interpolasi ulang.
 const gunakanDataHarian = (dataHarian) => dataHarian.map((row, index) => {
     if (!Number.isInteger(row.key) || row.key !== index) {
         throw new Error(`Urutan data harian tidak valid pada indeks ${index}`)
@@ -127,11 +131,10 @@ result.bfa_girls = gunakanDataHarian(bfaGirls)
 console.log(`  bfa_boys : ${result.bfa_boys.length} baris`)
 console.log(`  bfa_girls: ${result.bfa_girls.length} baris`)
 
-// ── Tulis ke file JSON ───────────────────────────────────────
-fs.writeFileSync('./whoTables.json', JSON.stringify(result, null, 2), 'utf8')
+const outputFile = path.join(toolDirectory, 'whoTables.json')
+fs.writeFileSync(outputFile, JSON.stringify(result, null, 2), 'utf8')
 
-console.log('\n✓ whoTables.json berhasil dibuat!')
-console.log('Copy file ini ke src/constants/ di project Express.')
+console.log('\n✓ Konversi 10 tabel WHO ke whoTables.json berhasil!')
 console.log('\nRingkasan:')
 console.log(`  wfa_boys  : ${result.wfa_boys.length} hari`)
 console.log(`  wfa_girls : ${result.wfa_girls.length} hari`)

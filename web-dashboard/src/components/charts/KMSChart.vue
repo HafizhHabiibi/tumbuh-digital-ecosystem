@@ -4,21 +4,30 @@
         <div class="flex flex-wrap gap-x-4 gap-y-2 text-xs bg-slate-50 p-3 rounded-xl border border-slate-100">
             <div class="flex items-center gap-1.5">
                 <span class="w-3 h-3 rounded bg-red-600"></span>
-                <span class="text-slate-600 font-medium">BGM (&lt; SD -3 / &gt; SD 3)</span>
+                <span class="text-slate-600 font-medium">Kurva referensi -3 SD / +3 SD</span>
             </div>
             <div class="flex items-center gap-1.5">
                 <span class="w-3 h-3 rounded bg-amber-500"></span>
-                <span class="text-slate-600 font-medium">Risiko Gizi (SD -3 s.d SD -2 / SD 2 s.d SD 3)</span>
+                <span class="text-slate-600 font-medium">Kurva referensi -2 SD / +2 SD</span>
             </div>
             <div class="flex items-center gap-1.5">
                 <span class="w-3 h-3 rounded bg-green-600"></span>
-                <span class="text-slate-600 font-medium">Gizi Normal (SD -2 s.d SD 2)</span>
+                <span class="text-slate-600 font-medium">Median dan kurva ±1 SD</span>
             </div>
             <div class="flex items-center gap-1.5 ml-auto">
                 <span class="w-5 h-1 bg-sky-500 rounded"></span>
                 <span class="text-slate-800 font-bold">Berat Badan Anak</span>
             </div>
         </div>
+
+        <p
+            class="text-xs m-0 px-3 py-2 rounded-lg bg-sky-50 text-sky-900 border border-sky-100"
+        >
+            Grafik memakai kurva referensi WHO bulanan untuk visualisasi tren.
+            Status antropometri resmi mengikuti hasil server yang dihitung dari
+            tabel WHO harian dan ambang Permenkes; posisi titik pada grafik bukan
+            penentu kategori.
+        </p>
 
         <!-- Chart -->
         <div class="relative min-h-[300px]">
@@ -37,7 +46,7 @@
 
 <script setup>
 import { computed, ref } from "vue";
-import whoTables from "@/constants/whoTables.json";
+import whoTables from "@/constants/whoMonthlyChartTables.json";
 
 const props = defineProps({
     jenisKelamin: {
@@ -130,31 +139,31 @@ const childData = computed(() => {
 /* ── Series Grafik ───────────────────────────────────────────────── */
 const chartSeries = computed(() => [
     {
-        name: "SD -3 (Sangat Kurang)",
+        name: "Kurva -3 SD",
         data: getCurve(-3),
     },
     {
-        name: "SD -2 (Kurang)",
+        name: "Kurva -2 SD",
         data: getCurve(-2),
     },
     {
-        name: "SD -1 (Normal-bawah)",
+        name: "Kurva -1 SD",
         data: getCurve(-1),
     },
     {
-        name: "Median (Normal)",
+        name: "Kurva median",
         data: getCurve(0),
     },
     {
-        name: "SD 1 (Normal-atas)",
+        name: "Kurva +1 SD",
         data: getCurve(1),
     },
     {
-        name: "SD 2 (Lebih)",
+        name: "Kurva +2 SD",
         data: getCurve(2),
     },
     {
-        name: "SD 3 (Sangat Lebih)",
+        name: "Kurva +3 SD",
         data: getCurve(3),
     },
     {

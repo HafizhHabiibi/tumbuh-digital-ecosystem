@@ -72,22 +72,22 @@ class FormatUtils {
 
   // ── Format Angka ──────────────────────────────
 
-  // 72.5 → "72,5 KG"
+  // 72.5 → "72,5 kg"
   static String formatBeratBadan(double? nilai) {
     if (nilai == null) return '-';
     final formatted = nilai % 1 == 0
         ? nilai.toInt().toString()
         : nilai.toStringAsFixed(1).replaceAll('.', ',');
-    return '$formatted KG';
+    return '$formatted kg';
   }
 
-  // 85.3 → "85,3 CM"
+  // 85.3 → "85,3 cm"
   static String formatTinggiBadan(double? nilai) {
     if (nilai == null) return '-';
     final formatted = nilai % 1 == 0
         ? nilai.toInt().toString()
         : nilai.toStringAsFixed(1).replaceAll('.', ',');
-    return '$formatted CM';
+    return '$formatted cm';
   }
 
   // ── Usia ──────────────────────────────────────────────

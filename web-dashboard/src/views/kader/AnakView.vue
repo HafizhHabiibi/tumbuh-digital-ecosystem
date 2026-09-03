@@ -349,13 +349,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onBeforeUnmount, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useKaderStore } from "@/stores/kaderStore";
 import { Dialog } from "primevue";
 import FormAnak from "@/components/forms/FormAnak.vue";
 import PaginationControls from "@/components/ui/PaginationControls.vue";
 import { hitungUsia } from "@/utils/format.js";
+import { debounce } from "@/utils/debounce.js";
 
 const router = useRouter();
 const kaderStore = useKaderStore();
@@ -382,20 +383,17 @@ const filterOptions = [
     { label: "Perempuan", value: "P" },
 ];
 
-/* ── Filter ──────────────────────────────────────────────────────── */
-const filteredList = computed(() => {
-    let list = kaderStore.anakList;
-    if (filterJK.value !== "semua")
-        list = list.filter((a) => a.jenis_kelamin === filterJK.value);
-    const q = search.value.toLowerCase().trim();
-    if (q)
-        list = list.filter(
-            (a) =>
-                a.nama.toLowerCase().includes(q) ||
-                a.nama_orang_tua?.toLowerCase().includes(q),
-        );
-    return list;
-});
+const filteredList = computed(() => kaderStore.anakList);
+
+const loadData = (page = kaderStore.pagination.anak.page) =>
+    kaderStore.fetchAllAnak({
+        page,
+        search: search.value.trim() || undefined,
+        jenis_kelamin:
+            filterJK.value === "semua" ? undefined : filterJK.value,
+    });
+const reloadFromFirstPage = debounce(() => loadData(1));
+watch([search, filterJK], reloadFromFirstPage);
 
 /* ── Format tanggal ──────────────────────────────────────────────── */
 const formatTanggal = (tgl) =>
@@ -445,15 +443,17 @@ const hapusAnak = async (anak) => {
     deletingAnakId.value = null;
 };
 
-const changePage = (page) => kaderStore.fetchAllAnak({ page });
+const changePage = (page) => loadData(page);
 
 onMounted(async () => {
     await Promise.all([
-        kaderStore.fetchAllAnak(),
+        loadData(),
         kaderStore.fetchAnakOptions(),
         kaderStore.fetchOrangTuaOptions(),
     ]);
 });
+
+onBeforeUnmount(reloadFromFirstPage.cancel);
 </script>
 
 <style scoped>

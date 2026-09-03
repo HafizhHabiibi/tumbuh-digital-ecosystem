@@ -303,12 +303,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onBeforeUnmount, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useKaderStore } from "@/stores/kaderStore";
 import { Dialog } from "primevue";
 import FormOrangTua from "@/components/forms/FormOrangTua.vue";
 import PaginationControls from "@/components/ui/PaginationControls.vue";
+import { debounce } from "@/utils/debounce.js";
 
 const router = useRouter();
 const kaderStore = useKaderStore();
@@ -328,17 +329,15 @@ const formError = computed(() =>
         : kaderStore.error.createOrangTua,
 );
 
-/* ── Filter pencarian ────────────────────────────────────────────── */
-const filteredList = computed(() => {
-    const q = search.value.toLowerCase().trim();
-    if (!q) return kaderStore.orangTuaList;
-    return kaderStore.orangTuaList.filter(
-        (ot) =>
-            ot.nama_lengkap.toLowerCase().includes(q) ||
-            ot.nik.includes(q) ||
-            ot.alamat?.toLowerCase().includes(q),
-    );
-});
+const filteredList = computed(() => kaderStore.orangTuaList);
+
+const loadData = (page = kaderStore.pagination.orangTua.page) =>
+    kaderStore.fetchAllOrangTua({
+        page,
+        search: search.value.trim() || undefined,
+    });
+const reloadFromFirstPage = debounce(() => loadData(1));
+watch(search, reloadFromFirstPage);
 
 /* ── Avatar warna dari nama ──────────────────────────────────────── */
 const avatarColors = [
@@ -397,14 +396,16 @@ const hapusOrangTua = async (orangTua) => {
     deletingOrangTuaId.value = null;
 };
 
-const changePage = (page) => kaderStore.fetchAllOrangTua({ page });
+const changePage = (page) => loadData(page);
 
 onMounted(() =>
     Promise.all([
-        kaderStore.fetchAllOrangTua(),
+        loadData(),
         kaderStore.fetchOrangTuaOptions(),
     ]),
 );
+
+onBeforeUnmount(reloadFromFirstPage.cancel);
 </script>
 
 <style scoped>

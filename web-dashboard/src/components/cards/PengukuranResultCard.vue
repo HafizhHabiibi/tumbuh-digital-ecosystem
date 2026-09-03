@@ -27,7 +27,7 @@
                         class="text-xl font-bold m-0"
                         style="color: var(--color-text-heading)"
                     >
-                        {{ result.berat_badan }}
+                        {{ formatUkuran(result.berat_badan) }}
                         <span class="text-sm font-normal">kg</span>
                     </p>
                     <p
@@ -42,7 +42,7 @@
                         class="text-xl font-bold m-0"
                         style="color: var(--color-text-heading)"
                     >
-                        {{ result.tinggi_badan }}
+                        {{ formatUkuran(result.tinggi_badan) }}
                         <span class="text-sm font-normal">cm</span>
                     </p>
                     <p
@@ -215,6 +215,7 @@
 <script setup>
 import { computed } from "vue";
 import StatusBadge from "@/components/ui/StatusBadge.vue";
+import { formatUkuran } from "@/utils/format.js";
 
 const props = defineProps({
     result: { type: Object, required: true },

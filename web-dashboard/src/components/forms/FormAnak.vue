@@ -143,6 +143,15 @@
             <p v-if="fieldError.tanggal_lahir" class="error-hint">
                 {{ fieldError.tanggal_lahir }}
             </p>
+            <p
+                v-if="currentAgeWarning"
+                class="text-xs ml-1 px-3 py-2 rounded-lg"
+                style="background: #fffbeb; color: #92400e"
+                role="status"
+            >
+                <i class="pi pi-exclamation-triangle mr-1" />
+                {{ currentAgeWarning.message }}
+            </p>
         </div>
 
         <!-- NIK Anak -->
@@ -211,6 +220,7 @@
 import { ref, computed, reactive, watch } from "vue";
 import { DatePicker } from "primevue";
 import { hitungUsia, toLocalDateStr } from "@/utils/format.js";
+import { getCurrentAgeMeasurementWarning } from "@/utils/measurementEligibility.js";
 
 const props = defineProps({
     loading: { type: Boolean, default: false },
@@ -281,6 +291,10 @@ const previewUsia = computed(() => {
     const hasil = hitungUsia(form.tanggal_lahir);
     return hasil === "-" ? "" : hasil;
 });
+
+const currentAgeWarning = computed(() =>
+    getCurrentAgeMeasurementWarning(form.tanggal_lahir, todayDate),
+);
 
 const fieldError = computed(() => {
     const e = {};

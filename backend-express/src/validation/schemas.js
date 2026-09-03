@@ -98,6 +98,49 @@ export const pengukuranSchema = {
     },
 };
 
+const paginationQueryFields = {
+    page: rules.integer({ required: false, min: 1 }),
+    limit: rules.integer({ required: false, min: 1, max: 100 }),
+};
+const searchQuery = rules.string({ required: false, max: 100 });
+
+export const orangTuaListQuerySchema = {
+    fields: {
+        ...paginationQueryFields,
+        search: searchQuery,
+    },
+};
+
+export const anakListQuerySchema = {
+    fields: {
+        ...paginationQueryFields,
+        search: searchQuery,
+        jenis_kelamin: rules.enum(["L", "P"], { required: false }),
+    },
+};
+
+export const rankingListQuerySchema = {
+    fields: {
+        ...paginationQueryFields,
+        search: searchQuery,
+        prioritas: rules.enum(
+            ["rendah", "sedang", "tinggi"],
+            { required: false },
+        ),
+    },
+};
+
+export const rujukanListQuerySchema = {
+    fields: {
+        ...paginationQueryFields,
+        search: searchQuery,
+        status: rules.enum(
+            ["diajukan", "ditangani", "selesai", "aktif"],
+            { required: false },
+        ),
+    },
+};
+
 export const pemberianSchema = {
     fields: {
         anak_id: uuid,

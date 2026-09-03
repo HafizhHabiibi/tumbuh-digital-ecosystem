@@ -7,8 +7,21 @@ import * as insightService from "../services/insightService.js";
 import * as fcmService from "../services/fcmService.js";
 import { success, error } from "../utils/response.js";
 import { parsePagination, paginationMeta } from "../utils/pagination.js";
+import {
+    MeasurementValidationError,
+    normalizeMeasurement,
+} from "../utils/measurement.js";
 
-export const createPengukuran = async (req, res) => {
+export const buatCreatePengukuran = ({
+    findAnakById = AnakModel.findById,
+    findDuplicate = PengukuranModel.findDuplicate,
+    savePengukuran = PengukuranModel.createPengukuran,
+    hitungZScore = zscoreService.hitungSemuaZScore,
+    hitungSAW = sawService.hitungSAW,
+    hitungPrioritas = pengukuranService.hitungPrioritasPemantauan,
+    sendNotification = fcmService.sendNotification,
+    processInsight = insightService.processInsight,
+} = {}) => async (req, res) => {
     try {
         const {
             anak_id,
@@ -19,7 +32,14 @@ export const createPengukuran = async (req, res) => {
             lingkar_lengan,
         } = req.body;
 
-        if (!anak_id || !tanggal_ukur || !berat_badan || !tinggi_badan) {
+        if (
+            !anak_id ||
+            !tanggal_ukur ||
+            berat_badan === undefined ||
+            berat_badan === null ||
+            tinggi_badan === undefined ||
+            tinggi_badan === null
+        ) {
             return error(
                 res,
                 "anak_id, tanggal_ukur, berat_badan, tinggi_badan wajib diisi",
@@ -31,31 +51,35 @@ export const createPengukuran = async (req, res) => {
             return error(res, "Format tanggal harus YYYY-MM-DD", 400);
         }
 
-        const berat = Number(berat_badan);
-        const tinggi = Number(tinggi_badan);
+        const berat = normalizeMeasurement(berat_badan, {
+            min: 0.01,
+            max: 30,
+            label: "Berat badan",
+        });
+        const tinggi = normalizeMeasurement(tinggi_badan, {
+            min: 0.01,
+            max: 120,
+            label: "Tinggi badan",
+        });
+        const lingkarKepala = normalizeMeasurement(lingkar_kepala, {
+            required: false,
+            min: 1,
+            max: 80,
+            label: "Lingkar kepala",
+        });
+        const lingkarLengan = normalizeMeasurement(lingkar_lengan, {
+            required: false,
+            min: 1,
+            max: 60,
+            label: "Lingkar lengan",
+        });
 
-        if (!Number.isFinite(berat) || berat <= 0 || berat > 30) {
-            return error(
-                res,
-                "Berat badan tidak valid, harus antara 0-30 kg",
-                400,
-            );
-        }
-
-        if (!Number.isFinite(tinggi) || tinggi <= 0 || tinggi > 120) {
-            return error(
-                res,
-                "Tinggi badan tidak valid, harus antara 0-120 cm",
-                400,
-            );
-        }
-
-        const anak = await AnakModel.findById(anak_id);
+        const anak = await findAnakById(anak_id);
         if (!anak) {
             return error(res, "Data anak tidak ditemukan", 404);
         }
 
-        const duplicate = await PengukuranModel.findDuplicate(
+        const duplicate = await findDuplicate(
             anak_id,
             tanggal_ukur,
         );
@@ -68,7 +92,7 @@ export const createPengukuran = async (req, res) => {
         }
 
         // Validasi domain dan hitung sebelum insert agar data invalid tidak tersimpan.
-        const zscores = zscoreService.hitungSemuaZScore({
+        const zscores = hitungZScore({
             berat_badan: berat,
             tinggi_badan: tinggi,
             tanggal_lahir: anak.tanggal_lahir,
@@ -76,44 +100,42 @@ export const createPengukuran = async (req, res) => {
             jenis_kelamin: anak.jenis_kelamin,
         });
 
-        const sawResult = sawService.hitungSAW({
+        const sawResult = hitungSAW({
             zscore_bbu: zscores.zscore_bbu,
             zscore_tbu: zscores.zscore_tbu,
             zscore_bbtb: zscores.zscore_bbtb,
             zscore_imtu: zscores.zscore_imtu,
         });
         const prioritasPemantauan =
-            pengukuranService.hitungPrioritasPemantauan(zscores, sawResult);
+            hitungPrioritas(zscores, sawResult);
 
         // Simpan HANYA raw data ke database (3NF).
-        const pengukuran_id = await PengukuranModel.createPengukuran({
+        const pengukuran_id = await savePengukuran({
             anak_id,
             kader_id: req.kader.id,
             tanggal_ukur,
             berat_badan: berat,
             tinggi_badan: tinggi,
-            lingkar_kepala,
-            lingkar_lengan,
+            lingkar_kepala: lingkarKepala,
+            lingkar_lengan: lingkarLengan,
         });
 
         // Notifikasi ke orang tua bahwa anak sudah diukur
-        fcmService
-            .sendNotification(
-                anak.orang_tua_id,
-                `Hasil Pengukuran ${anak.nama}`,
-                `${anak.nama} telah diukur pada ${tanggal_ukur}. ` +
-                `BB: ${berat} KG, TB: ${tinggi} CM. ` +
+        sendNotification(
+            anak.orang_tua_id,
+            `Hasil Pengukuran ${anak.nama}`,
+            `${anak.nama} telah diukur pada ${tanggal_ukur}. ` +
+                `BB: ${berat} kg, TB: ${tinggi} cm. ` +
                 `Prioritas pemantauan: ${prioritasPemantauan.kategori}. ` +
                 `Cek detail lengkap di aplikasi.`,
-                "pengukuran",
-                pengukuran_id,
-                { anak_id },
-            )
+            "pengukuran",
+            pengukuran_id,
+            { anak_id },
+        )
             .catch((err) => console.error("[FCM PENGUKURAN]", err.message));
 
         // Generate AI insight async (fire-and-forget)
-        insightService
-            .processInsight(pengukuran_id)
+        processInsight(pengukuran_id)
             .catch((err) => {
                 console.error("[GEMINI ASYNC ERROR]", err.message);
             });
@@ -126,6 +148,8 @@ export const createPengukuran = async (req, res) => {
                 tanggal_ukur,
                 berat_badan: berat,
                 tinggi_badan: tinggi,
+                lingkar_kepala: lingkarKepala,
+                lingkar_lengan: lingkarLengan,
                 usia_bulan: zscores.usia_bulan,
                 usia_hari: zscores.usia_hari,
                 nilai_imt: zscores.nilai_imt,
@@ -148,12 +172,17 @@ export const createPengukuran = async (req, res) => {
             201,
         );
     } catch (err) {
-        if (err instanceof zscoreService.ZScoreValidationError) {
-            return error(res, err.message, 400);
+        if (
+            err instanceof zscoreService.ZScoreValidationError ||
+            err instanceof MeasurementValidationError
+        ) {
+            return error(res, err.message, 400, err.code);
         }
         return error(res, err.message);
     }
 };
+
+export const createPengukuran = buatCreatePengukuran();
 
 export const getRiwayatPengukuran = async (req, res) => {
     try {
@@ -207,8 +236,14 @@ export const getDetailPengukuran = buatGetDetailPengukuran();
 
 export const getRankingAnak = async (req, res) => {
     try {
-        const { page, limit } = parsePagination(req.query);
-        const result = await pengukuranService.getRankingAllAnak(page, limit);
+        const query = req.validatedQuery ?? req.query;
+        const { page, limit } = parsePagination(query);
+        const result = await pengukuranService.getRankingAllAnak({
+            page,
+            limit,
+            search: query.search,
+            prioritas: query.prioritas,
+        });
         return success(res, {
             items: result.items,
             pagination: paginationMeta(page, limit, result.total),

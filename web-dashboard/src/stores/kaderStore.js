@@ -52,6 +52,10 @@ export const useKaderStore = defineStore("kader", {
             orangTua: createPagination(),
             anak: createPagination(),
         },
+        listRequestId: {
+            orangTua: 0,
+            anak: 0,
+        },
 
         // Anak milik satu orang tua + info orang tuanya
         anakByOrangTua: {
@@ -158,20 +162,29 @@ export const useKaderStore = defineStore("kader", {
         // ORANG TUA
         // --------------------------------------------------
         async fetchAllOrangTua(params = {}) {
+            const requestId = ++this.listRequestId.orangTua;
             this.loading.orangTuaList = true;
             this.error.orangTuaList = null;
             try {
                 const page = params.page ?? this.pagination.orangTua.page;
                 const limit = params.limit ?? this.pagination.orangTua.limit;
-                const res = await kaderService.getAllOrangTua({ page, limit });
+                const res = await kaderService.getAllOrangTua({
+                    ...params,
+                    page,
+                    limit,
+                });
+                if (requestId !== this.listRequestId.orangTua) return;
                 const data = extractPaginatedData(res);
                 this.orangTuaList = data.items;
                 this.pagination.orangTua = data.pagination;
             } catch (err) {
+                if (requestId !== this.listRequestId.orangTua) return;
                 this.error.orangTuaList =
                     err.response?.data?.message || err.message;
             } finally {
-                this.loading.orangTuaList = false;
+                if (requestId === this.listRequestId.orangTua) {
+                    this.loading.orangTuaList = false;
+                }
             }
         },
 
@@ -303,20 +316,29 @@ export const useKaderStore = defineStore("kader", {
         // ANAK
         // --------------------------------------------------
         async fetchAllAnak(params = {}) {
+            const requestId = ++this.listRequestId.anak;
             this.loading.anakList = true;
             this.error.anakList = null;
             try {
                 const page = params.page ?? this.pagination.anak.page;
                 const limit = params.limit ?? this.pagination.anak.limit;
-                const res = await kaderService.getAllAnak({ page, limit });
+                const res = await kaderService.getAllAnak({
+                    ...params,
+                    page,
+                    limit,
+                });
+                if (requestId !== this.listRequestId.anak) return;
                 const data = extractPaginatedData(res);
                 this.anakList = data.items;
                 this.pagination.anak = data.pagination;
             } catch (err) {
+                if (requestId !== this.listRequestId.anak) return;
                 this.error.anakList =
                     err.response?.data?.message || err.message;
             } finally {
-                this.loading.anakList = false;
+                if (requestId === this.listRequestId.anak) {
+                    this.loading.anakList = false;
+                }
             }
         },
 

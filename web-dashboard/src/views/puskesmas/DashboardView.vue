@@ -1,39 +1,7 @@
 <template>
-    <div class="p-6 max-w-6xl mx-auto space-y-6">
+    <div class="p-6 max-w-6xl mx-auto space-y-7">
         <!-- ─── Header ──────────────────────────────────────────── -->
-        <div class="flex items-start justify-between gap-4 flex-wrap">
-            <div>
-                <h1
-                    class="text-2xl font-bold m-0"
-                    style="color: var(--color-text-heading)"
-                >
-                    Dashboard
-                </h1>
-                <p
-                    class="text-sm mt-1 m-0"
-                    style="color: var(--color-text-muted)"
-                >
-                    Selamat datang,
-                    <strong style="color: var(--color-green-700)">{{
-                        authStore.namaLengkap
-                    }}</strong>
-                    — data per {{ tanggalHariIni }}
-                </p>
-            </div>
-            <button
-                class="btn-refresh flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-all"
-                :disabled="dashboardStore.isAnyLoading"
-                aria-label="Muat ulang data"
-                @click="refresh"
-            >
-                <i
-                    class="pi pi-refresh"
-                    :class="{ 'pi-spin': dashboardStore.isAnyLoading }"
-                    aria-hidden="true"
-                />
-                Perbarui
-            </button>
-        </div>
+        <PageHeader title="Dashboard" />
 
         <!-- ─── Error ────────────────────────────────────────────── -->
         <Transition name="slide-down">
@@ -64,7 +32,7 @@
 
         <!-- ─── Stat cards ───────────────────────────────────────── -->
         <section aria-label="Ringkasan statistik">
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatCard
                     label="Total Anak Terdaftar"
                     icon="pi-users"
@@ -77,7 +45,6 @@
                     icon="pi-chart-line"
                     color="red"
                     :value="dashboardStore.statistik.total_prioritas_tinggi"
-                    :sub="`${dashboardStore.persentasePrioritasTinggi}% dari total anak`"
                     :loading="dashboardStore.loading.statistik"
                 />
                 <StatCard
@@ -99,11 +66,10 @@
 
         <!-- ─── Rujukan aktif masuk ──────────────────────────────── -->
         <section aria-label="Rujukan aktif">
-            <div class="card rounded-2xl overflow-hidden">
-                <div class="flex items-center justify-between p-4">
+            <div class="card rounded-2xl overflow-hidden border border-slate-200/80 shadow-xs">
+                <div class="flex items-center justify-between p-4 border-b border-slate-100">
                     <h2
-                        class="text-base font-semibold m-0"
-                        style="color: var(--color-text-heading)"
+                        class="text-base font-bold m-0 text-slate-800"
                     >
                         <i
                             class="pi pi-send mr-1.5"
@@ -114,18 +80,17 @@
                     </h2>
                     <div class="flex items-center gap-2">
                         <span
-                            class="text-xs px-2 py-1 rounded-full font-medium"
+                            class="text-xs px-2.5 py-1 rounded-full font-semibold"
                             style="background: #fef3c7; color: #d97706"
                         >
                             {{ rujukanStore.rujukanAktif.length }} aktif
                         </span>
                         <button
-                            class="text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
+                            class="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
                             style="
                                 background: var(--color-green-100);
                                 color: var(--color-green-700);
                                 border: none;
-                                cursor: pointer;
                             "
                             @click="router.push({ name: 'PuskesmasRujukan' })"
                         >
@@ -154,8 +119,7 @@
                         aria-hidden="true"
                     />
                     <p
-                        class="text-sm m-0"
-                        style="color: var(--color-text-muted)"
+                        class="text-sm m-0 text-slate-500"
                     >
                         Tidak ada rujukan aktif saat ini
                     </p>
@@ -164,80 +128,62 @@
                 <!-- List rujukan aktif (max 5) -->
                 <div
                     v-else
-                    class="divide-y"
-                    style="border-color: var(--color-input-border)"
+                    class="divide-y divide-slate-100"
                 >
                     <div
                         v-for="r in rujukanStore.rujukanAktif.slice(0, 5)"
                         :key="r.id"
-                        class="flex items-center gap-4 px-4 py-3 transition-colors cursor-pointer hover:bg-slate-50"
-                        @click="router.push({ name: 'PuskesmasRujukan' })"
+                        class="flex items-center justify-between p-4 hover:bg-slate-50/80 transition-colors"
                     >
-                        <div
-                            class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
-                            style="background: var(--color-green-700)"
-                            aria-hidden="true"
-                        >
-                            {{ r.nama_anak?.charAt(0).toUpperCase() }}
-                        </div>
-                        <div class="flex-1 min-w-0">
+                        <div class="space-y-0.5">
                             <p
-                                class="text-sm font-semibold m-0 truncate"
-                                style="color: var(--color-text-heading)"
+                                class="text-sm font-semibold m-0 text-slate-900"
                             >
                                 {{ r.nama_anak }}
                             </p>
                             <p
-                                class="text-xs m-0"
-                                style="color: var(--color-text-muted)"
+                                class="text-xs m-0 text-slate-500"
                             >
-                                {{ r.nama_orang_tua }} •
+                                {{ r.nama_posyandu }} —
                                 {{ formatTanggal(r.created_at) }}
                             </p>
                         </div>
-                        <div class="flex items-center gap-2 flex-shrink-0">
-                            <StatusBadge
-                                type="prioritas"
-                                :value="r.prioritas_pemantauan?.kategori"
-                            />
-                            <StatusBadge type="rujukan" :value="r.status" />
+                        <div class="flex items-center gap-2">
+                            <StatusBadge :status="r.status" />
+                            <button
+                                class="text-xs font-medium px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer border-0"
+                                style="
+                                    background: var(--color-green-50);
+                                    color: var(--color-green-700);
+                                "
+                                @click="
+                                    router.push({
+                                        name: 'PuskesmasRujukan',
+                                        query: { id: r.id },
+                                    })
+                                "
+                            >
+                                Detail
+                            </button>
                         </div>
                     </div>
-                </div>
-
-                <!-- Tampilkan lebih -->
-                <div
-                    v-if="rujukanStore.rujukanAktif.length > 5"
-                    class="px-4 py-3 text-center border-t"
-                    style="border-color: var(--color-input-border)"
-                >
-                    <button
-                        class="text-sm font-medium"
-                        style="
-                            color: var(--color-green-700);
-                            background: none;
-                            border: none;
-                            cursor: pointer;
-                        "
-                        @click="router.push({ name: 'PuskesmasRujukan' })"
-                    >
-                        Lihat {{ rujukanStore.rujukanAktif.length - 5 }} rujukan
-                        lainnya →
-                    </button>
                 </div>
             </div>
         </section>
 
-        <!-- ─── Charts ───────────────────────────────────────────── -->
-        <section aria-label="Grafik dan visualisasi">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div class="lg:col-span-2">
-                    <TrenGiziChart
-                        v-model:bulan="selectedBulan"
-                        :data="dashboardStore.trenGizi"
-                        :loading="dashboardStore.loading.trenGizi"
-                    />
-                </div>
+        <!-- ─── Grafik dan visualisasi ───────────────────────────── -->
+        <section aria-label="Grafik dan visualisasi" class="space-y-6">
+            <!-- Tren gizi — lebar penuh di atas -->
+            <div>
+                <TrenGiziChart
+                    v-model:bulan="selectedBulan"
+                    :data="dashboardStore.trenGizi"
+                    :loading="dashboardStore.loading.trenGizi"
+                />
+            </div>
+
+            <!-- Distribusi antropometri + prioritas — berdampingan -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <DistribusiGiziChart
                     :data="dashboardStore.distribusiGiziChart"
                     :loading="dashboardStore.loading.distribusiGizi"
@@ -253,8 +199,8 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
+import PageHeader from "@/components/ui/PageHeader.vue";
 import { useRouter } from "vue-router";
-import { useAuthStore } from "@/stores/authStore";
 import { useDashboardStore } from "@/stores/dashboardStore";
 import { useRujukanStore } from "@/stores/rujukanStore";
 import StatCard from "@/components/ui/StatCard.vue";
@@ -264,7 +210,6 @@ import DistribusiGiziChart from "@/components/charts/DistribusiGiziChart.vue";
 import RisikoChart from "@/components/charts/RisikoChart.vue";
 
 const router = useRouter();
-const authStore = useAuthStore();
 const dashboardStore = useDashboardStore();
 const rujukanStore = useRujukanStore();
 
@@ -272,22 +217,14 @@ const selectedBulan = ref(6);
 
 watch(selectedBulan, (bulan) => dashboardStore.fetchTrenGizi(bulan));
 
-const tanggalHariIni = computed(() =>
-    new Date().toLocaleDateString("id-ID", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-    }),
-);
-
 const hasError = computed(() =>
     Object.values(dashboardStore.error).some(Boolean),
 );
-const clearErrors = () =>
+const clearErrors = () => {
     Object.keys(dashboardStore.error).forEach((k) => {
         dashboardStore.error[k] = null;
     });
+};
 
 const formatTanggal = (tgl) =>
     new Date(tgl).toLocaleDateString("id-ID", {
@@ -307,21 +244,7 @@ onMounted(refresh);
 <style scoped>
 .card {
     background: white;
-    border: 1px solid var(--color-card-border);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-}
-.btn-refresh {
-    background: white;
-    color: var(--color-text-body);
-    border-color: var(--color-input-border);
-}
-.btn-refresh:hover:not(:disabled) {
-    background: var(--color-green-50);
-    border-color: var(--color-green-700);
-    color: var(--color-green-700);
-}
-.btn-refresh:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+    border: 1px solid rgba(226, 232, 240, 0.85);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 </style>

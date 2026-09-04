@@ -318,6 +318,7 @@
 
 <script setup>
 import { computed, reactive, onMounted } from "vue";
+import { useRoute } from "vue-router";
 import { DatePicker } from "primevue";
 import { usePengukuranStore } from "@/stores/pengukuranStore";
 import { useKaderStore } from "@/stores/kaderStore";
@@ -332,6 +333,7 @@ import {
 
 const pengukuranStore = usePengukuranStore();
 const kaderStore = useKaderStore();
+const route = useRoute();
 
 const todayDate = new Date();
 
@@ -409,8 +411,12 @@ const handleSubmit = async () => {
     await pengukuranStore.createPengukuran(payload);
 };
 
-onMounted(() => {
-    kaderStore.fetchAnakOptions();
+onMounted(async () => {
+    await kaderStore.fetchAnakOptions();
+    if (route.query.anakId) {
+        const queryId = Number(route.query.anakId);
+        form.anak_id = !isNaN(queryId) && queryId > 0 ? queryId : route.query.anakId;
+    }
 });
 </script>
 

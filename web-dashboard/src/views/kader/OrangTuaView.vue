@@ -1,29 +1,17 @@
 <template>
     <div class="p-6 max-w-6xl mx-auto space-y-6">
         <!-- ─── Header ──────────────────────────────────────────── -->
-        <div class="flex items-start justify-between gap-4 flex-wrap">
-            <div>
-                <h1
-                    class="text-2xl font-bold m-0"
-                    style="color: var(--color-text-heading)"
+        <PageHeader title="Data Orang Tua">
+            <template #actions>
+                <button
+                    class="btn-primary flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all"
+                    @click="openForm"
                 >
-                    Data Orang Tua
-                </h1>
-                <p
-                    class="text-sm mt-1 m-0"
-                    style="color: var(--color-text-muted)"
-                >
-                    Daftar orang tua / wali yang terdaftar di posyandu
-                </p>
-            </div>
-            <button
-                class="btn-primary flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all"
-                @click="openForm"
-            >
-                <i class="pi pi-plus" aria-hidden="true" />
-                Tambah Orang Tua
-            </button>
-        </div>
+                    <i class="pi pi-plus" aria-hidden="true" />
+                    Tambah Orang Tua
+                </button>
+            </template>
+        </PageHeader>
 
         <!-- ─── Error ────────────────────────────────────────────── -->
         <Transition name="slide-down">
@@ -308,6 +296,7 @@ import { useRouter } from "vue-router";
 import { useKaderStore } from "@/stores/kaderStore";
 import { Dialog } from "primevue";
 import FormOrangTua from "@/components/forms/FormOrangTua.vue";
+import PageHeader from "@/components/ui/PageHeader.vue";
 import PaginationControls from "@/components/ui/PaginationControls.vue";
 import { debounce } from "@/utils/debounce.js";
 

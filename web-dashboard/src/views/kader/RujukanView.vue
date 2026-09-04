@@ -1,22 +1,9 @@
 <template>
-    <div class="p-6 max-w-5xl mx-auto space-y-6">
+    <div class="p-6 max-w-6xl mx-auto space-y-6">
         <!-- ─── Header ──────────────────────────────────────────── -->
-        <div class="flex items-start justify-between gap-4 flex-wrap">
-            <div>
-                <h1
-                    class="text-2xl font-bold m-0"
-                    style="color: var(--color-text-heading)"
-                >
-                    Rujukan
-                </h1>
-                <p
-                    class="text-sm mt-1 m-0"
-                    style="color: var(--color-text-muted)"
-                >
-                    Ajukan dan pantau rujukan anak ke puskesmas
-                </p>
-            </div>
-            <button
+        <PageHeader title="Rujukan">
+            <template #actions>
+                <button
                 class="btn-primary flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white"
                 :disabled="!anakTerpilihId || rujukanStore.punyaRujukanAktif"
                 @click="openForm"
@@ -24,7 +11,8 @@
                 <i class="pi pi-plus" aria-hidden="true" />
                 Rujukan Baru
             </button>
-        </div>
+            </template>
+        </PageHeader>
 
         <!-- ─── Pilih Anak ───────────────────────────────────────── -->
         <div class="card p-4 rounded-2xl">
@@ -332,6 +320,7 @@
 </template>
 
 <script setup>
+import PageHeader from "@/components/ui/PageHeader.vue";
 import { ref, computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { Dialog } from "primevue";

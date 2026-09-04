@@ -17,6 +17,33 @@ import "@fontsource/poppins/500.css";
 import "@fontsource/poppins/600.css";
 import "@fontsource/poppins/700.css";
 
+if (import.meta.env.DEV) {
+    const params = new URLSearchParams(window.location.search);
+    const devRole = params.get("devAuth");
+    if (devRole === "kader" || devRole === "puskesmas") {
+        const credentials =
+            devRole === "kader"
+                ? { email: "budi.kader@gmail.com", password: "password123" }
+                : { email: "hana.pertiwi@gmail.com", password: "password123" };
+        try {
+            const apiUrl =
+                import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+            const res = await fetch(`${apiUrl}/auth/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(credentials),
+            });
+            const data = await res.json();
+            if (data.success && data.data?.token) {
+                localStorage.setItem("token", data.data.token);
+                localStorage.setItem("user", JSON.stringify(data.data.user));
+            }
+        } catch (e) {
+            console.error("devAuth auto-login error:", e);
+        }
+    }
+}
+
 const app = createApp(App);
 
 app.use(createPinia());

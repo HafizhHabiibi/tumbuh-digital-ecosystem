@@ -1,22 +1,9 @@
 <template>
-    <div class="p-6 max-w-5xl mx-auto space-y-6">
+    <div class="p-6 max-w-6xl mx-auto space-y-6">
         <!-- ─── Header ──────────────────────────────────────────── -->
-        <div class="flex items-start justify-between gap-4 flex-wrap">
-            <div>
-                <h1
-                    class="text-2xl font-bold m-0"
-                    style="color: var(--color-text-heading)"
-                >
-                    Jadwal Posyandu
-                </h1>
-                <p
-                    class="text-sm mt-1 m-0"
-                    style="color: var(--color-text-muted)"
-                >
-                    Kelola dan pantau jadwal kegiatan posyandu
-                </p>
-            </div>
-            <div class="flex items-center gap-2 flex-wrap">
+        <PageHeader title="Jadwal">
+            <template #actions>
+                <div class="flex items-center gap-2 flex-wrap">
                 <button
                     class="px-3 py-2.5 rounded-xl text-sm font-semibold border"
                     style="background: white; color: var(--color-green-700); border-color: var(--color-input-border)"
@@ -55,7 +42,8 @@
                     Tambah Jadwal
                 </button>
             </div>
-        </div>
+            </template>
+        </PageHeader>
 
         <!-- ─── Error ────────────────────────────────────────────── -->
         <Transition name="slide-down">
@@ -447,6 +435,7 @@
 </template>
 
 <script setup>
+import PageHeader from "@/components/ui/PageHeader.vue";
 import { ref, computed, onMounted } from "vue";
 import { Dialog } from "primevue";
 import { useJadwalStore } from "@/stores/jadwalStore";

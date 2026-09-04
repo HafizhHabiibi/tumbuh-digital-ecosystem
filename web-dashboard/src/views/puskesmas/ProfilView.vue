@@ -1,17 +1,7 @@
 <template>
     <div class="p-6 max-w-2xl mx-auto space-y-6">
         <!-- ─── Header ──────────────────────────────────────────── -->
-        <div class="text-left">
-            <h1
-                class="text-2xl font-bold m-0"
-                style="color: var(--color-text-heading)"
-            >
-                Profil
-            </h1>
-            <p class="text-sm mt-1 m-0" style="color: var(--color-text-muted)">
-                Kelola keamanan akun kamu
-            </p>
-        </div>
+        <PageHeader title="Profil" />
 
         <!-- ─── Info akun ────────────────────────────────────────── -->
         <div class="card p-5 rounded-2xl flex items-center gap-4">
@@ -267,11 +257,34 @@
                 </div>
             </form>
         </div>
+
+        <!-- ─── Sesi Akun / Keluar ───────────────────────────────── -->
+        <div class="card p-5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-red-100 bg-red-50/20">
+            <div>
+                <h2 class="text-base font-semibold text-slate-800 m-0 flex items-center gap-2">
+                    <i class="pi pi-sign-out text-red-600" aria-hidden="true" />
+                    Sesi Akun
+                </h2>
+                <p class="text-xs text-slate-500 m-0 mt-1">
+                    Keluar dari aplikasi pada sesi browser saat ini
+                </p>
+            </div>
+            <button
+                type="button"
+                class="px-4 py-2.5 rounded-xl text-sm font-semibold text-red-600 bg-red-50 hover:bg-red-100 hover:text-red-700 transition-colors border border-red-200 cursor-pointer flex items-center gap-2 flex-shrink-0"
+                aria-label="Keluar dari akun"
+                @click="handleLogout"
+            >
+                <i class="pi pi-sign-out text-sm" />
+                <span>Keluar dari Akun</span>
+            </button>
+        </div>
     </div>
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted } from "vue";
+import PageHeader from "@/components/ui/PageHeader.vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/authStore";
 
@@ -311,6 +324,11 @@ const handleSubmit = async () => {
 const handleLupaPassword = () => {
     authStore.logout();
     router.push({ name: "ForgotPassword" });
+};
+
+const handleLogout = () => {
+    authStore.logout();
+    router.push({ name: "Login" });
 };
 
 onMounted(() => authStore.refreshProfile());
@@ -372,6 +390,7 @@ onMounted(() => authStore.refreshProfile());
     color: var(--color-text-muted);
     padding: 0;
     line-height: 1;
+    transition: color 0.15s;
 }
 .toggle-pass:hover {
     color: var(--color-text-body);

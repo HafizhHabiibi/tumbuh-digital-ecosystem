@@ -1,41 +1,7 @@
 <template>
-    <div class="p-6 max-w-6xl mx-auto space-y-6">
+    <div class="p-6 max-w-6xl mx-auto space-y-7">
         <!-- ─── Header halaman ─────────────────────────────────────── -->
-        <div class="flex items-start justify-between gap-4 flex-wrap">
-            <div>
-                <h1
-                    class="text-2xl font-bold m-0"
-                    style="color: var(--color-text-heading)"
-                >
-                    Dashboard
-                </h1>
-                <p
-                    class="text-sm mt-1 m-0"
-                    style="color: var(--color-text-muted)"
-                >
-                    Selamat datang,
-                    <strong style="color: var(--color-green-700)">{{
-                        authStore.namaLengkap ?? "Kader"
-                    }}</strong>
-                    — data per {{ tanggalHariIni }}
-                </p>
-            </div>
-
-            <!-- Tombol refresh -->
-            <button
-                class="btn-refresh flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-all"
-                :disabled="dashboardStore.isAnyLoading"
-                aria-label="Muat ulang data dashboard"
-                @click="refresh"
-            >
-                <i
-                    class="pi pi-refresh"
-                    :class="{ 'pi-spin': dashboardStore.isAnyLoading }"
-                    aria-hidden="true"
-                />
-                <span class="max-[480px]:hidden">Perbarui</span>
-            </button>
-        </div>
+        <PageHeader title="Dashboard" />
 
         <!-- ─── Error global ───────────────────────────────────────── -->
         <Transition name="slide-down">
@@ -54,7 +20,7 @@
                     class="pi pi-exclamation-triangle shrink-0"
                     aria-hidden="true"
                 />
-                <span>Gagal memuat sebagian data. Coba perbarui halaman.</span>
+                <span>Gagal memuat sebagian data. Coba muat ulang halaman.</span>
                 <button
                     class="ml-auto bg-transparent border-0 cursor-pointer p-0 leading-none"
                     style="color: #b91c1c"
@@ -68,7 +34,7 @@
 
         <!-- ─── Stat Cards ─────────────────────────────────────────── -->
         <section aria-label="Ringkasan statistik">
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatCard
                     label="Total Anak Terdaftar"
                     icon="pi-users"
@@ -81,7 +47,6 @@
                     icon="pi-chart-line"
                     color="red"
                     :value="dashboardStore.statistik.total_prioritas_tinggi"
-                    :sub="`${dashboardStore.persentasePrioritasTinggi}% dari total anak`"
                     :loading="dashboardStore.loading.statistik"
                 />
                 <StatCard
@@ -102,18 +67,18 @@
         </section>
 
         <!-- ─── Charts ─────────────────────────────────────────────── -->
-        <section aria-label="Grafik dan visualisasi data">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <!-- Tren gizi — lebar penuh di atas -->
-                <div class="lg:col-span-2">
-                    <TrenGiziChart
-                        v-model:bulan="selectedBulan"
-                        :data="dashboardStore.trenGizi"
-                        :loading="dashboardStore.loading.trenGizi"
-                    />
-                </div>
+        <section aria-label="Grafik dan visualisasi data" class="space-y-6">
+            <!-- Tren pertumbuhan — lebar penuh di atas -->
+            <div>
+                <TrenGiziChart
+                    v-model:bulan="selectedBulan"
+                    :data="dashboardStore.trenGizi"
+                    :loading="dashboardStore.loading.trenGizi"
+                />
+            </div>
 
-                <!-- Distribusi antropometri + prioritas — berdampingan -->
+            <!-- Distribusi antropometri + prioritas — berdampingan -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <DistribusiGiziChart
                     :data="dashboardStore.distribusiGiziChart"
                     :loading="dashboardStore.loading.distribusiGizi"
@@ -131,15 +96,14 @@
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
 import { useDashboardStore } from "@/stores/dashboardStore";
-import { useAuthStore } from "@/stores/authStore";
 
+import PageHeader from "@/components/ui/PageHeader.vue";
 import StatCard from "@/components/ui/StatCard.vue";
 import TrenGiziChart from "@/components/charts/TrenGiziChart.vue";
 import DistribusiGiziChart from "@/components/charts/DistribusiGiziChart.vue";
 import RisikoChart from "@/components/charts/RisikoChart.vue";
 
 const dashboardStore = useDashboardStore();
-const authStore = useAuthStore();
 
 /* ── Filter bulan tren gizi ──────────────────────────────────────── */
 const selectedBulan = ref(6);
@@ -159,37 +123,9 @@ const clearErrors = () => {
     });
 };
 
-/* ── Tanggal hari ini ────────────────────────────────────────────── */
-const tanggalHariIni = computed(() =>
-    new Date().toLocaleDateString("id-ID", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-    }),
-);
-
-/* ── Refresh ─────────────────────────────────────────────────────── */
-const refresh = () => dashboardStore.fetchAll(selectedBulan.value);
-
 /* ── Initial fetch ───────────────────────────────────────────────── */
 onMounted(() => dashboardStore.fetchAll(selectedBulan.value));
 </script>
 
 <style scoped>
-/* ─── Tombol refresh ──────────────────────────────────────────────── */
-.btn-refresh {
-    background: white;
-    color: var(--color-text-body);
-    border-color: var(--color-input-border);
-}
-.btn-refresh:hover:not(:disabled) {
-    background: var(--color-green-50);
-    border-color: var(--color-green-700);
-    color: var(--color-green-700);
-}
-.btn-refresh:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
 </style>

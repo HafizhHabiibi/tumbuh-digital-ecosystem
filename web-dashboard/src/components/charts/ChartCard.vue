@@ -5,29 +5,30 @@
         Menyediakan card styling, header, slot actions, dan empty state.
     -->
     <div
-        class="bg-white rounded-2xl border border-[rgba(190,202,184,0.3)] shadow-sm
-               hover:-translate-y-0.5 hover:shadow-md transition-all duration-200
-               px-5 py-4"
+        class="chart-card bg-white rounded-2xl border border-slate-200/80 shadow-xs
+               hover:shadow-md hover:border-slate-300/80 transition-all duration-200
+               p-5 md:p-6"
     >
         <!-- Header -->
-        <header class="flex items-start justify-between gap-4 mb-2">
+        <header class="flex items-center justify-between gap-4 mb-4 pb-3 border-b border-slate-100">
             <div>
                 <h3
-                    class="text-sm font-semibold m-0 mb-0.5"
-                    style="color: var(--color-text-heading)"
+                    class="text-base font-bold m-0 tracking-tight text-slate-800"
                 >
                     {{ title }}
                 </h3>
                 <p
-                    class="text-xs m-0"
-                    style="color: var(--color-text-muted)"
+                    v-if="subtitle"
+                    class="text-xs text-slate-500 mt-1 m-0 leading-relaxed"
                 >
                     {{ subtitle }}
                 </p>
             </div>
 
             <!-- Slot untuk filter/aksi (misal: tombol bulan di TrenGizi) -->
-            <slot name="actions" />
+            <div v-if="$slots.actions" class="flex-shrink-0">
+                <slot name="actions" />
+            </div>
         </header>
 
         <!-- Empty state -->
@@ -41,8 +42,7 @@
                 aria-hidden="true"
             />
             <p
-                class="text-sm m-0 text-center"
-                style="color: var(--color-text-muted)"
+                class="text-sm m-0 text-center text-slate-500"
             >
                 Belum ada data untuk ditampilkan
             </p>
@@ -61,3 +61,9 @@ defineProps({
     empty: { type: Boolean, default: false },
 });
 </script>
+
+<style scoped>
+.chart-card {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+</style>

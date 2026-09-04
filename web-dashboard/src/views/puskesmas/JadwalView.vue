@@ -1,14 +1,7 @@
 <template>
     <div class="p-6 max-w-6xl mx-auto space-y-6">
-        <header>
-            <p class="eyebrow">Agenda Posyandu</p>
-            <h1 class="text-2xl font-bold m-0" style="color: var(--color-text-heading)">
-                Jadwal Kegiatan
-            </h1>
-            <p class="text-sm mt-2 mb-0" style="color: var(--color-text-muted)">
-                Informasi jadwal ini hanya dapat dilihat oleh Puskesmas. Perubahan dilakukan oleh Kader.
-            </p>
-        </header>
+        <!-- ─── Header ──────────────────────────────────────────── -->
+        <PageHeader title="Jadwal Kegiatan" />
 
         <div v-if="store.error.fetchAll" class="message-error" role="alert">
             <i class="pi pi-exclamation-circle" aria-hidden="true" />
@@ -79,6 +72,7 @@
 </template>
 
 <script setup>
+import PageHeader from "@/components/ui/PageHeader.vue";
 import { computed, onMounted, ref } from "vue";
 import { useJadwalStore } from "@/stores/jadwalStore";
 import PaginationControls from "@/components/ui/PaginationControls.vue";

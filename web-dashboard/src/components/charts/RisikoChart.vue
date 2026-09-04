@@ -1,40 +1,87 @@
 <template>
     <!--
         RisikoChart.vue
-        Bar chart distribusi prioritas pemantauan akhir.
-        Tiga kategori: Rendah, Sedang, Tinggi.
+        Horizontal Rounded Progress Cards untuk Distribusi Prioritas Pemantauan.
+        Menyajikan 3 tingkatan prioritas (Rendah, Sedang, Tinggi) secara bersih, simpel, dan profesional.
     -->
     <ChartCard
         title="Distribusi Prioritas Pemantauan"
-        subtitle="Berdasarkan hasil antropometri dan SAW risiko kekurangan gizi; bukan diagnosis"
         :loading="loading"
-        :empty="!series[0]?.data?.some((v) => v > 0)"
+        :empty="totalAnak === 0"
     >
-        <!-- Skeleton -->
-        <div v-if="loading" class="py-4">
-            <div class="flex items-end justify-center gap-8 h-[200px]">
-                <div
-                    v-for="i in 3"
-                    :key="i"
-                    class="flex flex-col items-center gap-2 w-[60px] h-full justify-end"
-                >
-                    <div
-                        class="skeleton w-full"
-                        :style="{ height: `${40 + i * 20}%` }"
-                    />
-                    <div class="skeleton w-12 h-3" />
+        <!-- Header Actions: Total Balita -->
+        <template #actions>
+            <span
+                v-if="totalAnak > 0 && !loading"
+                class="text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg"
+            >
+                Total: {{ totalAnak }} Balita
+            </span>
+        </template>
+
+        <!-- Skeleton Loading -->
+        <div v-if="loading" class="space-y-3.5 py-2">
+            <div
+                v-for="i in 3"
+                :key="i"
+                class="p-3.5 rounded-xl border border-slate-100 space-y-2.5"
+            >
+                <div class="flex items-center justify-between">
+                    <div class="skeleton w-36 h-4 rounded" />
+                    <div class="skeleton w-20 h-4 rounded" />
                 </div>
+                <div class="skeleton w-full h-2.5 rounded-full" />
             </div>
         </div>
 
-        <!-- Chart -->
-        <apexchart
-            v-else-if="series[0]?.data?.some((v) => v > 0)"
-            type="bar"
-            height="280"
-            :options="chartOptions"
-            :series="series"
-        />
+        <!-- Horizontal Rounded Progress Cards -->
+        <div v-else-if="totalAnak > 0" class="space-y-3 py-1">
+            <div
+                v-for="item in breakdownData"
+                :key="item.label"
+                class="p-3.5 rounded-xl border border-slate-100 bg-white hover:bg-slate-50/70 hover:border-slate-200 transition-all duration-200"
+            >
+                <!-- Baris Informasi: Label Kategori, Nilai, dan Persentase -->
+                <div class="flex items-center justify-between gap-3 mb-2">
+                    <div class="flex items-center gap-2">
+                        <span
+                            class="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs"
+                            :style="{ backgroundColor: item.color }"
+                        />
+                        <span class="text-xs font-bold text-slate-800">
+                            Prioritas {{ item.label }}
+                        </span>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-extrabold text-slate-900">
+                            {{ item.value }}
+                            <span class="font-normal text-slate-400 text-[11px]">anak</span>
+                        </span>
+                        <span
+                            class="text-[11px] font-bold px-2 py-0.5 rounded-md min-w-[42px] text-right"
+                            :style="{
+                                backgroundColor: `${item.color}15`,
+                                color: item.color,
+                            }"
+                        >
+                            {{ item.percentage }}%
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Progress Bar Horizontal Tebal Membulat -->
+                <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                    <div
+                        class="h-full rounded-full transition-all duration-500 ease-out"
+                        :style="{
+                            width: `${item.percentage}%`,
+                            backgroundColor: item.color,
+                        }"
+                    />
+                </div>
+            </div>
+        </div>
     </ChartCard>
 </template>
 
@@ -47,72 +94,33 @@ const props = defineProps({
     loading: { type: Boolean, default: false },
 });
 
-const series = computed(() => [
-    {
-        name: "Jumlah Anak",
-        data: props.data.map((d) => d.value),
-    },
-]);
+const totalAnak = computed(() =>
+    props.data.reduce((acc, curr) => acc + (curr.value || 0), 0),
+);
 
-const chartOptions = computed(() => ({
-    chart: {
-        type: "bar",
-        fontFamily: "Poppins, sans-serif",
-        toolbar: { show: false },
-        animations: { enabled: true, speed: 600 },
-    },
-    colors: props.data.map((d) => d.color),
-    plotOptions: {
-        bar: {
-            distributed: true,
-            borderRadius: 6,
-            columnWidth: "45%",
-            dataLabels: { position: "top" },
-        },
-    },
-    dataLabels: {
-        enabled: true,
-        formatter: (val) => val,
-        offsetY: -20,
-        style: {
-            fontSize: "12px",
-            fontFamily: "Poppins, sans-serif",
-            fontWeight: 600,
-            colors: ["#171d16"],
-        },
-    },
-    xaxis: {
-        categories: props.data.map((d) => d.label),
-        labels: {
-            style: {
-                fontFamily: "Poppins, sans-serif",
-                fontSize: "12px",
-                colors: "#6f7a6b",
-            },
-        },
-        axisBorder: { show: false },
-        axisTicks: { show: false },
-    },
-    yaxis: {
-        labels: {
-            style: {
-                fontFamily: "Poppins, sans-serif",
-                fontSize: "11px",
-                colors: "#6f7a6b",
-            },
-            formatter: (v) => Math.round(v),
-        },
-        min: 0,
-    },
-    grid: {
-        borderColor: "#f0f0f0",
-        strokeDashArray: 4,
-        padding: { left: 0, right: 0, top: 10 },
-    },
-    legend: { show: false },
-    tooltip: {
-        style: { fontFamily: "Poppins, sans-serif" },
-        y: { formatter: (val) => `${val} anak` },
-    },
-}));
+const breakdownData = computed(() => {
+    const total = totalAnak.value;
+    return props.data.map((item) => ({
+        ...item,
+        percentage:
+            total > 0 ? ((item.value / total) * 100).toFixed(1) : "0.0",
+    }));
+});
 </script>
+
+<style scoped>
+.skeleton {
+    background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+</style>

@@ -1,17 +1,7 @@
 <template>
     <div class="p-6 max-w-6xl mx-auto space-y-6">
-        <header>
-            <h1
-                class="text-2xl font-bold m-0"
-                style="color: var(--color-text-heading)"
-            >
-                Laporan Pertumbuhan
-            </h1>
-            <p class="text-sm mt-1 m-0" style="color: var(--color-text-muted)">
-                Unduh laporan teknis seorang anak atau rekap pemantauan dalam
-                format PDF.
-            </p>
-        </header>
+        <!-- ─── Header ──────────────────────────────────────────── -->
+        <PageHeader title="Laporan Pertumbuhan" />
 
         <div
             class="info-panel rounded-2xl p-4 flex items-start gap-3"
@@ -266,6 +256,7 @@
 </template>
 
 <script setup>
+import PageHeader from "@/components/ui/PageHeader.vue";
 import { computed, onMounted, reactive, ref } from "vue";
 import { useAuthStore } from "@/stores/authStore";
 import kaderService from "@/services/kaderService";

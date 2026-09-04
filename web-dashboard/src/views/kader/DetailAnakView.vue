@@ -1,43 +1,39 @@
 <template>
     <div class="p-6 max-w-5xl mx-auto space-y-6">
-        <!-- ─── Back button ──────────────────────────────────────── -->
-        <button
-            class="flex items-center gap-2 text-sm font-medium transition-colors hover:opacity-70"
-            style="
-                color: var(--color-green-700);
-                background: none;
-                border: none;
-                cursor: pointer;
-                padding: 0;
-            "
-            @click="router.back()"
-        >
-            <i class="pi pi-arrow-left" aria-hidden="true" />
-            Kembali
-        </button>
+        <!-- ─── Header & Back Navigation ─────────────────────────── -->
+        <div class="flex items-center justify-between gap-4 flex-wrap">
+            <button
+                type="button"
+                class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:text-slate-900 transition-all shadow-2xs cursor-pointer"
+                @click="router.back()"
+            >
+                <i class="pi pi-arrow-left text-xs text-slate-400" />
+                <span>Kembali ke Data Anak</span>
+            </button>
+            <div class="text-xs text-slate-400 font-medium">
+                Rekam Medis & Tumbuh Kembang Balita
+            </div>
+        </div>
 
-        <!-- ─── Loading ──────────────────────────────────────────── -->
+        <!-- ─── Loading State ────────────────────────────────────── -->
         <div v-if="kaderStore.loading.anakDetail" class="space-y-4">
-            <div class="skeleton h-28 rounded-2xl" />
+            <div class="skeleton h-36 rounded-2xl" />
+            <div class="skeleton h-20 rounded-2xl" />
             <div class="skeleton h-12 rounded-xl" />
             <div class="skeleton h-64 rounded-2xl" />
         </div>
 
-        <!-- ─── Error ────────────────────────────────────────────── -->
+        <!-- ─── Error State ──────────────────────────────────────── -->
         <div
             v-else-if="kaderStore.error.anakDetail"
-            class="card p-8 rounded-2xl flex flex-col items-center gap-3 text-center"
+            class="bg-white p-8 rounded-2xl border border-red-100 flex flex-col items-center gap-3 text-center shadow-xs"
         >
-            <i
-                class="pi pi-exclamation-circle text-4xl"
-                style="color: #dc2626"
-                aria-hidden="true"
-            />
-            <p class="text-sm m-0" style="color: var(--color-text-muted)">
+            <i class="pi pi-exclamation-circle text-4xl text-red-600" aria-hidden="true" />
+            <p class="text-sm m-0 text-slate-500">
                 {{ kaderStore.error.anakDetail }}
             </p>
             <button
-                class="btn-primary px-4 py-2 rounded-lg text-sm font-semibold text-white"
+                class="btn-primary px-4 py-2 rounded-xl text-xs font-semibold text-white cursor-pointer"
                 @click="fetchData"
             >
                 Coba Lagi
@@ -45,42 +41,113 @@
         </div>
 
         <template v-else-if="kaderStore.anakDetail">
-            <!-- ─── Card info anak ───────────────────────────────── -->
+            <!-- ─── 1. Hero Card Info Anak ───────────────────────── -->
             <AnakCard
                 :anak="kaderStore.anakDetail"
-                :status-tbu-terakhir="
-                    pengukuranStore.pengukuranTerakhir?.status_tbu
-                "
-            />
+                :status-tbu-terakhir="pengukuranStore.pengukuranTerakhir?.status_tbu"
+            >
+                <template #actions>
+                    <button
+                        type="button"
+                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition-all shadow-xs cursor-pointer"
+                        title="Catat Pengukuran Baru untuk Balita Ini"
+                        @click="catatPengukuranBaru"
+                    >
+                        <i class="pi pi-plus text-xs" />
+                        <span>Catat Pengukuran</span>
+                    </button>
+                </template>
+            </AnakCard>
 
-            <!-- ─── Tab navigation ───────────────────────────────── -->
+            <!-- ─── 2. Vital Stats Row (Ringkasan Terakhir) ──────── -->
             <div
-                class="flex gap-1 p-1 rounded-xl w-fit"
-                style="background: var(--color-green-50)"
+                v-if="pengukuranStore.pengukuranTerakhir"
+                class="grid grid-cols-2 lg:grid-cols-4 gap-3.5"
+            >
+                <!-- Berat Badan -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center gap-3.5">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center flex-shrink-0">
+                        <i class="pi pi-chart-bar text-sm" />
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <div class="text-[11px] font-medium text-slate-400">Berat Badan</div>
+                        <div class="text-base font-bold text-slate-800 tracking-tight">
+                            {{ formatUkuran(pengukuranStore.pengukuranTerakhir.berat_badan) }}
+                            <span class="text-xs font-normal text-slate-400">kg</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tinggi Badan -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center gap-3.5">
+                    <div class="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 border border-sky-100 flex items-center justify-center flex-shrink-0">
+                        <i class="pi pi-arrows-v text-sm" />
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <div class="text-[11px] font-medium text-slate-400">Tinggi Badan</div>
+                        <div class="text-base font-bold text-slate-800 tracking-tight">
+                            {{ formatUkuran(pengukuranStore.pengukuranTerakhir.tinggi_badan) }}
+                            <span class="text-xs font-normal text-slate-400">cm</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tinggi Badan / Umur -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center gap-3.5">
+                    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center flex-shrink-0">
+                        <i class="pi pi-heart text-sm" />
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <div class="text-[11px] font-medium text-slate-400 mb-0.5">Tinggi Badan / Umur</div>
+                        <StatusBadge
+                            type="antropometri"
+                            :value="pengukuranStore.pengukuranTerakhir.status_tbu"
+                        />
+                    </div>
+                </div>
+
+                <!-- Prioritas Pemantauan -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center gap-3.5">
+                    <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center flex-shrink-0">
+                        <i class="pi pi-exclamation-circle text-sm" />
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <div class="text-[11px] font-medium text-slate-400 mb-0.5">Prioritas Pemantauan</div>
+                        <StatusBadge
+                            type="prioritas"
+                            :value="pengukuranStore.pengukuranTerakhir.prioritas_pemantauan?.kategori"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── 3. Modern Segmented Tabs ─────────────────────── -->
+            <div
+                class="bg-slate-100/90 p-1 rounded-2xl flex gap-1 border border-slate-200/70 overflow-x-auto w-fit max-w-full"
             >
                 <button
                     v-for="tab in tabs"
                     :key="tab.key"
-                    class="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-medium transition-all"
-                    :class="activeTab === tab.key ? 'text-white' : ''"
-                    :style="
+                    type="button"
+                    class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap"
+                    :class="
                         activeTab === tab.key
-                            ? 'background: var(--color-green-700)'
-                            : 'background: transparent; color: var(--color-text-muted)'
+                            ? 'bg-white text-emerald-800 shadow-xs'
+                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
                     "
                     :aria-pressed="activeTab === tab.key"
                     @click="activeTab = tab.key"
                 >
                     <i :class="`pi ${tab.icon} text-xs`" aria-hidden="true" />
-                    {{ tab.label }}
-                    <!-- Badge jumlah -->
+                    <span>{{ tab.label }}</span>
+                    <!-- Badge count -->
                     <span
                         v-if="tab.count !== undefined"
                         class="px-1.5 py-0.5 rounded-full text-[10px] font-bold"
-                        :style="
+                        :class="
                             activeTab === tab.key
-                                ? 'background: rgba(255,255,255,0.25); color: white'
-                                : 'background: var(--color-green-100); color: var(--color-green-700)'
+                                ? 'bg-emerald-100 text-emerald-700'
+                                : 'bg-slate-200 text-slate-600'
                         "
                     >
                         {{ tab.count }}
@@ -88,23 +155,21 @@
                 </button>
             </div>
 
-            <!-- ══ TAB: Pengukuran ══════════════════════════════════ -->
-            <div v-show="activeTab === 'pengukuran'" class="space-y-4">
+            <!-- ══ TAB 1: Pengukuran & Pertumbuhan ══════════════════ -->
+            <div v-show="activeTab === 'pengukuran'" class="space-y-5">
                 <!-- Grid Chart: KMS & Tinggi Badan -->
-                <div v-if="pengukuranStore.trenPertumbuhan.length > 0" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div
+                    v-if="pengukuranStore.trenPertumbuhan.length > 0"
+                    class="grid grid-cols-1 lg:grid-cols-2 gap-5"
+                >
                     <!-- Grafik KMS (Berat Badan menurut Umur) -->
-                    <div class="card p-5 rounded-2xl">
-                        <h3
-                            class="text-sm font-semibold m-0 mb-4"
-                            style="color: var(--color-text-heading)"
-                        >
-                            <i
-                                class="pi pi-chart-line mr-1.5"
-                                style="color: var(--color-green-700)"
-                                aria-hidden="true"
-                            />
-                            Grafik KMS (Berat Badan / Umur)
-                        </h3>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-sm font-semibold text-slate-800 m-0 flex items-center gap-2">
+                                <i class="pi pi-chart-line text-emerald-600" aria-hidden="true" />
+                                <span>Kurva Pertumbuhan KMS (BB/U)</span>
+                            </h3>
+                        </div>
                         <KMSChart
                             :jenis-kelamin="kaderStore.anakDetail.jenis_kelamin"
                             :tanggal-lahir="kaderStore.anakDetail.tanggal_lahir"
@@ -113,18 +178,13 @@
                     </div>
 
                     <!-- Tren Tinggi Badan -->
-                    <div class="card p-5 rounded-2xl">
-                        <h3
-                            class="text-sm font-semibold m-0 mb-4"
-                            style="color: var(--color-text-heading)"
-                        >
-                            <i
-                                class="pi pi-chart-line mr-1.5"
-                                style="color: var(--color-green-700)"
-                                aria-hidden="true"
-                            />
-                            Tren Tinggi Badan
-                        </h3>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-sm font-semibold text-slate-800 m-0 flex items-center gap-2">
+                                <i class="pi pi-chart-line text-sky-600" aria-hidden="true" />
+                                <span>Tren Tinggi Badan (cm)</span>
+                            </h3>
+                        </div>
                         <apexchart
                             type="line"
                             height="320"
@@ -135,20 +195,18 @@
                 </div>
 
                 <!-- Tabel riwayat pengukuran -->
-                <div class="card rounded-2xl overflow-hidden">
-                    <div class="flex items-center justify-between p-4 pb-0">
-                        <h3
-                            class="text-sm font-semibold m-0"
-                            style="color: var(--color-text-heading)"
-                        >
-                            Riwayat Pengukuran
-                        </h3>
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                    <div class="flex items-center justify-between p-4 border-b border-slate-100">
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-800 m-0">
+                                Riwayat Pengukuran
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-0.5 mb-0">
+                                Data hasil pengukuran diurutkan dari yang terbaru
+                            </p>
+                        </div>
                         <span
-                            class="text-xs px-2 py-1 rounded-full font-medium"
-                            style="
-                                background: var(--color-green-100);
-                                color: var(--color-green-700);
-                            "
+                            class="text-xs px-2.5 py-1 rounded-full font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100"
                         >
                             {{ pengukuranStore.riwayat.list.length }} data
                         </span>
@@ -167,31 +225,25 @@
 
                     <div
                         v-else-if="pengukuranStore.riwayat.list.length === 0"
-                        class="flex flex-col items-center py-10 gap-2"
+                        class="flex flex-col items-center py-12 gap-2 text-center"
                     >
-                        <i
-                            class="pi pi-chart-bar text-3xl"
-                            style="color: var(--color-text-muted)"
-                            aria-hidden="true"
-                        />
-                        <p
-                            class="text-sm m-0"
-                            style="color: var(--color-text-muted)"
-                        >
-                            Belum ada data pengukuran
+                        <i class="pi pi-chart-bar text-3xl text-slate-300" aria-hidden="true" />
+                        <p class="text-sm text-slate-500 m-0">
+                            Belum ada riwayat pengukuran untuk balita ini
                         </p>
+                        <button
+                            type="button"
+                            class="mt-2 text-xs font-semibold text-emerald-700 hover:underline cursor-pointer"
+                            @click="catatPengukuranBaru"
+                        >
+                            + Catat Pengukuran Pertama
+                        </button>
                     </div>
 
-                    <div v-else class="overflow-x-auto mt-3">
+                    <div v-else class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead>
-                            <tr
-                                style="
-                                        background: var(--color-green-50);
-                                        border-bottom: 1px solid
-                                            var(--color-input-border);
-                                    "
-                                >
+                                <tr class="bg-slate-50 border-b border-slate-100">
                                     <th class="th-cell">Tanggal</th>
                                     <th class="th-cell">BB (kg)</th>
                                     <th class="th-cell">TB (cm)</th>
@@ -199,71 +251,51 @@
                                         Status Antropometri
                                     </th>
                                     <th class="th-cell hidden md:table-cell">
-                                        Prioritas Pemantauan
+                                        Prioritas
                                     </th>
-                                    <th class="th-cell hidden lg:table-cell">
+                                    <th class="th-cell hidden lg:table-cell text-right">
                                         Skor SAW
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody class="divide-y divide-slate-100 bg-white">
                                 <tr
-                                    v-for="(p, i) in pengukuranStore.riwayat
-                                        .list"
+                                    v-for="p in pengukuranStore.riwayat.list"
                                     :key="p.id"
-                                    class="table-row"
-                                    :style="
-                                        i % 2 !== 0
-                                            ? 'background: var(--color-green-50)'
-                                            : ''
-                                    "
+                                    class="hover:bg-slate-50/80 transition-colors"
                                 >
-                                    <td
-                                        class="px-4 py-3 text-sm"
-                                        style="
-                                            color: var(--color-text-body);
-                                            white-space: nowrap;
-                                        "
-                                    >
+                                    <td class="px-4 py-3.5 text-sm text-slate-700 whitespace-nowrap font-medium">
                                         {{ formatTanggal(p.tanggal_ukur) }}
                                     </td>
-                                    <td
-                                        class="px-4 py-3 font-semibold"
-                                        style="color: var(--color-text-heading)"
-                                    >
+                                    <td class="px-4 py-3.5 font-semibold text-slate-800">
                                         {{ formatUkuran(p.berat_badan) }}
                                     </td>
-                                    <td
-                                        class="px-4 py-3 font-semibold"
-                                        style="color: var(--color-text-heading)"
-                                    >
+                                    <td class="px-4 py-3.5 font-semibold text-slate-800">
                                         {{ formatUkuran(p.tinggi_badan) }}
                                     </td>
-                                    <td class="px-4 py-3 hidden md:table-cell">
-                                        <div class="grid grid-cols-2 gap-x-2 gap-y-1 text-[10px]">
+                                    <td class="px-4 py-3.5 hidden md:table-cell">
+                                        <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
                                             <span
                                                 v-for="item in statusAntropometri(p)"
                                                 :key="item.label"
+                                                class="text-slate-600"
                                                 :title="formatStatusAntropometri(item.value)"
                                             >
-                                                <strong>{{ item.label }}:</strong>
+                                                <span class="font-semibold text-slate-500">{{ item.label }}:</span>
                                                 {{ formatStatusAntropometri(item.value) }}
                                             </span>
                                         </div>
                                     </td>
-                                    <td class="px-4 py-3 hidden md:table-cell">
+                                    <td class="px-4 py-3.5 hidden md:table-cell">
                                         <StatusBadge
                                             type="prioritas"
                                             :value="p.prioritas_pemantauan?.kategori"
                                         />
                                     </td>
                                     <td
-                                        class="px-4 py-3 hidden lg:table-cell font-mono text-xs"
-                                        style="color: var(--color-text-body)"
+                                        class="px-4 py-3.5 hidden lg:table-cell font-mono text-xs text-right font-semibold text-slate-700"
                                     >
-                                        {{
-                                            formatSkor(p.skor_saw)
-                                        }}
+                                        {{ formatSkor(p.skor_saw) }}
                                     </td>
                                 </tr>
                             </tbody>
@@ -272,16 +304,23 @@
                 </div>
             </div>
 
-            <!-- ══ TAB: Pemberian ═══════════════════════════════════ -->
+            <!-- ══ TAB 2: Pemberian PMT & Vitamin ═══════════════════ -->
             <div v-show="activeTab === 'pemberian'" class="space-y-4">
-                <div class="card rounded-2xl overflow-hidden">
-                    <div class="flex items-center justify-between p-4 pb-0">
-                        <h3
-                            class="text-sm font-semibold m-0"
-                            style="color: var(--color-text-heading)"
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                    <div class="flex items-center justify-between p-4 border-b border-slate-100">
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-800 m-0">
+                                Riwayat Pemberian PMT & Vitamin
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-0.5 mb-0">
+                                Daftar asupan vitamin dan makanan tambahan yang telah dicatat
+                            </p>
+                        </div>
+                        <span
+                            class="text-xs px-2.5 py-1 rounded-full font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100"
                         >
-                            Pemberian
-                        </h3>
+                            {{ pemberianStore.riwayat.list.length }} data
+                        </span>
                     </div>
 
                     <div
@@ -297,86 +336,49 @@
 
                     <div
                         v-else-if="pemberianStore.riwayat.list.length === 0"
-                        class="flex flex-col items-center py-10 gap-2"
+                        class="flex flex-col items-center py-12 gap-2 text-center"
                     >
-                        <i
-                            class="pi pi-inbox text-3xl"
-                            style="color: var(--color-text-muted)"
-                            aria-hidden="true"
-                        />
-                        <p
-                            class="text-sm m-0"
-                            style="color: var(--color-text-muted)"
-                        >
-                            Belum ada pemberian
+                        <i class="pi pi-inbox text-3xl text-slate-300" aria-hidden="true" />
+                        <p class="text-sm text-slate-500 m-0">
+                            Belum ada riwayat pemberian PMT atau vitamin untuk balita ini
                         </p>
                     </div>
 
-                    <div v-else class="overflow-x-auto mt-3">
+                    <div v-else class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead>
-                                <tr
-                                    style="
-                                        background: var(--color-green-50);
-                                        border-bottom: 1px solid
-                                            var(--color-input-border);
-                                    "
-                                >
+                                <tr class="bg-slate-50 border-b border-slate-100">
                                     <th class="th-cell">Tanggal</th>
-                                    <th class="th-cell">Jenis</th>
+                                    <th class="th-cell">Jenis Pemberian</th>
                                     <th class="th-cell">Dosis</th>
                                     <th class="th-cell hidden md:table-cell">
                                         Dicatat Oleh
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody class="divide-y divide-slate-100 bg-white">
                                 <tr
-                                    v-for="(item, i) in pemberianStore.riwayat
-                                        .list"
+                                    v-for="item in pemberianStore.riwayat.list"
                                     :key="item.id"
-                                    class="table-row"
-                                    :style="
-                                        i % 2 !== 0
-                                            ? 'background: var(--color-green-50)'
-                                            : ''
-                                    "
+                                    class="hover:bg-slate-50/80 transition-colors"
                                 >
-                                    <td
-                                        class="px-4 py-3 text-sm"
-                                        style="
-                                            color: var(--color-text-body);
-                                            white-space: nowrap;
-                                        "
-                                    >
-                                        {{
-                                            formatTanggal(
-                                                item.tanggal_pemberian,
-                                            )
-                                        }}
+                                    <td class="px-4 py-3.5 text-sm text-slate-700 whitespace-nowrap font-medium">
+                                        {{ formatTanggal(item.tanggal_pemberian) }}
                                     </td>
-                                    <td class="px-4 py-3">
+                                    <td class="px-4 py-3.5">
                                         <StatusBadge
                                             :label="
-                                                LABEL_JENIS[item.jenis] ??
-                                                item.jenis
+                                                LABEL_JENIS[item.jenis] ?? item.jenis
                                             "
                                             :variant="
-                                                variantJenis[item.jenis] ??
-                                                'gray'
+                                                variantJenis[item.jenis] ?? 'gray'
                                             "
                                         />
                                     </td>
-                                    <td
-                                        class="px-4 py-3 font-medium"
-                                        style="color: var(--color-text-heading)"
-                                    >
+                                    <td class="px-4 py-3.5 font-medium text-slate-800">
                                         {{ item.dosis ?? "—" }}
                                     </td>
-                                    <td
-                                        class="px-4 py-3 hidden md:table-cell text-sm"
-                                        style="color: var(--color-text-muted)"
-                                    >
+                                    <td class="px-4 py-3.5 hidden md:table-cell text-sm text-slate-500">
                                         {{ item.dicatat_oleh }}
                                     </td>
                                 </tr>
@@ -386,16 +388,23 @@
                 </div>
             </div>
 
-            <!-- ══ TAB: Rujukan ════════════════════════════════════ -->
+            <!-- ══ TAB 3: Riwayat Rujukan ═══════════════════════════ -->
             <div v-show="activeTab === 'rujukan'" class="space-y-4">
-                <div class="card rounded-2xl overflow-hidden">
-                    <div class="flex items-center justify-between p-4 pb-0">
-                        <h3
-                            class="text-sm font-semibold m-0"
-                            style="color: var(--color-text-heading)"
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                    <div class="flex items-center justify-between p-4 border-b border-slate-100">
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-800 m-0">
+                                Riwayat Rujukan
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-0.5 mb-0">
+                                Rekam jejak rujukan balita ke fasilitas pelayanan kesehatan
+                            </p>
+                        </div>
+                        <span
+                            class="text-xs px-2.5 py-1 rounded-full font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100"
                         >
-                            Riwayat Rujukan
-                        </h3>
+                            {{ rujukanStore.riwayatAnak.list.length }} data
+                        </span>
                     </div>
 
                     <div
@@ -411,96 +420,59 @@
 
                     <div
                         v-else-if="rujukanStore.riwayatAnak.list.length === 0"
-                        class="flex flex-col items-center py-10 gap-2"
+                        class="flex flex-col items-center py-12 gap-2 text-center"
                     >
-                        <i
-                            class="pi pi-send text-3xl"
-                            style="color: var(--color-text-muted)"
-                            aria-hidden="true"
-                        />
-                        <p
-                            class="text-sm m-0"
-                            style="color: var(--color-text-muted)"
-                        >
-                            Belum ada riwayat rujukan
+                        <i class="pi pi-send text-3xl text-slate-300" aria-hidden="true" />
+                        <p class="text-sm text-slate-500 m-0">
+                            Belum ada riwayat rujukan untuk balita ini
                         </p>
                     </div>
 
-                    <div v-else class="overflow-x-auto mt-3">
+                    <div v-else class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead>
-                                <tr
-                                    style="
-                                        background: var(--color-green-50);
-                                        border-bottom: 1px solid
-                                            var(--color-input-border);
-                                    "
-                                >
+                                <tr class="bg-slate-50 border-b border-slate-100">
                                     <th class="th-cell">Tanggal</th>
                                     <th class="th-cell">Status</th>
                                     <th class="th-cell hidden md:table-cell">
-                                        Prioritas Pemantauan
+                                        Prioritas
                                     </th>
                                     <th class="th-cell hidden md:table-cell">
                                         Ditangani Oleh
                                     </th>
-                                    <th class="th-cell">Aksi</th>
+                                    <th class="th-cell text-center w-24">Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody class="divide-y divide-slate-100 bg-white">
                                 <tr
-                                    v-for="(r, i) in rujukanStore.riwayatAnak
-                                        .list"
+                                    v-for="r in rujukanStore.riwayatAnak.list"
                                     :key="r.id"
-                                    class="table-row"
-                                    :style="
-                                        i % 2 !== 0
-                                            ? 'background: var(--color-green-50)'
-                                            : ''
-                                    "
+                                    class="hover:bg-slate-50/80 transition-colors"
                                 >
-                                    <td
-                                        class="px-4 py-3 text-sm"
-                                        style="
-                                            color: var(--color-text-body);
-                                            white-space: nowrap;
-                                        "
-                                    >
+                                    <td class="px-4 py-3.5 text-sm text-slate-700 whitespace-nowrap font-medium">
                                         {{ formatTanggal(r.created_at) }}
                                     </td>
-                                    <td class="px-4 py-3">
+                                    <td class="px-4 py-3.5">
                                         <StatusBadge
                                             type="rujukan"
                                             :value="r.status"
                                         />
                                     </td>
-                                    <td class="px-4 py-3 hidden md:table-cell">
+                                    <td class="px-4 py-3.5 hidden md:table-cell">
                                         <StatusBadge
                                             type="prioritas"
                                             :value="r.prioritas_pemantauan?.kategori"
                                         />
                                     </td>
-                                    <td
-                                        class="px-4 py-3 hidden md:table-cell text-sm"
-                                        style="color: var(--color-text-muted)"
-                                    >
+                                    <td class="px-4 py-3.5 hidden md:table-cell text-sm text-slate-500">
                                         {{ r.ditangani_oleh ?? "—" }}
                                     </td>
-                                    <td class="px-4 py-3">
+                                    <td class="px-4 py-3.5 text-center">
                                         <button
-                                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium"
-                                            style="
-                                                background: var(
-                                                    --color-green-100
-                                                );
-                                                color: var(--color-green-700);
-                                            "
+                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
                                             @click="lihatDetailRujukan(r.id)"
                                         >
-                                            <i
-                                                class="pi pi-eye text-xs"
-                                                aria-hidden="true"
-                                            />
+                                            <i class="pi pi-eye text-xs" aria-hidden="true" />
                                             Detail
                                         </button>
                                     </td>
@@ -562,23 +534,31 @@ const anakId = route.params.id;
 const activeTab = ref("pengukuran");
 const showDetailRujukan = ref(false);
 
+/* ── Navigasi Catat Pengukuran Baru ──────────────────────────────── */
+const catatPengukuranBaru = () => {
+    router.push({
+        name: "KaderPengukuran",
+        query: { anakId: kaderStore.anakDetail?.id || anakId },
+    });
+};
+
 /* ── Tabs ────────────────────────────────────────────────────────── */
 const tabs = computed(() => [
     {
         key: "pengukuran",
-        label: "Pengukuran",
+        label: "Pengukuran & Pertumbuhan",
         icon: "pi-chart-line",
         count: pengukuranStore.riwayat.list.length,
     },
     {
         key: "pemberian",
-        label: "Pemberian",
+        label: "Pemberian PMT & Vitamin",
         icon: "pi-shield",
         count: pemberianStore.riwayat.list.length,
     },
     {
         key: "rujukan",
-        label: "Rujukan",
+        label: "Riwayat Rujukan",
         icon: "pi-send",
         count: rujukanStore.riwayatAnak.list.length,
     },
@@ -699,12 +679,6 @@ onMounted(fetchData);
 </script>
 
 <style scoped>
-.card {
-    background: white;
-    border: 1px solid var(--color-card-border);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-}
-
 .th-cell {
     text-align: left;
     padding: 0.75rem 1rem;
@@ -713,9 +687,6 @@ onMounted(fetchData);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--color-text-muted);
-}
-.table-row:hover {
-    background: var(--color-green-50) !important;
 }
 .skeleton {
     background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);

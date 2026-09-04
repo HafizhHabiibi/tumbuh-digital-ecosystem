@@ -55,6 +55,7 @@ const authStore = useAuthStore();
 
 const routeTitleMap = {
     KaderDashboard: "Dashboard",
+    KaderRanking: "Pemantauan",
     KaderAnak: "Data Anak",
     KaderOrangTua: "Orang Tua",
     KaderPengukuran: "Pengukuran",
@@ -63,7 +64,10 @@ const routeTitleMap = {
     KaderJadwal: "Jadwal",
     KaderProfil: "Profil",
     PuskesmasDashboard: "Dashboard",
+    PuskesmasRanking: "Pemantauan",
+    PuskesmasAnak: "Data Anak",
     PuskesmasRujukan: "Rujukan",
+    PuskesmasJadwal: "Jadwal",
     PuskesmasProfil: "Profil",
 };
 

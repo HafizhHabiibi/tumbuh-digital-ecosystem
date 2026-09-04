@@ -1,17 +1,7 @@
 <template>
     <div class="p-6 max-w-6xl mx-auto space-y-6">
         <!-- ─── Header ──────────────────────────────────────────── -->
-        <div>
-            <h1
-                class="text-2xl font-bold m-0"
-                style="color: var(--color-text-heading)"
-            >
-                Manajemen Rujukan
-            </h1>
-            <p class="text-sm mt-1 m-0" style="color: var(--color-text-muted)">
-                Kelola dan update status rujukan dari kader posyandu
-            </p>
-        </div>
+        <PageHeader title="Rujukan" />
 
         <!-- ─── Error ────────────────────────────────────────────── -->
         <Transition name="slide-down">
@@ -339,6 +329,7 @@
 </template>
 
 <script setup>
+import PageHeader from "@/components/ui/PageHeader.vue";
 import { ref, computed, onBeforeUnmount, onMounted, watch } from "vue";
 import { Dialog } from "primevue";
 import { useRujukanStore, LABEL_STATUS } from "@/stores/rujukanStore";

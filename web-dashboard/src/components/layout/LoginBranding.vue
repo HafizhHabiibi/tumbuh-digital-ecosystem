@@ -12,7 +12,7 @@
             class="relative z-10 text-center text-white flex flex-col items-center"
         >
             <BrandingIllustration
-                image-class="w-44 h-auto mb-2"
+                image-class="w-44 h-auto mb-2 brightness-0 invert"
                 aria-label="Ilustrasi ibu menggendong bayi"
             />
 

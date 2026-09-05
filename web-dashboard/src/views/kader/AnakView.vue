@@ -3,7 +3,7 @@
         <!-- ─── Header Halaman (Bersih tanpa tombol sejajar) ──────────── -->
         <PageHeader title="Data Anak" />
 
-        <!-- ─── 3 Kartu Ringkasan Gender Interaktif ─────────────────── -->
+        <!-- ─── 3 Kartu Ringkasan Gender (Stat Total + Filter Gender) ── -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <!-- Total Anak -->
             <button
@@ -32,7 +32,7 @@
                     <span class="text-xs font-normal text-slate-400">anak</span>
                 </div>
                 <p class="text-[11px] font-medium text-emerald-700/80 mt-1">
-                    Semua balita dalam pantauan posyandu
+                    Semua anak dalam pantauan posyandu
                 </p>
             </button>
 
@@ -63,7 +63,7 @@
                     <span class="text-xs font-normal text-slate-400">anak</span>
                 </div>
                 <p class="text-[11px] font-medium text-sky-700/80 mt-1">
-                    Klik untuk filter balita laki-laki
+                    Klik untuk filter anak laki-laki
                 </p>
             </button>
 
@@ -94,7 +94,7 @@
                     <span class="text-xs font-normal text-slate-400">anak</span>
                 </div>
                 <p class="text-[11px] font-medium text-rose-700/80 mt-1">
-                    Klik untuk filter balita perempuan
+                    Klik untuk filter anak perempuan
                 </p>
             </button>
         </div>
@@ -193,7 +193,7 @@
                 <!-- Tombol Tambah Anak (Berpindah ke Action Toolbar) -->
                 <button
                     type="button"
-                    class="btn-primary flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all shadow-xs cursor-pointer flex-shrink-0"
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition-all shadow-xs cursor-pointer flex-shrink-0"
                     @click="openForm"
                 >
                     <i class="pi pi-plus text-xs" aria-hidden="true" />
@@ -227,7 +227,7 @@
                 </p>
                 <button
                     v-if="!search && filterJK === 'semua'"
-                    class="btn-primary px-4 py-2 rounded-lg text-sm font-semibold text-white cursor-pointer mt-1"
+                    class="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 cursor-pointer mt-1"
                     @click="openForm"
                 >
                     Tambah Sekarang
@@ -439,7 +439,7 @@ const menuItems = computed(() => {
     if (!selectedAnak.value) return [];
     return [
         {
-            label: "Detail Balita",
+            label: "Detail Anak",
             icon: "pi pi-eye",
             command: () => {
                 lihatDetail(selectedAnak.value.id);
@@ -568,7 +568,7 @@ onBeforeUnmount(reloadFromFirstPage.cancel);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #64748b;
+    color: #1e293b;
 }
 
 .input-field {

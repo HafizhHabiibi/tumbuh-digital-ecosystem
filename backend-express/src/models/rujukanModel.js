@@ -94,6 +94,8 @@ export const buatFindAll = (database = db) => async ({
             k.nama_lengkap AS nama_kader,
             p.berat_badan,
             p.tinggi_badan,
+            p.lingkar_kepala,
+            p.lingkar_lengan,
             DATE_FORMAT(p.tanggal_ukur, '%Y-%m-%d') AS tanggal_ukur,
             pu.nama_lengkap AS ditangani_oleh
         FROM rujukan r
@@ -103,7 +105,15 @@ export const buatFindAll = (database = db) => async ({
         JOIN kader k ON k.id = r.kader_id
         LEFT JOIN puskesmas pu ON pu.id = r.puskesmas_id
         ${filter.sql}
-        ORDER BY r.created_at DESC
+        ORDER BY
+            CASE r.status
+                WHEN 'diajukan' THEN 0
+                WHEN 'ditangani' THEN 1
+                ELSE 2
+            END,
+            CASE WHEN r.status != 'selesai' THEN r.created_at END ASC,
+            CASE WHEN r.status = 'selesai' THEN r.completed_at END DESC,
+            r.id DESC
         LIMIT ? OFFSET ?`,
         [...filter.params, limit, offset],
     );
@@ -146,6 +156,8 @@ export const findById = async (id) => {
             DATE_FORMAT(p.tanggal_ukur, '%Y-%m-%d')  AS tanggal_ukur,
             CAST(p.berat_badan  AS DECIMAL(5,2))     AS berat_badan,
             CAST(p.tinggi_badan AS DECIMAL(5,2))     AS tinggi_badan,
+            CAST(p.lingkar_kepala AS DECIMAL(5,2))   AS lingkar_kepala,
+            CAST(p.lingkar_lengan AS DECIMAL(5,2))   AS lingkar_lengan,
             p.anak_id,
             pu.nama_lengkap AS ditangani_oleh
         FROM rujukan r
@@ -164,6 +176,14 @@ export const findById = async (id) => {
         ...rows[0],
         berat_badan: parseFloat(rows[0].berat_badan),
         tinggi_badan: parseFloat(rows[0].tinggi_badan),
+        lingkar_kepala:
+            rows[0].lingkar_kepala === null
+                ? null
+                : parseFloat(rows[0].lingkar_kepala),
+        lingkar_lengan:
+            rows[0].lingkar_lengan === null
+                ? null
+                : parseFloat(rows[0].lingkar_lengan),
     };
 };
 
@@ -181,6 +201,8 @@ export const findByAnak = async (anak_id) => {
             DATE_FORMAT(p.tanggal_ukur, '%Y-%m-%d') AS tanggal_ukur,
             CAST(p.berat_badan AS DECIMAL(5,2)) AS berat_badan,
             CAST(p.tinggi_badan AS DECIMAL(5,2)) AS tinggi_badan,
+            CAST(p.lingkar_kepala AS DECIMAL(5,2)) AS lingkar_kepala,
+            CAST(p.lingkar_lengan AS DECIMAL(5,2)) AS lingkar_lengan,
             pu.nama_lengkap AS ditangani_oleh
         FROM rujukan r
         JOIN pengukuran p ON p.id = r.pengukuran_id

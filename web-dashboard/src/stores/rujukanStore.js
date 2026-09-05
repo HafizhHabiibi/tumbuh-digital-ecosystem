@@ -32,6 +32,8 @@ export const useRujukanStore = defineStore("rujukan", {
         pagination: createPagination(),
         summary: { diajukan: 0, ditangani: 0, selesai: 0 },
         listRequestId: 0,
+        detailRequestId: 0,
+        riwayatRequestId: 0,
 
         // Detail satu rujukan
         rujukanDetail: null,
@@ -187,17 +189,22 @@ export const useRujukanStore = defineStore("rujukan", {
         // KADER & PUSKESMAS: Detail rujukan
         // --------------------------------------------------
         async fetchDetailRujukan(id) {
+            const requestId = ++this.detailRequestId;
             this.loading.fetchDetail = true;
             this.error.fetchDetail = null;
             this.rujukanDetail = null;
             try {
                 const res = await rujukanService.getDetailRujukan(id);
+                if (requestId !== this.detailRequestId) return;
                 this.rujukanDetail = res.data.data;
             } catch (err) {
+                if (requestId !== this.detailRequestId) return;
                 this.error.fetchDetail =
                     err.response?.data?.message || err.message;
             } finally {
-                this.loading.fetchDetail = false;
+                if (requestId === this.detailRequestId) {
+                    this.loading.fetchDetail = false;
+                }
             }
         },
 
@@ -252,18 +259,23 @@ export const useRujukanStore = defineStore("rujukan", {
         // KADER: Riwayat rujukan per anak
         // --------------------------------------------------
         async fetchRujukanByAnak(anakId) {
+            const requestId = ++this.riwayatRequestId;
             this.loading.fetchByAnak = true;
             this.error.fetchByAnak = null;
             this.riwayatAnak = { anak: null, list: [] };
             try {
                 const res = await rujukanService.getRujukanByAnak(anakId);
+                if (requestId !== this.riwayatRequestId) return;
                 this.riwayatAnak.anak = res.data.data.anak;
                 this.riwayatAnak.list = res.data.data.rujukan;
             } catch (err) {
+                if (requestId !== this.riwayatRequestId) return;
                 this.error.fetchByAnak =
                     err.response?.data?.message || err.message;
             } finally {
-                this.loading.fetchByAnak = false;
+                if (requestId === this.riwayatRequestId) {
+                    this.loading.fetchByAnak = false;
+                }
             }
         },
 
@@ -273,7 +285,10 @@ export const useRujukanStore = defineStore("rujukan", {
         },
 
         resetRiwayatAnak() {
+            this.riwayatRequestId++;
             this.riwayatAnak = { anak: null, list: [] };
+            this.loading.fetchByAnak = false;
+            this.error.fetchByAnak = null;
         },
     },
 });

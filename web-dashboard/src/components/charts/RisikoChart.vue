@@ -9,13 +9,13 @@
         :loading="loading"
         :empty="totalAnak === 0"
     >
-        <!-- Header Actions: Total Balita -->
+        <!-- Header Actions: Total Anak -->
         <template #actions>
             <span
                 v-if="totalAnak > 0 && !loading"
                 class="text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg"
             >
-                Total: {{ totalAnak }} Balita
+                Total: {{ totalAnak }} Anak
             </span>
         </template>
 

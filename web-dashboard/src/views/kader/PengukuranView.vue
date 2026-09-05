@@ -73,12 +73,14 @@
                             <select
                                 id="anak_id"
                                 v-model="form.anak_id"
-                                :disabled="pengukuranStore.loading.create"
+                                :disabled="pengukuranStore.loading.create || kaderStore.loading.anakOptions"
                                 class="input-field w-full pl-9 pr-4 py-2.5 rounded-xl text-sm appearance-none"
                                 aria-required="true"
+                                :aria-invalid="!!fieldError.anak_id"
+                                aria-describedby="anak_id_error"
                             >
                                 <option value="" disabled>
-                                    Pilih nama anak
+                                    {{ kaderStore.loading.anakOptions ? "Memuat data anak..." : "Pilih nama anak" }}
                                 </option>
                                 <option
                                     v-for="anak in kaderStore.anakOptions"
@@ -93,6 +95,23 @@
                                 style="color: var(--color-text-muted)"
                                 aria-hidden="true"
                             />
+                        </div>
+                        <p id="anak_id_error" v-if="fieldError.anak_id" class="error-hint">
+                            {{ fieldError.anak_id }}
+                        </p>
+                        <div
+                            v-if="kaderStore.error.anakOptions"
+                            class="flex items-center justify-between gap-3 text-xs text-red-700"
+                            role="alert"
+                        >
+                            <span>{{ kaderStore.error.anakOptions }}</span>
+                            <button
+                                type="button"
+                                class="font-semibold underline cursor-pointer"
+                                @click="kaderStore.fetchAnakOptions()"
+                            >
+                                Coba lagi
+                            </button>
                         </div>
                         <!-- Info anak terpilih -->
                         <div
@@ -144,14 +163,15 @@
                             class="w-full"
                             aria-required="true"
                             :aria-invalid="!!fieldError.tanggal_ukur"
+                            aria-describedby="tanggal_ukur_error"
                         />
-                        <p v-if="fieldError.tanggal_ukur" class="error-hint">
+                        <p id="tanggal_ukur_error" v-if="fieldError.tanggal_ukur" class="error-hint">
                             {{ fieldError.tanggal_ukur }}
                         </p>
                     </div>
 
                     <!-- Berat & Tinggi Badan — 2 kolom -->
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div class="space-y-1.5">
                             <label for="berat_badan" class="field-label">
                                 Berat Badan
@@ -173,9 +193,11 @@
                                     :disabled="pengukuranStore.loading.create"
                                     class="input-field w-full px-4 py-2.5 rounded-xl text-sm"
                                     aria-required="true"
+                                    :aria-invalid="!!fieldError.berat_badan"
+                                    aria-describedby="berat_badan_error"
                                 />
                             </div>
-                            <p v-if="fieldError.berat_badan" class="error-hint">
+                            <p id="berat_badan_error" v-if="fieldError.berat_badan" class="error-hint">
                                 {{ fieldError.berat_badan }}
                             </p>
                         </div>
@@ -200,9 +222,12 @@
                                     :disabled="pengukuranStore.loading.create"
                                     class="input-field w-full px-4 py-2.5 rounded-xl text-sm"
                                     aria-required="true"
+                                    :aria-invalid="!!fieldError.tinggi_badan"
+                                    aria-describedby="tinggi_badan_error"
                                 />
                             </div>
                             <p
+                                id="tinggi_badan_error"
                                 v-if="fieldError.tinggi_badan"
                                 class="error-hint"
                             >
@@ -212,7 +237,7 @@
                     </div>
 
                     <!-- Lingkar Kepala & Lengan — opsional -->
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div class="space-y-1.5">
                             <label for="lingkar_kepala" class="field-label">
                                 Lingkar Kepala
@@ -232,14 +257,16 @@
                                 max="80"
                                 :disabled="pengukuranStore.loading.create"
                                 class="input-field w-full px-4 py-2.5 rounded-xl text-sm"
+                                :aria-invalid="!!fieldError.lingkar_kepala"
+                                aria-describedby="lingkar_kepala_error"
                             />
-                            <p v-if="fieldError.lingkar_kepala" class="error-hint">
+                            <p id="lingkar_kepala_error" v-if="fieldError.lingkar_kepala" class="error-hint">
                                 {{ fieldError.lingkar_kepala }}
                             </p>
                         </div>
                         <div class="space-y-1.5">
                             <label for="lingkar_lengan" class="field-label">
-                                Lingkar Lengan
+                                Lingkar Lengan Atas
                                 <span
                                     class="text-xs font-normal"
                                     style="color: var(--color-text-muted)"
@@ -256,8 +283,10 @@
                                 max="60"
                                 :disabled="pengukuranStore.loading.create"
                                 class="input-field w-full px-4 py-2.5 rounded-xl text-sm"
+                                :aria-invalid="!!fieldError.lingkar_lengan"
+                                aria-describedby="lingkar_lengan_error"
                             />
-                            <p v-if="fieldError.lingkar_lengan" class="error-hint">
+                            <p id="lingkar_lengan_error" v-if="fieldError.lingkar_lengan" class="error-hint">
                                 {{ fieldError.lingkar_lengan }}
                             </p>
                         </div>
@@ -266,7 +295,7 @@
                     <!-- Tombol submit -->
                     <button
                         type="submit"
-                        :disabled="pengukuranStore.loading.create || !isValid"
+                        :disabled="pengukuranStore.loading.create"
                         class="btn-primary w-full py-3 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed mt-2"
                     >
                         <i
@@ -285,7 +314,7 @@
             </div>
 
             <!-- ══ KOLOM KANAN: Hasil Pengukuran ════════════════════ -->
-            <div class="space-y-4">
+            <div ref="resultSection" class="space-y-4">
                 <!-- State: belum ada hasil -->
                 <div
                     v-if="!pengukuranStore.createResult"
@@ -309,21 +338,86 @@
                 <template v-else>
                     <PengukuranResultCard
                         :result="pengukuranStore.createResult"
+                        :anak="anakTerpilih"
                     />
                 </template>
             </div>
         </div>
+
+        <Dialog
+            v-model:visible="showConfirmation"
+            modal
+            header="Konfirmasi Pengukuran"
+            :style="{ width: '520px', maxWidth: '95vw' }"
+        >
+            <div class="space-y-4">
+                <div class="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs leading-relaxed">
+                    Pastikan identitas anak dan seluruh nilai sudah benar. Pengukuran yang tersimpan akan memengaruhi riwayat dan prioritas pemantauan.
+                </div>
+
+                <div class="rounded-xl border border-slate-200 divide-y divide-slate-100">
+                    <div class="p-4">
+                        <p class="text-[11px] uppercase tracking-wider font-semibold text-slate-400 m-0">Anak</p>
+                        <p class="text-sm font-bold text-slate-800 mt-1 mb-0">{{ anakTerpilih?.nama }}</p>
+                        <p class="text-xs text-slate-500 mt-1 mb-0">Orang tua: {{ anakTerpilih?.nama_orang_tua || "—" }}</p>
+                    </div>
+                    <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 p-4 text-xs">
+                        <div>
+                            <dt class="text-slate-400">Tanggal pengukuran</dt>
+                            <dd class="font-semibold text-slate-700 mt-1 ml-0">{{ formattedMeasurementDate }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-slate-400">Berat badan</dt>
+                            <dd class="font-semibold text-slate-700 mt-1 ml-0">{{ form.berat_badan }} kg</dd>
+                        </div>
+                        <div>
+                            <dt class="text-slate-400">Tinggi badan</dt>
+                            <dd class="font-semibold text-slate-700 mt-1 ml-0">{{ form.tinggi_badan }} cm</dd>
+                        </div>
+                        <div>
+                            <dt class="text-slate-400">Lingkar kepala</dt>
+                            <dd class="font-semibold text-slate-700 mt-1 ml-0">{{ optionalMeasurementLabel(form.lingkar_kepala) }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-slate-400">Lingkar lengan atas</dt>
+                            <dd class="font-semibold text-slate-700 mt-1 ml-0">{{ optionalMeasurementLabel(form.lingkar_lengan) }}</dd>
+                        </div>
+                    </dl>
+                </div>
+
+                <div class="flex justify-end gap-2">
+                    <button
+                        type="button"
+                        class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 cursor-pointer"
+                        :disabled="pengukuranStore.loading.create"
+                        @click="showConfirmation = false"
+                    >
+                        Periksa Kembali
+                    </button>
+                    <button
+                        type="button"
+                        class="btn-primary px-4 py-2 rounded-xl text-xs font-semibold text-white inline-flex items-center gap-2 cursor-pointer disabled:opacity-60"
+                        :disabled="pengukuranStore.loading.create"
+                        @click="confirmSubmit"
+                    >
+                        <i v-if="pengukuranStore.loading.create" class="pi pi-spin pi-spinner" aria-hidden="true" />
+                        <i v-else class="pi pi-check" aria-hidden="true" />
+                        Simpan Pengukuran
+                    </button>
+                </div>
+            </div>
+        </Dialog>
     </div>
 </template>
 
 <script setup>
-import { computed, reactive, onMounted } from "vue";
+import { computed, reactive, ref, watch, nextTick, onMounted } from "vue";
 import { useRoute } from "vue-router";
-import { DatePicker } from "primevue";
+import { DatePicker, Dialog } from "primevue";
 import { usePengukuranStore } from "@/stores/pengukuranStore";
 import { useKaderStore } from "@/stores/kaderStore";
 import PengukuranResultCard from "@/components/cards/PengukuranResultCard.vue";
-import { hitungUsia, toLocalDateStr } from "@/utils/format.js";
+import { formatTanggal, hitungUsia, toLocalDateStr } from "@/utils/format.js";
 import { validateMeasurement } from "@/utils/measurementValidation.js";
 import {
     getCurrentAgeMeasurementWarning,
@@ -336,6 +430,9 @@ const kaderStore = useKaderStore();
 const route = useRoute();
 
 const todayDate = new Date();
+const showConfirmation = ref(false);
+const attemptedSubmit = ref(false);
+const resultSection = ref(null);
 
 const form = reactive({
     anak_id: "",
@@ -366,6 +463,18 @@ const currentAgeWarning = computed(() =>
 /* ── Validasi ────────────────────────────────────────────────────── */
 const fieldError = computed(() => {
     const errors = validateMeasurement(form);
+    if (attemptedSubmit.value) {
+        if (!form.anak_id) errors.anak_id = "Anak wajib dipilih";
+        if (!form.tanggal_ukur) {
+            errors.tanggal_ukur = "Tanggal pengukuran wajib dipilih";
+        }
+        if (form.berat_badan === null || form.berat_badan === "") {
+            errors.berat_badan = "Berat badan wajib diisi";
+        }
+        if (form.tinggi_badan === null || form.tinggi_badan === "") {
+            errors.tinggi_badan = "Tinggi badan wajib diisi";
+        }
+    }
     if (anakTerpilih.value && form.tanggal_ukur) {
         const eligibility = validateMeasurementDate(
             anakTerpilih.value.tanggal_lahir,
@@ -390,9 +499,23 @@ const isValid = computed(
         Object.keys(fieldError.value).length === 0,
 );
 
+const formattedMeasurementDate = computed(() =>
+    form.tanggal_ukur ? formatTanggal(toLocalDateStr(form.tanggal_ukur)) : "—",
+);
+
+const optionalMeasurementLabel = (value) =>
+    value === null || value === "" ? "Tidak diisi" : `${value} cm`;
+
 /* ── Submit ──────────────────────────────────────────────────────── */
-const handleSubmit = async () => {
+const handleSubmit = () => {
+    attemptedSubmit.value = true;
     if (!isValid.value || pengukuranStore.loading.create) return;
+    showConfirmation.value = true;
+};
+
+const confirmSubmit = async () => {
+    if (!isValid.value || pengukuranStore.loading.create) return;
+    showConfirmation.value = false;
     pengukuranStore.resetCreateState();
 
     const payload = {
@@ -408,14 +531,42 @@ const handleSubmit = async () => {
         payload.lingkar_lengan = form.lingkar_lengan;
     }
 
-    await pengukuranStore.createPengukuran(payload);
+    const success = await pengukuranStore.createPengukuran(payload);
+    if (success) {
+        await nextTick();
+        if (window.innerWidth < 1024) {
+            resultSection.value?.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+            });
+        }
+    }
 };
 
+watch(
+    () => [
+        form.anak_id,
+        form.tanggal_ukur,
+        form.berat_badan,
+        form.tinggi_badan,
+        form.lingkar_kepala,
+        form.lingkar_lengan,
+    ],
+    () => {
+        if (pengukuranStore.createResult) {
+            pengukuranStore.resetCreateState();
+        }
+    },
+);
+
 onMounted(async () => {
+    pengukuranStore.resetCreateState();
     await kaderStore.fetchAnakOptions();
     if (route.query.anakId) {
-        const queryId = Number(route.query.anakId);
-        form.anak_id = !isNaN(queryId) && queryId > 0 ? queryId : route.query.anakId;
+        const queryId = Array.isArray(route.query.anakId)
+            ? route.query.anakId[0]
+            : route.query.anakId;
+        form.anak_id = queryId || "";
     }
 });
 </script>

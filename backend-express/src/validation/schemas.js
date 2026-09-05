@@ -167,6 +167,16 @@ export const rujukanStatusSchema = {
         status: rules.enum(["ditangani", "selesai"]),
         catatan_puskesmas: rules.string({ required: false, max: 2000 }),
     },
+    refine: (body) => {
+        if (
+            body.status === "selesai" &&
+            (!body.catatan_puskesmas || body.catatan_puskesmas.length < 3)
+        ) {
+            throw new ValidationError(
+                "catatan_puskesmas wajib diisi minimal 3 karakter saat rujukan diselesaikan",
+            );
+        }
+    },
 };
 
 const jadwalFields = {

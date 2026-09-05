@@ -59,6 +59,7 @@ export const usePemberianStore = defineStore("pemberian", {
 
         // Hasil create
         createResult: null,
+        riwayatRequestId: 0,
 
         loading: {
             create: false,
@@ -102,7 +103,10 @@ export const usePemberianStore = defineStore("pemberian", {
                 const res = await pemberianService.createRiwayat(payload);
                 this.createResult = res.data.data;
 
-                if (this.riwayat.anak?.id === payload.anak_id) {
+                if (
+                    this.riwayat.anak &&
+                    String(this.riwayat.anak.id) === String(payload.anak_id)
+                ) {
                     const filter =
                         this.riwayat.filterAktif === "semua"
                             ? null
@@ -120,6 +124,7 @@ export const usePemberianStore = defineStore("pemberian", {
         },
 
         async fetchRiwayat(anakId, jenis = null) {
+            const requestId = ++this.riwayatRequestId;
             this.loading.riwayat = true;
             this.error.riwayat = null;
             this.riwayat = {
@@ -132,13 +137,17 @@ export const usePemberianStore = defineStore("pemberian", {
                     anakId,
                     jenis,
                 );
+                if (requestId !== this.riwayatRequestId) return;
                 this.riwayat.anak = res.data.data.anak;
                 this.riwayat.list = res.data.data.pemberian;
                 this.riwayat.filterAktif = res.data.data.filter; // 'semua' atau nama jenis
             } catch (err) {
+                if (requestId !== this.riwayatRequestId) return;
                 this.error.riwayat = err.response?.data?.message || err.message;
             } finally {
-                this.loading.riwayat = false;
+                if (requestId === this.riwayatRequestId) {
+                    this.loading.riwayat = false;
+                }
             }
         },
 
@@ -153,7 +162,10 @@ export const usePemberianStore = defineStore("pemberian", {
         },
 
         resetRiwayat() {
+            this.riwayatRequestId++;
             this.riwayat = { anak: null, list: [], filterAktif: "semua" };
+            this.loading.riwayat = false;
+            this.error.riwayat = null;
         },
     },
 });

@@ -165,8 +165,6 @@ export const buatCreatePengukuran = ({
                 kategori_prioritas: sawResult.kategori_prioritas,
                 prioritas_pemantauan: prioritasPemantauan,
                 detail_saw: sawResult.detail,
-                ai_insight_status: "pending",
-                ai_insight: "Sedang diproses, tersedia dalam beberapa detik",
             },
             "Pengukuran berhasil disimpan",
             201,

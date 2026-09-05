@@ -1,7 +1,7 @@
 <template>
     <div class="p-6 max-w-6xl mx-auto space-y-6">
-        <!-- ─── Header & Back Navigation ─────────────────────────── -->
-        <div class="flex items-center justify-between gap-4 flex-wrap">
+        <!-- ─── Back Navigation ──────────────────────────────────── -->
+        <div class="flex items-center">
             <button
                 type="button"
                 class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:text-slate-900 transition-all shadow-2xs cursor-pointer"
@@ -10,9 +10,6 @@
                 <i class="pi pi-arrow-left text-xs text-slate-400" />
                 <span>Kembali ke Data Anak</span>
             </button>
-            <div class="text-xs text-slate-400 font-medium">
-                Rekam Medis & Riwayat Teknis Balita
-            </div>
         </div>
 
         <!-- ─── Loading State ────────────────────────────────────── -->
@@ -51,7 +48,7 @@
                         type="button"
                         class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition-all shadow-xs disabled:opacity-60 cursor-pointer"
                         :disabled="downloading"
-                        title="Unduh Laporan Medis Balita dalam format PDF"
+                        title="Unduh Laporan Medis Anak dalam format PDF"
                         @click="downloadLaporan"
                     >
                         <i
@@ -89,8 +86,17 @@
             <!-- ─── 2. Vital Stats Row (Pengukuran Terakhir) ──────── -->
             <section
                 v-if="store.pengukuranTerakhir"
-                class="grid grid-cols-2 lg:grid-cols-4 gap-3.5"
+                class="space-y-2.5"
+                aria-label="Ringkasan pengukuran terakhir"
             >
+                <div class="flex items-center gap-2 px-0.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500" />
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-slate-600 m-0">
+                        Pengukuran Terakhir
+                    </h2>
+                </div>
+
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
                 <!-- Tanggal Pengukuran Terakhir -->
                 <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center gap-3.5">
                     <div class="w-10 h-10 rounded-xl bg-slate-50 text-slate-600 border border-slate-200/80 flex items-center justify-center flex-shrink-0">
@@ -144,6 +150,7 @@
                             :value="store.pengukuranTerakhir.prioritas_pemantauan?.kategori"
                         />
                     </div>
+                </div>
                 </div>
             </section>
 
@@ -370,7 +377,7 @@ onMounted(loadData);
 .th-cell {
     padding: 0.75rem 1rem;
     text-align: left;
-    color: var(--color-text-muted);
+    color: #1e293b;
     font-size: 0.7rem;
     font-weight: 600;
     text-transform: uppercase;

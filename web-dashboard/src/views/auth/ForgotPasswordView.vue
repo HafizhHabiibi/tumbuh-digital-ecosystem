@@ -51,13 +51,11 @@ const handleSubmit = async () => {
     if (success) {
         submittedEmail.value = email.value.trim();
         submitted.value = true;
-        // [2] Reset token + widget setelah submit sukses
-        // Widget tetap tampil untuk keperluan tombol "Kirim ulang"
+        // Reset token dan widget setelah submit sukses.
         turnstileToken.value = "";
         forgotFormRef.value?.resetTurnstile();
     } else {
-        // [3] Reset token + widget jika submit gagal
-        // Sama seperti Login — user harus verifikasi ulang sebelum coba lagi
+        // Verifikasi keamanan harus diulang jika permintaan gagal.
         turnstileToken.value = "";
         forgotFormRef.value?.resetTurnstile();
     }
@@ -66,8 +64,7 @@ const handleSubmit = async () => {
 const handleResend = async () => {
     if (authStore.loading.forgotPassword) return;
 
-    // [4] Kembali ke state form, token dikosongkan, widget di-reset
-    // User harus selesaikan Turnstile dulu sebelum bisa submit lagi
+    // Kembali ke form agar pengguna dapat meminta tautan baru.
     submitted.value = false;
     turnstileToken.value = "";
     forgotFormRef.value?.resetTurnstile();

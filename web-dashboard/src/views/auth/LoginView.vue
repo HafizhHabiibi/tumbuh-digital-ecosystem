@@ -38,7 +38,7 @@ const form = ref({
 
 const isFormValid = computed(
     () =>
-        form.value.email.trim() !== "" &&
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.value.email.trim()) &&
         form.value.password.length >= 6 &&
         form.value.turnstileToken !== "",
 );
@@ -60,9 +60,7 @@ const handleLogin = async () => {
             authStore.clearAuth();
         }
     } else {
-        // [2] Login gagal: kosongkan token lalu reset widget Turnstile
-        // Mengosongkan token dulu membuat tombol langsung ke-disable
-        // resetTurnstile() membuat widget Cloudflare render ulang dari awal
+        // Login gagal: kosongkan token dan render ulang verifikasi keamanan.
         form.value.turnstileToken = "";
         loginFormRef.value?.resetTurnstile();
     }

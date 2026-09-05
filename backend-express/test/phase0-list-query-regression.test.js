@@ -143,6 +143,8 @@ test("model rujukan memfilter list dan count, tetapi summary tetap global", asyn
     });
     assert.equal(calls.length, 3);
     assert.match(calls[0].sql, /r\.status = \?/);
+    assert.match(calls[0].sql, /WHEN 'diajukan' THEN 0/);
+    assert.match(calls[0].sql, /r\.created_at END ASC/);
     assert.match(calls[1].sql, /r\.status = \?/);
     assert.doesNotMatch(calls[2].sql, /WHERE[\s\S]*r\.status = \?/);
     assert.ok(calls[2].params.includes("%Dewi%"));

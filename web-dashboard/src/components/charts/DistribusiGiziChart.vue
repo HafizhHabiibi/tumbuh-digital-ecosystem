@@ -161,7 +161,7 @@ const chartOptions = computed(() => ({
                     },
                     total: {
                         show: true,
-                        label: "Total Balita",
+                        label: "Total Anak",
                         fontFamily: "Poppins, sans-serif",
                         fontSize: "11px",
                         fontWeight: 500,

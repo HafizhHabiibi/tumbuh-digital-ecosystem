@@ -102,7 +102,7 @@
                 <form
                     v-if="!submitted"
                     novalidate
-                    @submit.prevent="$emit('submit')"
+                    @submit.prevent="handleSubmit"
                 >
                     <div class="space-y-5">
                         <div class="space-y-1.5">
@@ -127,7 +127,8 @@
                                     :disabled="loading"
                                     class="input-field w-full pl-11 pr-4 py-3 rounded-xl text-sm"
                                     aria-required="true"
-                                    :aria-invalid="!!error"
+                                    :aria-invalid="!!fieldErrors.email"
+                                    aria-describedby="forgot-email-error"
                                     @input="
                                         $emit(
                                             'update:email',
@@ -136,12 +137,18 @@
                                     "
                                 />
                             </div>
+                            <p v-if="fieldErrors.email" id="forgot-email-error" class="field-error">
+                                {{ fieldErrors.email }}
+                            </p>
                         </div>
+
+                        <p v-if="fieldErrors.turnstile" class="field-error text-center" role="alert">
+                            {{ fieldErrors.turnstile }}
+                        </p>
 
                         <button
                             type="submit"
-                            :disabled="loading || !isValid || !turnstileToken"
-                            class="btn-primary w-full text-white font-semibold text-sm py-3.5 rounded-xl transition-all duration-200 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
+                            class="btn-primary w-full text-white font-semibold text-sm py-3.5 rounded-xl transition-all duration-200 active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
                             :aria-busy="loading"
                         >
                             <template v-if="loading">
@@ -168,9 +175,8 @@
                         Tidak menerima email?
                         <button
                             type="button"
-                            class="font-bold text-brand-primary hover:opacity-70 transition-opacity disabled:opacity-40"
-                            :disabled="loading || !turnstileToken"
-                            @click="$emit('resend')"
+                            class="font-bold text-brand-primary hover:opacity-70 transition-opacity cursor-pointer"
+                            @click="handleResend"
                         >
                             Kirim ulang
                         </button>
@@ -206,6 +212,34 @@ const emit = defineEmits([
 const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
 
 const turnstileRef = ref(null);
+const attemptedSubmit = ref(false);
+
+const fieldErrors = computed(() => {
+    if (!attemptedSubmit.value) return {};
+    const errors = {};
+    const email = props.email.trim();
+    if (!email) errors.email = "Email wajib diisi";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        errors.email = "Format email belum valid";
+    }
+    if (!props.turnstileToken) {
+        errors.turnstile = "Selesaikan verifikasi keamanan terlebih dahulu";
+    }
+    return errors;
+});
+
+const handleSubmit = () => {
+    if (props.loading) return;
+    attemptedSubmit.value = true;
+    if (!props.isValid || Object.keys(fieldErrors.value).length > 0) return;
+    emit("submit");
+};
+
+const handleResend = () => {
+    if (props.loading) return;
+    attemptedSubmit.value = false;
+    emit("resend");
+};
 
 const token = computed({
     get: () => props.turnstileToken,
@@ -313,5 +347,10 @@ defineExpose({
 .illustration--green {
     filter: invert(28%) sepia(64%) saturate(620%) hue-rotate(94deg)
         brightness(85%) contrast(101%);
+}
+.field-error {
+    margin: 0.35rem 0 0 0.25rem;
+    color: #dc2626;
+    font-size: 0.72rem;
 }
 </style>

@@ -12,6 +12,8 @@ test("enrichment rujukan menyertakan SAW, antropometri, dan prioritas pemantauan
             tanggal_ukur: "2026-08-26",
             berat_badan: "11.00",
             tinggi_badan: "85.00",
+            lingkar_kepala: "48.50",
+            lingkar_lengan: "14.25",
         },
         {
             tanggal_lahir: "2024-08-26",
@@ -22,6 +24,9 @@ test("enrichment rujukan menyertakan SAW, antropometri, dan prioritas pemantauan
     assert.equal(result.id, 17);
     assert.equal(result.berat_badan, 11);
     assert.equal(result.tinggi_badan, 85);
+    assert.equal(result.lingkar_kepala, 48.5);
+    assert.equal(result.lingkar_lengan, 14.25);
+    assert.ok(Number.isFinite(result.nilai_imt));
     assert.ok(Number.isFinite(result.skor_saw));
     assert.ok(["rendah", "sedang", "tinggi"].includes(result.kategori_prioritas));
     assert.ok(

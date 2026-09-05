@@ -17,6 +17,7 @@ export const usePengukuranStore = defineStore("pengukuran", {
         rankingAnak: [],
         rankingPagination: createPagination(),
         rankingRequestId: 0,
+        riwayatRequestId: 0,
         detailSAW: null,
 
         loading: {
@@ -66,18 +67,23 @@ export const usePengukuranStore = defineStore("pengukuran", {
         },
 
         async fetchRiwayat(anakId) {
+            const requestId = ++this.riwayatRequestId;
             this.loading.riwayat = true;
             this.error.riwayat = null;
             this.riwayat = { anak: null, list: [] };
             try {
                 const res =
                     await pengukuranService.getRiwayatPengukuran(anakId);
+                if (requestId !== this.riwayatRequestId) return;
                 this.riwayat.anak = res.data.data.anak;
                 this.riwayat.list = res.data.data.riwayat;
             } catch (err) {
+                if (requestId !== this.riwayatRequestId) return;
                 this.error.riwayat = err.response?.data?.message || err.message;
             } finally {
-                this.loading.riwayat = false;
+                if (requestId === this.riwayatRequestId) {
+                    this.loading.riwayat = false;
+                }
             }
         },
 
@@ -142,7 +148,10 @@ export const usePengukuranStore = defineStore("pengukuran", {
         },
 
         resetRiwayat() {
+            this.riwayatRequestId++;
             this.riwayat = { anak: null, list: [] };
+            this.loading.riwayat = false;
+            this.error.riwayat = null;
         },
     },
 });

@@ -322,7 +322,7 @@ onBeforeUnmount(reloadFromFirstPage.cancel);
 .th-cell {
     padding: 0.75rem 1rem;
     text-align: left;
-    color: #64748b;
+    color: #1e293b;
     font-size: 0.7rem;
     font-weight: 600;
     text-transform: uppercase;

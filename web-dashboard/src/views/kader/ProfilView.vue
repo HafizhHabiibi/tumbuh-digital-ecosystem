@@ -115,6 +115,8 @@
                             :disabled="authStore.loading.changePassword"
                             class="input-field w-full pl-9 pr-10 py-2.5 rounded-xl text-sm"
                             aria-required="true"
+                            :aria-invalid="!!validationErrors.password_lama"
+                            aria-describedby="password_lama_error"
                         />
                         <button
                             type="button"
@@ -132,6 +134,9 @@
                             />
                         </button>
                     </div>
+                    <p v-if="validationErrors.password_lama" id="password_lama_error" class="error-hint">
+                        {{ validationErrors.password_lama }}
+                    </p>
                 </div>
 
                 <!-- Password baru -->
@@ -156,6 +161,8 @@
                             :disabled="authStore.loading.changePassword"
                             class="input-field w-full pl-9 pr-10 py-2.5 rounded-xl text-sm"
                             aria-required="true"
+                            :aria-invalid="!!validationErrors.password_baru"
+                            aria-describedby="password_baru_error"
                         />
                         <button
                             type="button"
@@ -173,13 +180,8 @@
                             />
                         </button>
                     </div>
-                    <p
-                        v-if="
-                            form.password_baru && form.password_baru.length < 6
-                        "
-                        class="error-hint"
-                    >
-                        Password minimal 6 karakter
+                    <p v-if="validationErrors.password_baru" id="password_baru_error" class="error-hint">
+                        {{ validationErrors.password_baru }}
                     </p>
                 </div>
 
@@ -200,6 +202,8 @@
                             :disabled="authStore.loading.changePassword"
                             class="input-field w-full pl-9 pr-10 py-2.5 rounded-xl text-sm"
                             aria-required="true"
+                            :aria-invalid="!!validationErrors.konfirmasi"
+                            aria-describedby="konfirmasi_password_error"
                         />
                         <button
                             type="button"
@@ -219,22 +223,16 @@
                             />
                         </button>
                     </div>
-                    <p
-                        v-if="
-                            form.konfirmasi &&
-                            form.konfirmasi !== form.password_baru
-                        "
-                        class="error-hint"
-                    >
-                        Password tidak cocok
+                    <p v-if="validationErrors.konfirmasi" id="konfirmasi_password_error" class="error-hint">
+                        {{ validationErrors.konfirmasi }}
                     </p>
                 </div>
 
                 <!-- Submit -->
                 <button
                     type="submit"
-                    :disabled="authStore.loading.changePassword || !isValid"
-                    class="btn-primary w-full py-3 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed mt-2"
+                    class="btn-primary w-full py-3 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 cursor-pointer mt-2"
+                    :aria-busy="authStore.loading.changePassword"
                 >
                     <i
                         v-if="authStore.loading.changePassword"
@@ -296,6 +294,7 @@ const authStore = useAuthStore();
 const router = useRouter();
 
 const successMsg = ref("");
+const attemptedSubmit = ref(false);
 
 const form = reactive({
     password_lama: "",
@@ -317,10 +316,21 @@ const userInitial = computed(
 /* ── Validasi ────────────────────────────────────────────────────── */
 const isValid = computed(
     () =>
-        form.password_lama.trim() &&
+        Boolean(form.password_lama.trim()) &&
         form.password_baru.length >= 6 &&
         form.konfirmasi === form.password_baru,
 );
+
+const validationErrors = computed(() => {
+    if (!attemptedSubmit.value) return {};
+    const errors = {};
+    if (!form.password_lama.trim()) errors.password_lama = "Password lama wajib diisi";
+    if (!form.password_baru) errors.password_baru = "Password baru wajib diisi";
+    else if (form.password_baru.length < 6) errors.password_baru = "Password minimal 6 karakter";
+    if (!form.konfirmasi) errors.konfirmasi = "Konfirmasi password wajib diisi";
+    else if (form.konfirmasi !== form.password_baru) errors.konfirmasi = "Password tidak cocok";
+    return errors;
+});
 
 /* ── Lupa password ──────────────────────────────────────────────── */
 const handleLupaPassword = () => {
@@ -336,7 +346,9 @@ const handleLogout = () => {
 
 /* ── Submit ──────────────────────────────────────────────────────── */
 const handleSubmit = async () => {
-    if (!isValid.value || authStore.loading.changePassword) return;
+    if (authStore.loading.changePassword) return;
+    attemptedSubmit.value = true;
+    if (!isValid.value) return;
     successMsg.value = "";
 
     const ok = await authStore.changePassword(
@@ -348,6 +360,7 @@ const handleSubmit = async () => {
         form.password_lama = "";
         form.password_baru = "";
         form.konfirmasi = "";
+        attemptedSubmit.value = false;
     }
 };
 

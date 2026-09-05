@@ -89,9 +89,13 @@
                             </label>
                             <select
                                 id="pilih-anak"
+                                ref="individualSelect"
                                 v-model="selectedAnakId"
                                 class="input-field w-full px-4 py-2.5 rounded-xl text-sm"
                                 required
+                                :aria-invalid="individualSelectionError"
+                                aria-describedby="individual-message"
+                                @change="clearIndividualSelectionError"
                             >
                                 <option value="" disabled>Pilih anak</option>
                                 <option
@@ -128,6 +132,7 @@
 
                     <div
                         v-if="individualMessage.text"
+                        id="individual-message"
                         class="message"
                         :class="`message-${individualMessage.type}`"
                         role="status"
@@ -144,7 +149,7 @@
                     <button
                         type="submit"
                         class="btn-primary w-full rounded-xl px-4 py-2.5 text-sm font-semibold text-white flex items-center justify-center gap-2"
-                        :disabled="!selectedAnakId || downloading.individual"
+                        :aria-busy="downloading.individual"
                     >
                         <i
                             class="pi"
@@ -236,7 +241,7 @@
                     <button
                         type="submit"
                         class="btn-primary w-full rounded-xl px-4 py-2.5 text-sm font-semibold text-white flex items-center justify-center gap-2"
-                        :disabled="downloading.rekap"
+                        :aria-busy="downloading.rekap"
                     >
                         <i
                             class="pi"
@@ -257,7 +262,7 @@
 
 <script setup>
 import PageHeader from "@/components/ui/PageHeader.vue";
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, nextTick, onMounted, reactive, ref } from "vue";
 import { useAuthStore } from "@/stores/authStore";
 import kaderService from "@/services/kaderService";
 import puskesmasService from "@/services/puskesmasService";
@@ -285,6 +290,7 @@ const loadingAnak = ref(false);
 const anakError = ref("");
 const searchAnak = ref("");
 const selectedAnakId = ref("");
+const individualSelect = ref(null);
 const downloading = reactive({ individual: false, rekap: false });
 const individualMessage = reactive({ type: "error", text: "" });
 const rekapMessage = reactive({ type: "error", text: "" });
@@ -348,7 +354,16 @@ const loadAnak = async () => {
 };
 
 const downloadIndividual = async () => {
-    if (!selectedAnakId.value || downloading.individual) return;
+    if (downloading.individual) return;
+    if (!selectedAnakId.value) {
+        individualMessage.type = "error";
+        individualMessage.text = anakOptions.value.length
+            ? "Pilih anak yang akan dibuatkan laporan terlebih dahulu."
+            : "Belum ada data anak yang dapat dibuatkan laporan.";
+        await nextTick();
+        individualSelect.value?.focus();
+        return;
+    }
 
     downloading.individual = true;
     individualMessage.text = "";
@@ -373,6 +388,19 @@ const downloadIndividual = async () => {
         );
     } finally {
         downloading.individual = false;
+    }
+};
+
+const individualSelectionError = computed(
+    () =>
+        !selectedAnakId.value &&
+        individualMessage.type === "error" &&
+        Boolean(individualMessage.text),
+);
+
+const clearIndividualSelectionError = () => {
+    if (selectedAnakId.value && individualSelectionError.value) {
+        individualMessage.text = "";
     }
 };
 
@@ -498,13 +526,8 @@ onMounted(loadAnak);
     transition: opacity 0.2s, transform 0.2s;
 }
 
-.btn-primary:hover:not(:disabled) {
+.btn-primary:hover {
     opacity: 0.92;
-}
-
-.btn-primary:disabled {
-    cursor: not-allowed;
-    opacity: 0.55;
 }
 
 .empty-panel {

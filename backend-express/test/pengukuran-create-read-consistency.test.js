@@ -108,6 +108,8 @@ test("create menghitung, menyimpan, dan merespons nilai kanonis yang sama dengan
     ]) {
         assert.deepEqual(read[key], res.body.data[key], key);
     }
+    assert.equal(Object.hasOwn(res.body.data, "ai_insight"), false);
+    assert.equal(Object.hasOwn(res.body.data, "ai_insight_status"), false);
     assert.match(notificationBody, /BB: 10\.12 kg, TB: 85\.68 cm/);
 });
 

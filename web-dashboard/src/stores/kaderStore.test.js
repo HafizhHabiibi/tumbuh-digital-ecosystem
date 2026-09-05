@@ -113,4 +113,68 @@ describe("kaderStore meneruskan filter list ke backend", () => {
         ]);
         expect(store.loading.anakList).toBe(false);
     });
+
+    it("totalAnak tetap statis saat fetchAllAnak difilter berdasarkan jenis kelamin", async () => {
+        const store = useKaderStore();
+        kaderService.getAllAnak
+            .mockResolvedValueOnce({
+                data: {
+                    data: {
+                        items: [
+                            { id: "1", nama: "Anak 1", jenis_kelamin: "L" },
+                            { id: "2", nama: "Anak 2", jenis_kelamin: "P" },
+                            { id: "3", nama: "Anak 3", jenis_kelamin: "L" },
+                        ],
+                        pagination: {
+                            page: 1,
+                            limit: 20,
+                            total: 3,
+                            total_pages: 1,
+                        },
+                    },
+                },
+            })
+            .mockResolvedValueOnce({
+                data: {
+                    data: {
+                        items: [
+                            { id: "1", nama: "Anak 1", jenis_kelamin: "L" },
+                            { id: "3", nama: "Anak 3", jenis_kelamin: "L" },
+                        ],
+                        pagination: {
+                            page: 1,
+                            limit: 20,
+                            total: 2,
+                            total_pages: 1,
+                        },
+                    },
+                },
+            });
+
+        // 1. Initial unfiltered fetch
+        await store.fetchAllAnak();
+        expect(store.totalAnak).toBe(3);
+
+        // 2. Filter laki-laki
+        await store.fetchAllAnak({ jenis_kelamin: "L" });
+        expect(store.pagination.anak.total).toBe(2);
+        // totalAnak harus tetap statis 3, bukan berubah menjadi 2
+        expect(store.totalAnak).toBe(3);
+    });
+
+    it("totalAnak prioritaskan anakOptions.length saat anakOptions tersedia", async () => {
+        const store = useKaderStore();
+        store.anakOptions = [
+            { id: "1", jenis_kelamin: "L" },
+            { id: "2", jenis_kelamin: "P" },
+            { id: "3", jenis_kelamin: "L" },
+            { id: "4", jenis_kelamin: "P" },
+        ];
+        store.pagination.anak.total = 2; // misal sedang terfilter
+
+        expect(store.totalAnak).toBe(4);
+        expect(store.anakLaki.length).toBe(2);
+        expect(store.anakPerempuan.length).toBe(2);
+    });
 });
+

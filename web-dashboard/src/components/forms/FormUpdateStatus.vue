@@ -1,138 +1,82 @@
 <template>
     <form class="space-y-4 pt-4" novalidate @submit.prevent="handleSubmit">
-        <!-- Info rujukan -->
-        <div
-            class="rounded-xl p-3 space-y-1"
-            style="
-                background: var(--color-green-50);
-                border: 1px solid var(--color-input-border);
-            "
-        >
-            <div class="flex items-center justify-between">
-                <span class="text-xs" style="color: var(--color-text-muted)"
-                    >Anak</span
-                >
-                <span
-                    class="text-sm font-semibold"
-                    style="color: var(--color-text-heading)"
-                    >{{ rujukan.nama_anak }}</span
-                >
-            </div>
-            <div class="flex items-center justify-between">
-                <span class="text-xs" style="color: var(--color-text-muted)"
-                    >Status saat ini</span
-                >
+        <div class="rounded-xl p-3 bg-emerald-50 border border-emerald-100">
+            <p class="text-[10px] uppercase tracking-wider font-semibold text-slate-400 m-0">Rujukan Anak</p>
+            <p class="text-sm font-bold text-slate-800 mt-1 mb-0">{{ rujukan.nama_anak }}</p>
+            <div class="flex items-center gap-2 mt-3" aria-label="Perubahan status">
                 <StatusBadge type="rujukan" :value="rujukan.status" />
-            </div>
-            <div class="flex items-center justify-between">
-                <span class="text-xs" style="color: var(--color-text-muted)"
-                    >Prioritas pemantauan</span
-                >
-                <StatusBadge
-                    type="prioritas"
-                    :value="rujukan.prioritas_pemantauan?.kategori"
-                />
+                <i class="pi pi-arrow-right text-xs text-slate-400" aria-hidden="true" />
+                <StatusBadge type="rujukan" :value="nextStatus" />
             </div>
         </div>
 
-        <!-- Error -->
+        <div
+            class="flex items-start gap-2 px-3 py-2.5 rounded-xl text-xs leading-relaxed"
+            :class="nextStatus === 'selesai' ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-blue-50 text-blue-800 border border-blue-200'"
+        >
+            <i :class="nextStatus === 'selesai' ? 'pi pi-exclamation-triangle' : 'pi pi-info-circle'" class="mt-0.5" aria-hidden="true" />
+            <span v-if="nextStatus === 'selesai'">
+                Menyelesaikan rujukan bersifat final. Pastikan hasil penanganan sudah dicatat dengan jelas.
+            </span>
+            <span v-else>
+                Status akan berubah menjadi Ditangani dan orang tua akan menerima pembaruan.
+            </span>
+        </div>
+
         <Transition name="slide-down">
-            <div
-                v-if="error"
-                class="error-alert flex items-start gap-2 px-3 py-2.5 rounded-xl text-sm"
-                role="alert"
-                aria-live="assertive"
-            >
-                <i
-                    class="pi pi-exclamation-circle mt-0.5 flex-shrink-0"
-                    aria-hidden="true"
-                />
+            <div v-if="error" class="error-alert flex items-start gap-2 px-3 py-2.5 rounded-xl text-sm" role="alert" aria-live="assertive">
+                <i class="pi pi-exclamation-circle mt-0.5" aria-hidden="true" />
                 <span>{{ error }}</span>
             </div>
         </Transition>
 
-        <!-- Pilih status baru -->
         <div class="space-y-1.5">
-            <label class="field-label">Status Baru</label>
-            <div class="grid grid-cols-1 gap-2">
-                <label
-                    v-for="s in statusOptions"
-                    :key="s.value"
-                    class="flex items-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer border text-sm transition-all"
-                    :style="
-                        form.status === s.value
-                            ? `background: ${warnaBg[s.value]}; border-color: ${warnaHex[s.value]}; color: ${warnaHex[s.value]}`
-                            : 'background: var(--color-input-bg); border-color: var(--color-input-border); color: var(--color-text-body)'
-                    "
-                >
-                    <input
-                        type="radio"
-                        :value="s.value"
-                        v-model="form.status"
-                        :disabled="loading"
-                        class="sr-only"
-                    />
-                    <i :class="`pi ${s.icon} text-sm`" aria-hidden="true" />
-                    <span class="font-medium text-xs">{{ s.label }}</span>
+            <div class="flex items-center justify-between gap-3">
+                <label for="catatan_puskesmas" class="field-label">
+                    {{ nextStatus === "selesai" ? "Hasil Penanganan" : "Catatan Puskesmas" }}
+                    <span v-if="nextStatus !== 'selesai'" class="text-xs font-normal text-slate-400">(opsional)</span>
                 </label>
+                <span class="text-[10px] text-slate-400">{{ form.catatan_puskesmas.length }}/2000</span>
             </div>
-        </div>
-
-        <!-- Catatan puskesmas -->
-        <div class="space-y-1.5">
-            <label for="catatan_puskesmas" class="field-label">
-                Catatan Puskesmas
-                <span
-                    class="text-xs font-normal"
-                    style="color: var(--color-text-muted)"
-                    >(opsional)</span
-                >
-            </label>
             <textarea
                 id="catatan_puskesmas"
                 v-model="form.catatan_puskesmas"
-                rows="3"
-                placeholder="Hasil pemeriksaan, tindakan yang dilakukan, dll..."
+                rows="4"
+                :placeholder="nextStatus === 'selesai' ? 'Tuliskan hasil pemeriksaan, tindakan, dan rencana tindak lanjut...' : 'Catatan awal penanganan jika ada...'"
                 :disabled="loading"
                 maxlength="2000"
                 class="input-field w-full px-4 py-2.5 rounded-xl text-sm resize-none"
+                :aria-required="nextStatus === 'selesai'"
+                :aria-invalid="!!fieldError"
+                aria-describedby="catatan_puskesmas_error"
             />
+            <p v-if="fieldError" id="catatan_puskesmas_error" class="error-hint">{{ fieldError }}</p>
         </div>
 
-        <!-- Tombol aksi -->
         <div class="flex gap-3 pt-2">
             <button
+                v-if="!loading"
                 type="button"
-                :disabled="loading"
-                class="flex-1 py-2.5 rounded-xl text-sm font-semibold border"
-                style="
-                    background: white;
-                    color: var(--color-text-body);
-                    border-color: var(--color-input-border);
-                "
+                class="flex-1 py-2.5 rounded-xl text-sm font-semibold border border-slate-200 bg-white text-slate-700 cursor-pointer"
                 @click="$emit('cancel')"
             >
                 Batal
             </button>
             <button
                 type="submit"
-                :disabled="loading || !form.status"
-                class="btn-submit flex-1 py-2.5 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                class="btn-submit flex-1 py-2.5 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 cursor-pointer"
+                :aria-busy="loading"
             >
-                <i
-                    v-if="loading"
-                    class="pi pi-spin pi-spinner"
-                    aria-hidden="true"
-                />
-                <span>{{ loading ? "Menyimpan..." : "Simpan" }}</span>
+                <i v-if="loading" class="pi pi-spin pi-spinner" aria-hidden="true" />
+                <i v-else :class="nextStatus === 'selesai' ? 'pi pi-check-circle' : 'pi pi-play'" aria-hidden="true" />
+                <span>{{ actionLabel }}</span>
             </button>
         </div>
     </form>
 </template>
 
 <script setup>
-import { computed, reactive } from "vue";
-import { LABEL_STATUS } from "@/stores/rujukanStore";
+import { computed, reactive, ref } from "vue";
 import StatusBadge from "@/components/ui/StatusBadge.vue";
 
 const props = defineProps({
@@ -142,46 +86,29 @@ const props = defineProps({
 });
 const emit = defineEmits(["submit", "cancel"]);
 
-const form = reactive({
-    status: "",
-    catatan_puskesmas: "",
+const attemptedSubmit = ref(false);
+const form = reactive({ catatan_puskesmas: "" });
+const NEXT_STATUS = { diajukan: "ditangani", ditangani: "selesai" };
+const nextStatus = computed(() => NEXT_STATUS[props.rujukan.status] || "");
+const fieldError = computed(() => {
+    if (!attemptedSubmit.value || nextStatus.value !== "selesai") return "";
+    return form.catatan_puskesmas.trim().length >= 3
+        ? ""
+        : "Hasil penanganan wajib diisi minimal 3 karakter";
+});
+const actionLabel = computed(() => {
+    if (props.loading) return "Menyimpan...";
+    return nextStatus.value === "selesai" ? "Selesaikan Rujukan" : "Mulai Tangani";
 });
 
-/* ── Status yang bisa dipilih (exclude status saat ini & yang tidak valid) */
-const NEXT_STATUS = {
-    diajukan: "ditangani",
-    ditangani: "selesai",
-};
-const ikonStatus = {
-    ditangani: "pi-sync",
-    selesai: "pi-check-circle",
-};
-const statusOptions = computed(() =>
-    NEXT_STATUS[props.rujukan.status]
-        ? [NEXT_STATUS[props.rujukan.status]].map((s) => ({
-              value: s,
-              label: LABEL_STATUS[s],
-              icon: ikonStatus[s],
-          }))
-        : [],
-);
-
-/* ── Warna ───────────────────────────────────────────────────────── */
-const warnaHex = {
-    ditangani: "#d97706",
-    selesai: "#6b7280",
-};
-const warnaBg = {
-    ditangani: "#fef3c7",
-    selesai: "#f3f4f6",
-};
-
-/* ── Submit ──────────────────────────────────────────────────────── */
 const handleSubmit = () => {
-    if (!form.status || props.loading) return;
-    const payload = { status: form.status };
-    if (form.catatan_puskesmas.trim())
+    if (props.loading || !nextStatus.value) return;
+    attemptedSubmit.value = true;
+    if (fieldError.value) return;
+    const payload = { status: nextStatus.value };
+    if (form.catatan_puskesmas.trim()) {
         payload.catatan_puskesmas = form.catatan_puskesmas.trim();
+    }
     emit("submit", payload);
 };
 </script>

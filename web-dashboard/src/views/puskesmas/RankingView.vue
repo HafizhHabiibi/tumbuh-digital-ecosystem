@@ -230,7 +230,7 @@
             <div v-else class="overflow-x-auto">
                 <table
                     class="w-full text-sm"
-                    aria-label="Tabel prioritas pemantauan balita"
+                    aria-label="Tabel prioritas pemantauan anak"
                 >
                     <thead>
                         <tr class="bg-slate-50 border-b border-slate-100">
@@ -493,7 +493,7 @@ const getRankBadgeClass = (index) => {
     return "bg-slate-100 text-slate-600 font-medium";
 };
 
-/* ── Load data ranking balita ────────────────────────────────────── */
+/* ── Load data ranking anak ──────────────────────────────────────── */
 const loadData = (page = pengukuranStore.rankingPagination.page) => {
     pengukuranStore.fetchRankingAnak({
         page,
@@ -564,7 +564,7 @@ onBeforeUnmount(reloadFromFirstPage.cancel);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #64748b;
+    color: #1e293b;
 }
 
 .skeleton {

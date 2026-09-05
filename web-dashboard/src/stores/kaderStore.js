@@ -52,6 +52,8 @@ export const useKaderStore = defineStore("kader", {
             orangTua: createPagination(),
             anak: createPagination(),
         },
+        totalAnakSemua: 0,
+        totalOrangTuaSemua: 0,
         listRequestId: {
             orangTua: 0,
             anak: 0,
@@ -118,14 +120,30 @@ export const useKaderStore = defineStore("kader", {
         },
 
         /**
-         * Total anak yang terdaftar
+         * Total anak yang terdaftar (tetap statis, tidak berubah saat difilter)
          */
-        totalAnak: (state) => state.pagination.anak.total,
+        totalAnak: (state) => {
+            if (state.anakOptions.length) {
+                return state.anakOptions.length;
+            }
+            if (state.totalAnakSemua) {
+                return state.totalAnakSemua;
+            }
+            return state.pagination.anak.total;
+        },
 
         /**
-         * Total orang tua yang terdaftar
+         * Total orang tua yang terdaftar (tetap statis, tidak berubah saat difilter)
          */
-        totalOrangTua: (state) => state.pagination.orangTua.total,
+        totalOrangTua: (state) => {
+            if (state.orangTuaOptions.length) {
+                return state.orangTuaOptions.length;
+            }
+            if (state.totalOrangTuaSemua) {
+                return state.totalOrangTuaSemua;
+            }
+            return state.pagination.orangTua.total;
+        },
 
         /**
          * Filter anak berdasarkan jenis kelamin
@@ -177,6 +195,9 @@ export const useKaderStore = defineStore("kader", {
                 const data = extractPaginatedData(res);
                 this.orangTuaList = data.items;
                 this.pagination.orangTua = data.pagination;
+                if (!params.search) {
+                    this.totalOrangTuaSemua = data.pagination.total;
+                }
             } catch (err) {
                 if (requestId !== this.listRequestId.orangTua) return;
                 this.error.orangTuaList =
@@ -196,6 +217,7 @@ export const useKaderStore = defineStore("kader", {
                 this.orangTuaOptions = await collectAllPages((params) =>
                     kaderService.getAllOrangTua(params),
                 );
+                this.totalOrangTuaSemua = this.orangTuaOptions.length;
             } catch (err) {
                 this.error.orangTuaOptions =
                     err.response?.data?.message || err.message;
@@ -331,6 +353,9 @@ export const useKaderStore = defineStore("kader", {
                 const data = extractPaginatedData(res);
                 this.anakList = data.items;
                 this.pagination.anak = data.pagination;
+                if (!params.jenis_kelamin && !params.search) {
+                    this.totalAnakSemua = data.pagination.total;
+                }
             } catch (err) {
                 if (requestId !== this.listRequestId.anak) return;
                 this.error.anakList =
@@ -350,6 +375,7 @@ export const useKaderStore = defineStore("kader", {
                 this.anakOptions = await collectAllPages((params) =>
                     kaderService.getAllAnak(params),
                 );
+                this.totalAnakSemua = this.anakOptions.length;
             } catch (err) {
                 this.error.anakOptions =
                     err.response?.data?.message || err.message;

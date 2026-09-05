@@ -1,267 +1,379 @@
 <template>
-    <div class="p-6 max-w-6xl mx-auto space-y-6">
-        <!-- ─── Header ──────────────────────────────────────────── -->
-        <PageHeader title="Laporan Pertumbuhan" />
-
-        <div
-            class="info-panel rounded-2xl p-4 flex items-start gap-3"
-            role="note"
-        >
-            <i class="pi pi-info-circle mt-0.5" aria-hidden="true" />
-            <p class="text-sm m-0 leading-relaxed">
-                Dokumen berisi data kesehatan anak. Simpan dan bagikan hanya
-                untuk keperluan pelayanan yang berwenang.
-            </p>
+    <div class="p-4 sm:p-5 md:p-6 w-full max-w-6xl mx-auto space-y-5 min-w-0">
+        <!-- ─── Header Modern ────────────────────────────────────── -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-800 m-0 tracking-tight">
+                    Laporan & Rekapitulasi
+                </h1>
+            </div>
+            <div class="flex items-center gap-2 self-start sm:self-auto">
+                <div class="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-200/80 shadow-2xs text-xs text-slate-600 font-medium">
+                    <i class="pi pi-calendar text-emerald-600 text-xs" />
+                    <span>Hari ini: <strong class="text-slate-800">{{ formatTanggal(toLocalDateStr(todayDate)) }}</strong></span>
+                </div>
+            </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-            <section class="card rounded-2xl p-5 md:p-6 space-y-5">
-                <div class="flex items-start gap-3">
-                    <span class="section-icon" aria-hidden="true">
-                        <i class="pi pi-user" />
-                    </span>
-                    <div>
-                        <h2
-                            class="text-lg font-bold m-0"
-                            style="color: var(--color-text-heading)"
-                        >
-                            Laporan Individual
+        <!-- ─── Grid 2 Kolom: Individual & Rekap ─────────────────── -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6 items-stretch">
+            <!-- ── Kolom Kiri: Laporan Individual ───────────────── -->
+            <section class="card rounded-2xl p-5 md:p-6 flex flex-col justify-between h-full">
+                <div class="space-y-5 flex flex-col flex-1">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0">
+                            <i class="pi pi-user text-base" />
+                        </div>
+                        <h2 class="text-base sm:text-lg font-bold text-slate-800 m-0">
+                            Laporan Individual Anak
                         </h2>
-                        <p
-                            class="text-xs mt-1 m-0"
-                            style="color: var(--color-text-muted)"
-                        >
-                            Riwayat pengukuran, status antropometri, prioritas
-                            SAW, dan rujukan seorang anak.
-                        </p>
                     </div>
-                </div>
 
-                <div v-if="loadingAnak" class="space-y-3" aria-live="polite">
-                    <div class="skeleton h-10 rounded-xl" />
-                    <div class="skeleton h-10 rounded-xl" />
-                    <span class="sr-only">Memuat daftar anak</span>
-                </div>
-
-                <div
-                    v-else-if="anakError"
-                    class="message message-error"
-                    role="alert"
-                >
-                    <div class="flex items-start gap-2">
-                        <i class="pi pi-exclamation-circle mt-0.5" />
-                        <span>{{ anakError }}</span>
+                    <!-- State: Loading Anak -->
+                    <div v-if="loadingAnak" class="space-y-3" aria-live="polite">
+                        <div class="skeleton h-10 rounded-xl" />
+                        <div class="skeleton h-10 rounded-xl" />
+                        <span class="sr-only">Memuat daftar anak</span>
                     </div>
-                    <button
-                        type="button"
-                        class="text-xs font-semibold underline mt-2"
-                        @click="loadAnak"
+
+                    <!-- State: Error Memuat Anak -->
+                    <div
+                        v-else-if="anakError"
+                        class="flex items-start justify-between gap-3 text-xs text-red-700 bg-red-50 p-3.5 rounded-xl border border-red-200"
+                        role="alert"
                     >
-                        Coba muat kembali
-                    </button>
-                </div>
+                        <div class="flex items-start gap-2">
+                            <i class="pi pi-exclamation-circle mt-0.5 shrink-0" />
+                            <span>{{ anakError }}</span>
+                        </div>
+                        <button
+                            type="button"
+                            class="text-xs font-semibold underline shrink-0 cursor-pointer hover:text-red-900"
+                            @click="loadAnak"
+                        >
+                            Coba lagi
+                        </button>
+                    </div>
 
-                <form v-else class="space-y-4" @submit.prevent="downloadIndividual">
-                    <div v-if="anakOptions.length" class="space-y-4">
-                        <div>
-                            <label class="field-label" for="cari-anak">
-                                Cari anak
-                            </label>
-                            <div class="relative">
-                                <i
-                                    class="pi pi-search field-icon"
-                                    aria-hidden="true"
-                                />
-                                <input
-                                    id="cari-anak"
-                                    v-model="searchAnak"
-                                    class="input-field w-full pl-10 pr-4 py-2.5 rounded-xl text-sm"
-                                    type="search"
-                                    placeholder="Nama anak atau orang tua"
-                                    autocomplete="off"
-                                />
+                    <!-- Form Laporan Individual -->
+                    <form v-else class="flex flex-col justify-between flex-1 space-y-4" @submit.prevent="downloadIndividual">
+                        <div v-if="anakOptions.length" class="space-y-3.5">
+                            <!-- Jika Belum Ada Anak Terpilih: Tampilkan Search & Select -->
+                            <div v-if="!selectedAnak" class="space-y-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5" for="cari-anak">
+                                        Cari Anak
+                                    </label>
+                                    <div class="relative">
+                                        <i
+                                            class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"
+                                            aria-hidden="true"
+                                        />
+                                        <input
+                                            id="cari-anak"
+                                            v-model="searchAnak"
+                                            class="input-field w-full pl-9 pr-8 py-2 text-xs rounded-xl"
+                                            type="search"
+                                            placeholder="Ketik nama anak atau orang tua..."
+                                            autocomplete="off"
+                                        />
+                                        <button
+                                            v-if="searchAnak"
+                                            type="button"
+                                            class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                                            @click="searchAnak = ''"
+                                        >
+                                            <i class="pi pi-times text-xs" />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5" for="pilih-anak">
+                                        Pilih Anak
+                                    </label>
+                                    <div class="relative">
+                                        <i
+                                            class="pi pi-user absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"
+                                            aria-hidden="true"
+                                        />
+                                        <select
+                                            id="pilih-anak"
+                                            ref="individualSelect"
+                                            v-model="selectedAnakId"
+                                            class="input-field w-full pl-9 pr-8 py-2.5 rounded-xl text-sm appearance-none"
+                                            required
+                                            :aria-invalid="individualSelectionError"
+                                            aria-describedby="individual-message"
+                                            @change="clearIndividualSelectionError"
+                                        >
+                                            <option value="" disabled>Pilih nama anak</option>
+                                            <option
+                                                v-for="anak in filteredAnakOptions"
+                                                :key="anak.id"
+                                                :value="anak.id"
+                                            >
+                                                {{ labelAnak(anak) }}
+                                            </option>
+                                        </select>
+                                        <i class="pi pi-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none text-slate-400" aria-hidden="true" />
+                                    </div>
+                                    <p
+                                        v-if="filteredAnakOptions.length === 0"
+                                        class="text-xs text-slate-400 mt-1.5 mb-0"
+                                    >
+                                        Tidak ada anak yang cocok dengan pencarian "{{ searchAnak }}".
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Kartu Profil Anak Terpilih -->
+                            <div
+                                v-else
+                                class="p-3.5 sm:p-4 rounded-xl bg-slate-50/80 border border-slate-200/80 flex items-center justify-between gap-3.5 flex-wrap sm:flex-nowrap shadow-2xs"
+                            >
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <div
+                                        class="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs"
+                                        :class="selectedAnak.jenis_kelamin === 'L' ? 'bg-blue-100 text-blue-700' : 'bg-rose-100 text-rose-700'"
+                                    >
+                                        {{ getInitials(selectedAnak.nama) }}
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <span class="text-sm font-bold text-slate-800 truncate">{{ selectedAnak.nama }}</span>
+                                            <span
+                                                class="text-[11px] px-2 py-0.5 rounded-md font-semibold shrink-0"
+                                                :class="selectedAnak.jenis_kelamin === 'L' ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-rose-50 text-rose-700 border border-rose-200'"
+                                            >
+                                                {{ selectedAnak.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan' }}
+                                            </span>
+                                        </div>
+                                        <p class="text-xs text-slate-500 mt-1 mb-0">
+                                            <span class="text-slate-600 font-medium">Orang Tua:</span> {{ selectedAnak.nama_orang_tua || '—' }}
+                                            <span class="mx-1.5 text-slate-300">•</span>
+                                            <span class="text-slate-600 font-medium">Usia:</span> {{ hitungUsia(selectedAnak.tanggal_lahir) }}
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 transition-colors shrink-0 cursor-pointer inline-flex items-center gap-1.5 shadow-2xs"
+                                    title="Ganti anak yang dipilih"
+                                    @click="handleGantiAnak"
+                                >
+                                    <i class="pi pi-sync text-[10px]" />
+                                    <span>Ganti</span>
+                                </button>
                             </div>
                         </div>
 
-                        <div>
-                            <label class="field-label" for="pilih-anak">
-                                Anak <span class="text-red-600">*</span>
-                            </label>
-                            <select
-                                id="pilih-anak"
-                                ref="individualSelect"
-                                v-model="selectedAnakId"
-                                class="input-field w-full px-4 py-2.5 rounded-xl text-sm"
-                                required
-                                :aria-invalid="individualSelectionError"
-                                aria-describedby="individual-message"
-                                @change="clearIndividualSelectionError"
-                            >
-                                <option value="" disabled>Pilih anak</option>
-                                <option
-                                    v-for="anak in filteredAnakOptions"
-                                    :key="anak.id"
-                                    :value="anak.id"
-                                >
-                                    {{ labelAnak(anak) }}
-                                </option>
-                            </select>
-                            <p
-                                v-if="filteredAnakOptions.length === 0"
-                                class="text-xs mt-2 mb-0"
-                                style="color: var(--color-text-muted)"
-                            >
-                                Tidak ada anak yang cocok dengan pencarian.
+                        <!-- State: Tidak Ada Data Anak -->
+                        <div v-else class="p-6 rounded-xl border border-dashed border-slate-200 text-center bg-slate-50/50">
+                            <i
+                                class="pi pi-users text-3xl text-slate-300"
+                                aria-hidden="true"
+                            />
+                            <p class="text-xs font-medium text-slate-500 mt-2 mb-0">
+                                Belum ada data anak yang dapat dibuatkan laporan.
                             </p>
                         </div>
-                    </div>
 
-                    <div v-else class="empty-panel rounded-xl p-5 text-center">
-                        <i
-                            class="pi pi-users text-2xl"
-                            style="color: var(--color-text-muted)"
-                            aria-hidden="true"
-                        />
-                        <p
-                            class="text-sm mt-2 mb-0"
-                            style="color: var(--color-text-muted)"
-                        >
-                            Belum ada data anak yang dapat dibuatkan laporan.
-                        </p>
-                    </div>
+                        <!-- Bagian Bawah: Pesan & Tombol Unduh -->
+                        <div class="space-y-3 pt-2 mt-auto">
+                            <!-- Alert Feedback Individual -->
+                            <div
+                                v-if="individualMessage.text"
+                                id="individual-message"
+                                class="flex items-center gap-2 p-3 rounded-xl text-xs"
+                                :class="individualMessage.type === 'success' ? 'text-emerald-800 bg-emerald-50 border border-emerald-200' : 'text-red-700 bg-red-50 border border-red-200'"
+                                role="status"
+                            >
+                                <i
+                                    class="shrink-0"
+                                    :class="individualMessage.type === 'success'
+                                        ? 'pi pi-check-circle text-emerald-600'
+                                        : 'pi pi-exclamation-circle text-red-500'"
+                                    aria-hidden="true"
+                                />
+                                <span>{{ individualMessage.text }}</span>
+                            </div>
 
-                    <div
-                        v-if="individualMessage.text"
-                        id="individual-message"
-                        class="message"
-                        :class="`message-${individualMessage.type}`"
-                        role="status"
-                    >
-                        <i
-                            :class="individualMessage.type === 'success'
-                                ? 'pi pi-check-circle'
-                                : 'pi pi-exclamation-circle'"
-                            aria-hidden="true"
-                        />
-                        <span>{{ individualMessage.text }}</span>
-                    </div>
-
-                    <button
-                        type="submit"
-                        class="btn-primary w-full rounded-xl px-4 py-2.5 text-sm font-semibold text-white flex items-center justify-center gap-2"
-                        :aria-busy="downloading.individual"
-                    >
-                        <i
-                            class="pi"
-                            :class="downloading.individual
-                                ? 'pi-spinner pi-spin'
-                                : 'pi-download'"
-                            aria-hidden="true"
-                        />
-                        {{ downloading.individual
-                            ? "Menyiapkan laporan..."
-                            : "Unduh Laporan Individual" }}
-                    </button>
-                </form>
+                            <!-- Tombol Unduh Individual -->
+                            <button
+                                type="submit"
+                                class="btn-primary w-full rounded-xl px-4 py-3 text-sm font-semibold text-white flex items-center justify-center gap-2 shadow-sm transition-all"
+                                :aria-busy="downloading.individual"
+                            >
+                                <i
+                                    class="pi"
+                                    :class="downloading.individual
+                                        ? 'pi-spinner pi-spin'
+                                        : 'pi-download'"
+                                    aria-hidden="true"
+                                />
+                                <span>
+                                    {{ downloading.individual
+                                        ? "Menyiapkan laporan..."
+                                        : "Unduh Laporan Individual" }}
+                                </span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </section>
 
-            <section class="card rounded-2xl p-5 md:p-6 space-y-5">
-                <div class="flex items-start gap-3">
-                    <span class="section-icon" aria-hidden="true">
-                        <i class="pi pi-chart-bar" />
-                    </span>
-                    <div>
-                        <h2
-                            class="text-lg font-bold m-0"
-                            style="color: var(--color-text-heading)"
-                        >
+            <!-- ── Kolom Kanan: Laporan Rekap Periode ────────────── -->
+            <section class="card rounded-2xl p-5 md:p-6 flex flex-col justify-between h-full">
+                <div class="space-y-5 flex flex-col flex-1">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0">
+                            <i class="pi pi-chart-bar text-base" />
+                        </div>
+                        <h2 class="text-base sm:text-lg font-bold text-slate-800 m-0">
                             Laporan Rekap Periode
                         </h2>
-                        <p
-                            class="text-xs mt-1 m-0"
-                            style="color: var(--color-text-muted)"
-                        >
-                            Ringkasan kunjungan, distribusi antropometri, dan
-                            daftar prioritas tindak lanjut.
-                        </p>
                     </div>
+
+                    <!-- Form Laporan Rekap -->
+                    <form class="flex flex-col justify-between flex-1 space-y-4" @submit.prevent="downloadRekap">
+                        <div class="space-y-3.5">
+                            <!-- Quick Preset Rentang Waktu -->
+                            <div class="space-y-1.5">
+                                <label class="block text-xs font-semibold text-slate-700">
+                                    Pilihan Rentang Cepat
+                                </label>
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <button
+                                        type="button"
+                                        class="px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors cursor-pointer"
+                                        :class="isPresetActive('bulan_ini') ? 'bg-emerald-50 text-emerald-700 border-emerald-300 font-semibold' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'"
+                                        @click="setPresetPeriode('bulan_ini')"
+                                    >
+                                        Bulan Ini
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors cursor-pointer"
+                                        :class="isPresetActive('bulan_lalu') ? 'bg-emerald-50 text-emerald-700 border-emerald-300 font-semibold' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'"
+                                        @click="setPresetPeriode('bulan_lalu')"
+                                    >
+                                        Bulan Lalu
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors cursor-pointer"
+                                        :class="isPresetActive('3_bulan') ? 'bg-emerald-50 text-emerald-700 border-emerald-300 font-semibold' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'"
+                                        @click="setPresetPeriode('3_bulan')"
+                                    >
+                                        3 Bulan Terakhir
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors cursor-pointer"
+                                        :class="isPresetActive('tahun_ini') ? 'bg-emerald-50 text-emerald-700 border-emerald-300 font-semibold' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'"
+                                        @click="setPresetPeriode('tahun_ini')"
+                                    >
+                                        Tahun Ini
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Input Rentang Tanggal -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5" for="tanggal-mulai">
+                                        Tanggal Mulai
+                                    </label>
+                                    <input
+                                        id="tanggal-mulai"
+                                        v-model="periode.tanggalMulai"
+                                        class="input-field w-full px-3.5 py-2.5 rounded-xl text-sm"
+                                        type="date"
+                                        :max="today"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5" for="tanggal-selesai">
+                                        Tanggal Selesai
+                                    </label>
+                                    <input
+                                        id="tanggal-selesai"
+                                        v-model="periode.tanggalSelesai"
+                                        class="input-field w-full px-3.5 py-2.5 rounded-xl text-sm"
+                                        type="date"
+                                        :min="periode.tanggalMulai"
+                                        :max="today"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <!-- Indikator Durasi & Ketentuan -->
+                            <div class="flex items-center justify-between text-xs text-slate-500 pt-0.5">
+                                <span class="inline-flex items-center gap-1.5">
+                                    <i class="pi pi-calendar-times text-slate-400" />
+                                    <span>Maksimal rentang: 366 hari</span>
+                                </span>
+                                <span
+                                    v-if="rentangHari > 0"
+                                    class="px-2 py-0.5 rounded-md font-semibold text-[11px]"
+                                    :class="rentangHari > 366 ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'"
+                                >
+                                    {{ rentangHari }} hari terpilih
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Bagian Bawah: Pesan & Tombol Unduh -->
+                        <div class="space-y-3 pt-2 mt-auto">
+                            <!-- Alert Feedback Rekap -->
+                            <div
+                                v-if="rekapMessage.text"
+                                id="rekap-message"
+                                class="flex items-center gap-2 p-3 rounded-xl text-xs"
+                                :class="rekapMessage.type === 'success' ? 'text-emerald-800 bg-emerald-50 border border-emerald-200' : 'text-red-700 bg-red-50 border border-red-200'"
+                                role="status"
+                            >
+                                <i
+                                    class="shrink-0"
+                                    :class="rekapMessage.type === 'success'
+                                        ? 'pi pi-check-circle text-emerald-600'
+                                        : 'pi pi-exclamation-circle text-red-500'"
+                                    aria-hidden="true"
+                                />
+                                <span>{{ rekapMessage.text }}</span>
+                            </div>
+
+                            <!-- Tombol Unduh Rekap -->
+                            <button
+                                type="submit"
+                                class="btn-primary w-full rounded-xl px-4 py-3 text-sm font-semibold text-white flex items-center justify-center gap-2 shadow-sm transition-all"
+                                :aria-busy="downloading.rekap"
+                            >
+                                <i
+                                    class="pi"
+                                    :class="downloading.rekap
+                                        ? 'pi-spinner pi-spin'
+                                        : 'pi-download'"
+                                    aria-hidden="true"
+                                />
+                                <span>
+                                    {{ downloading.rekap
+                                        ? "Menyiapkan rekap..."
+                                        : "Unduh Laporan Rekap" }}
+                                </span>
+                            </button>
+                        </div>
+                    </form>
                 </div>
-
-                <form class="space-y-4" @submit.prevent="downloadRekap">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="field-label" for="tanggal-mulai">
-                                Tanggal mulai <span class="text-red-600">*</span>
-                            </label>
-                            <input
-                                id="tanggal-mulai"
-                                v-model="periode.tanggalMulai"
-                                class="input-field w-full px-4 py-2.5 rounded-xl text-sm"
-                                type="date"
-                                :max="today"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label class="field-label" for="tanggal-selesai">
-                                Tanggal selesai <span class="text-red-600">*</span>
-                            </label>
-                            <input
-                                id="tanggal-selesai"
-                                v-model="periode.tanggalSelesai"
-                                class="input-field w-full px-4 py-2.5 rounded-xl text-sm"
-                                type="date"
-                                :min="periode.tanggalMulai"
-                                :max="today"
-                                required
-                            />
-                        </div>
-                    </div>
-
-                    <p class="text-xs m-0" style="color: var(--color-text-muted)">
-                        Rentang laporan maksimal 366 hari dan tidak boleh
-                        melewati hari ini.
-                    </p>
-
-                    <div
-                        v-if="rekapMessage.text"
-                        class="message"
-                        :class="`message-${rekapMessage.type}`"
-                        role="status"
-                    >
-                        <i
-                            :class="rekapMessage.type === 'success'
-                                ? 'pi pi-check-circle'
-                                : 'pi pi-exclamation-circle'"
-                            aria-hidden="true"
-                        />
-                        <span>{{ rekapMessage.text }}</span>
-                    </div>
-
-                    <button
-                        type="submit"
-                        class="btn-primary w-full rounded-xl px-4 py-2.5 text-sm font-semibold text-white flex items-center justify-center gap-2"
-                        :aria-busy="downloading.rekap"
-                    >
-                        <i
-                            class="pi"
-                            :class="downloading.rekap
-                                ? 'pi-spinner pi-spin'
-                                : 'pi-download'"
-                            aria-hidden="true"
-                        />
-                        {{ downloading.rekap
-                            ? "Menyiapkan rekap..."
-                            : "Unduh Laporan Rekap" }}
-                    </button>
-                </form>
             </section>
         </div>
     </div>
 </template>
 
 <script setup>
-import PageHeader from "@/components/ui/PageHeader.vue";
 import { computed, nextTick, onMounted, reactive, ref } from "vue";
 import { useAuthStore } from "@/stores/authStore";
 import kaderService from "@/services/kaderService";
@@ -271,6 +383,7 @@ import laporanService, {
     savePdfResponse,
 } from "@/services/laporanService";
 import { extractPaginatedData } from "@/utils/apiResponse";
+import { formatTanggal, hitungUsia, toLocalDateStr } from "@/utils/format.js";
 
 const authStore = useAuthStore();
 
@@ -281,9 +394,9 @@ const formatInputDate = (date) => {
     return `${year}-${month}-${day}`;
 };
 
-const now = new Date();
-const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-const today = formatInputDate(now);
+const todayDate = new Date();
+const monthStart = new Date(todayDate.getFullYear(), todayDate.getMonth(), 1);
+const today = formatInputDate(todayDate);
 
 const anakOptions = ref([]);
 const loadingAnak = ref(false);
@@ -299,6 +412,27 @@ const periode = reactive({
     tanggalSelesai: today,
 });
 
+const selectedAnak = computed(() =>
+    anakOptions.value.find((item) => item.id === selectedAnakId.value) || null,
+);
+
+const getInitials = (nama) => {
+    if (!nama) return "?";
+    return nama
+        .split(" ")
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase();
+};
+
+const handleGantiAnak = () => {
+    selectedAnakId.value = "";
+    searchAnak.value = "";
+    individualMessage.text = "";
+};
+
 const filteredAnakOptions = computed(() => {
     const query = searchAnak.value.trim().toLocaleLowerCase("id-ID");
     if (!query) return anakOptions.value;
@@ -313,9 +447,7 @@ const filteredAnakOptions = computed(() => {
 });
 
 const labelAnak = (anak) =>
-    anak.nama_orang_tua
-        ? `${anak.nama} — ${anak.nama_orang_tua}`
-        : anak.nama;
+    `${anak.nama} (${anak.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan'}) — Ortu: ${anak.nama_orang_tua || '—'}`;
 
 const getAnakService = () =>
     authStore.isKader ? kaderService : puskesmasService;
@@ -404,6 +536,53 @@ const clearIndividualSelectionError = () => {
     }
 };
 
+const setPresetPeriode = (preset) => {
+    const cur = new Date();
+    if (preset === "bulan_ini") {
+        periode.tanggalMulai = formatInputDate(new Date(cur.getFullYear(), cur.getMonth(), 1));
+        periode.tanggalSelesai = today;
+    } else if (preset === "bulan_lalu") {
+        periode.tanggalMulai = formatInputDate(new Date(cur.getFullYear(), cur.getMonth() - 1, 1));
+        periode.tanggalSelesai = formatInputDate(new Date(cur.getFullYear(), cur.getMonth(), 0));
+    } else if (preset === "3_bulan") {
+        periode.tanggalMulai = formatInputDate(new Date(cur.getFullYear(), cur.getMonth() - 2, 1));
+        periode.tanggalSelesai = today;
+    } else if (preset === "tahun_ini") {
+        periode.tanggalMulai = formatInputDate(new Date(cur.getFullYear(), 0, 1));
+        periode.tanggalSelesai = today;
+    }
+    rekapMessage.text = "";
+};
+
+const isPresetActive = (preset) => {
+    const cur = new Date();
+    if (preset === "bulan_ini") {
+        return periode.tanggalMulai === formatInputDate(new Date(cur.getFullYear(), cur.getMonth(), 1)) &&
+               periode.tanggalSelesai === today;
+    }
+    if (preset === "bulan_lalu") {
+        return periode.tanggalMulai === formatInputDate(new Date(cur.getFullYear(), cur.getMonth() - 1, 1)) &&
+               periode.tanggalSelesai === formatInputDate(new Date(cur.getFullYear(), cur.getMonth(), 0));
+    }
+    if (preset === "3_bulan") {
+        return periode.tanggalMulai === formatInputDate(new Date(cur.getFullYear(), cur.getMonth() - 2, 1)) &&
+               periode.tanggalSelesai === today;
+    }
+    if (preset === "tahun_ini") {
+        return periode.tanggalMulai === formatInputDate(new Date(cur.getFullYear(), 0, 1)) &&
+               periode.tanggalSelesai === today;
+    }
+    return false;
+};
+
+const rentangHari = computed(() => {
+    if (!periode.tanggalMulai || !periode.tanggalSelesai) return 0;
+    const start = new Date(`${periode.tanggalMulai}T00:00:00Z`);
+    const end = new Date(`${periode.tanggalSelesai}T00:00:00Z`);
+    const diff = Math.floor((end - start) / 86_400_000) + 1;
+    return diff > 0 ? diff : 0;
+});
+
 const validatePeriode = () => {
     const { tanggalMulai, tanggalSelesai } = periode;
     if (!tanggalMulai || !tanggalSelesai) {
@@ -465,100 +644,42 @@ onMounted(loadAnak);
 
 <style scoped>
 .card {
-    background: white;
-    border: 1px solid var(--color-card-border);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-}
-
-.info-panel {
-    color: var(--color-green-700);
-    background: var(--color-green-50);
-    border: 1px solid var(--color-green-100);
-}
-
-.section-icon {
-    width: 2.5rem;
-    height: 2.5rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    color: var(--color-green-700);
-    background: var(--color-green-50);
-    border-radius: 0.75rem;
-}
-
-.field-label {
-    display: block;
-    margin-bottom: 0.375rem;
-    color: var(--color-text-body);
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-
-.field-icon {
-    position: absolute;
-    left: 0.875rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--color-text-muted);
-    font-size: 0.875rem;
+    background: #ffffff;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .input-field {
-    background: var(--color-input-bg);
-    border: 1px solid var(--color-input-border);
-    color: var(--color-text-heading);
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #1e293b;
     outline: none;
-    font-family: "Poppins", sans-serif;
+    font-family: inherit;
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .input-field:focus {
-    border-color: var(--color-green-700);
-    box-shadow: 0 0 0 2px var(--color-focus-ring);
+    border-color: #059669;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
 }
 
 .btn-primary {
     border: 0;
-    background: var(--color-green-700);
+    background: #059669;
     cursor: pointer;
-    transition: opacity 0.2s, transform 0.2s;
+    transition: all 0.2s;
 }
 
 .btn-primary:hover {
-    opacity: 0.92;
+    background: #047857;
 }
 
-.empty-panel {
-    background: var(--color-input-bg);
-    border: 1px dashed var(--color-input-border);
-}
-
-.message {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.5rem;
-    padding: 0.75rem;
-    border-radius: 0.75rem;
-    font-size: 0.75rem;
-    line-height: 1.5;
-}
-
-.message-error {
-    color: #b91c1c;
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-}
-
-.message-success {
-    color: #166534;
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
+.btn-primary:active {
+    transform: scale(0.99);
 }
 
 .skeleton {
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
 }

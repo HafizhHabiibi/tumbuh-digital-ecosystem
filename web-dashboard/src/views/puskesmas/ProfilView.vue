@@ -1,303 +1,362 @@
 <template>
-    <div class="p-6 max-w-2xl mx-auto space-y-6">
-        <!-- ─── Header ──────────────────────────────────────────── -->
-        <PageHeader title="Profil" />
-
-        <!-- ─── Info akun ────────────────────────────────────────── -->
-        <div class="card p-5 rounded-2xl flex items-center gap-4">
-            <div
-                class="w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-bold text-white flex-shrink-0"
-                style="
-                    background: linear-gradient(
-                        135deg,
-                        var(--color-green-600),
-                        var(--color-green-800)
-                    );
-                "
-            >
-                {{ userInitial }}
-            </div>
+    <div class="p-4 sm:p-5 md:p-6 w-full max-w-6xl mx-auto space-y-5 min-w-0">
+        <!-- ─── Header Modern (Tanpa Subjudul) ───────────────────── -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-                <p
-                    class="text-base font-semibold m-0"
-                    style="color: var(--color-text-heading)"
-                >
-                    {{ authStore.namaLengkap }}
-                </p>
-                <p
-                    class="text-sm m-0 mt-0.5"
-                    style="color: var(--color-text-muted)"
-                >
-                    {{ authStore.user?.email ?? "—" }}
-                </p>
-                <span
-                    class="text-xs px-2 py-0.5 rounded-full font-medium mt-1 inline-block"
-                    style="background: #dbeafe; color: #2563eb"
-                >
-                    Puskesmas
-                </span>
+                <h1 class="text-2xl font-bold text-slate-800 m-0 tracking-tight">
+                    Profil Pengguna
+                </h1>
+            </div>
+            <div class="flex items-center gap-2 self-start sm:self-auto">
+                <div class="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-200/80 shadow-2xs text-xs text-slate-600 font-medium">
+                    <i class="pi pi-calendar text-emerald-600 text-xs" />
+                    <span>Hari ini: <strong class="text-slate-800">{{ formatTanggal(toLocalDateStr(todayDate)) }}</strong></span>
+                </div>
             </div>
         </div>
 
-        <!-- ─── Form Ubah Password ───────────────────────────────── -->
-        <div class="card p-6 rounded-2xl space-y-5">
-            <h2
-                class="text-base font-semibold m-0"
-                style="color: var(--color-text-heading)"
+        <!-- ─── Grid 2 Kolom: Identitas & Keamanan ────────────────── -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-start">
+            <!-- ── Kolom Kiri: Identitas Akun & Sesi (5 Kolom) ──── -->
+            <div class="lg:col-span-5 space-y-5">
+                <!-- Kartu Identitas Profil -->
+                <div class="card p-5 sm:p-6 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-5">
+                    <div class="flex items-center gap-4">
+                        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-800 text-white font-bold text-xl flex items-center justify-center shadow-md shrink-0">
+                            {{ userInitial }}
+                        </div>
+                        <div class="min-w-0">
+                            <h2 class="text-base font-bold text-slate-800 truncate m-0">
+                                {{ authStore.namaLengkap }}
+                            </h2>
+                            <div class="mt-1">
+                                <span class="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-blue-50 text-blue-700 border border-blue-200 inline-block">
+                                    Petugas Puskesmas
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rincian Informasi Kontak & Akun -->
+                    <div class="pt-4 border-t border-slate-100 space-y-3 text-xs">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="text-slate-400 flex items-center gap-2">
+                                <i class="pi pi-envelope text-slate-400 text-xs" />
+                                <span>Email</span>
+                            </span>
+                            <span class="font-semibold text-slate-700 truncate max-w-[190px]" :title="authStore.user?.email">
+                                {{ authStore.user?.email || '—' }}
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="text-slate-400 flex items-center gap-2">
+                                <i class="pi pi-phone text-slate-400 text-xs" />
+                                <span>No. Telepon</span>
+                            </span>
+                            <span class="font-semibold text-slate-700">
+                                {{ authStore.profil?.no_telp || authStore.profil?.no_hp || '—' }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Tombol Keluar Akun -->
+                    <div class="pt-4 border-t border-slate-100">
+                        <button
+                            type="button"
+                            class="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 transition-colors border border-red-200 cursor-pointer flex items-center justify-center gap-2"
+                            aria-label="Keluar dari akun"
+                            @click="showLogoutModal = true"
+                        >
+                            <i class="pi pi-sign-out text-xs" />
+                            <span>Keluar dari Akun</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Kolom Kanan: Keamanan & Ubah Password (7 Kolom) ─ -->
+            <div class="lg:col-span-7">
+                <div class="card p-5 sm:p-6 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-5">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-100 flex items-center justify-center shrink-0">
+                            <i class="pi pi-lock text-base" />
+                        </div>
+                        <h2 class="text-base sm:text-lg font-bold text-slate-800 m-0">
+                            Ubah Password
+                        </h2>
+                    </div>
+
+                    <!-- Notifikasi Sukses -->
+                    <Transition name="slide-down">
+                        <div
+                            v-if="successMsg"
+                            class="flex items-center gap-2 p-3.5 rounded-xl text-xs text-emerald-800 bg-emerald-50 border border-emerald-200"
+                            role="status"
+                        >
+                            <i class="pi pi-check-circle text-emerald-600 shrink-0" aria-hidden="true" />
+                            <span>{{ successMsg }}</span>
+                        </div>
+                    </Transition>
+
+                    <!-- Notifikasi Error -->
+                    <Transition name="slide-down">
+                        <div
+                            v-if="authStore.error.changePassword"
+                            class="flex items-center gap-2 p-3.5 rounded-xl text-xs text-red-700 bg-red-50 border border-red-200"
+                            role="alert"
+                            aria-live="assertive"
+                        >
+                            <i class="pi pi-exclamation-circle text-red-500 shrink-0" aria-hidden="true" />
+                            <span>{{ authStore.error.changePassword }}</span>
+                        </div>
+                    </Transition>
+
+                    <form novalidate class="space-y-4" @submit.prevent="handleSubmit">
+                        <!-- Password Lama -->
+                        <div class="space-y-1.5">
+                            <label for="password_lama" class="block text-xs font-semibold text-slate-700">
+                                Password Lama
+                            </label>
+                            <div class="relative">
+                                <i class="pi pi-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs" aria-hidden="true" />
+                                <input
+                                    id="password_lama"
+                                    v-model="form.password_lama"
+                                    :type="show.lama ? 'text' : 'password'"
+                                    placeholder="••••••••"
+                                    autocomplete="current-password"
+                                    maxlength="72"
+                                    :disabled="authStore.loading.changePassword"
+                                    class="input-field w-full pl-9 pr-10 py-2.5 rounded-xl text-sm"
+                                    aria-required="true"
+                                    :aria-invalid="!!validationErrors.password_lama"
+                                    aria-describedby="password_lama_error"
+                                />
+                                <button
+                                    type="button"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer p-1"
+                                    :aria-label="show.lama ? 'Sembunyikan password' : 'Tampilkan password'"
+                                    @click="show.lama = !show.lama"
+                                >
+                                    <i :class="show.lama ? 'pi pi-eye-slash' : 'pi pi-eye'" class="text-xs" aria-hidden="true" />
+                                </button>
+                            </div>
+                            <p v-if="validationErrors.password_lama" id="password_lama_error" class="text-xs text-red-600 mt-1 mb-0">
+                                {{ validationErrors.password_lama }}
+                            </p>
+                        </div>
+
+                        <!-- Password Baru -->
+                        <div class="space-y-1.5">
+                            <div class="flex items-center justify-between">
+                                <label for="password_baru" class="block text-xs font-semibold text-slate-700">
+                                    Password Baru
+                                </label>
+                                <span class="text-[11px] text-slate-400">Min. 6 karakter</span>
+                            </div>
+                            <div class="relative">
+                                <i class="pi pi-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs" aria-hidden="true" />
+                                <input
+                                    id="password_baru"
+                                    v-model="form.password_baru"
+                                    :type="show.baru ? 'text' : 'password'"
+                                    placeholder="••••••••"
+                                    autocomplete="new-password"
+                                    maxlength="72"
+                                    :disabled="authStore.loading.changePassword"
+                                    class="input-field w-full pl-9 pr-10 py-2.5 rounded-xl text-sm"
+                                    aria-required="true"
+                                    :aria-invalid="!!validationErrors.password_baru"
+                                    aria-describedby="password_baru_error"
+                                />
+                                <button
+                                    type="button"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer p-1"
+                                    :aria-label="show.baru ? 'Sembunyikan password' : 'Tampilkan password'"
+                                    @click="show.baru = !show.baru"
+                                >
+                                    <i :class="show.baru ? 'pi pi-eye-slash' : 'pi pi-eye'" class="text-xs" aria-hidden="true" />
+                                </button>
+                            </div>
+                            <p v-if="validationErrors.password_baru" id="password_baru_error" class="text-xs text-red-600 mt-1 mb-0">
+                                {{ validationErrors.password_baru }}
+                            </p>
+                        </div>
+
+                        <!-- Konfirmasi Password Baru -->
+                        <div class="space-y-1.5">
+                            <label for="konfirmasi_password" class="block text-xs font-semibold text-slate-700">
+                                Konfirmasi Password Baru
+                            </label>
+                            <div class="relative">
+                                <i class="pi pi-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs" aria-hidden="true" />
+                                <input
+                                    id="konfirmasi_password"
+                                    v-model="form.konfirmasi"
+                                    :type="show.konfirmasi ? 'text' : 'password'"
+                                    placeholder="••••••••"
+                                    autocomplete="new-password"
+                                    maxlength="72"
+                                    :disabled="authStore.loading.changePassword"
+                                    class="input-field w-full pl-9 pr-10 py-2.5 rounded-xl text-sm"
+                                    aria-required="true"
+                                    :aria-invalid="!!validationErrors.konfirmasi"
+                                    aria-describedby="konfirmasi_password_error"
+                                />
+                                <button
+                                    type="button"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer p-1"
+                                    :aria-label="show.konfirmasi ? 'Sembunyikan password' : 'Tampilkan password'"
+                                    @click="show.konfirmasi = !show.konfirmasi"
+                                >
+                                    <i :class="show.konfirmasi ? 'pi pi-eye-slash' : 'pi pi-eye'" class="text-xs" aria-hidden="true" />
+                                </button>
+                            </div>
+                            <p v-if="validationErrors.konfirmasi" id="konfirmasi_password_error" class="text-xs text-red-600 mt-1 mb-0">
+                                {{ validationErrors.konfirmasi }}
+                            </p>
+                        </div>
+
+                        <!-- Tombol Submit Simpan Password -->
+                        <button
+                            type="submit"
+                            class="btn-primary w-full py-3 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 cursor-pointer mt-2 shadow-sm transition-all"
+                            :aria-busy="authStore.loading.changePassword"
+                        >
+                            <i
+                                v-if="authStore.loading.changePassword"
+                                class="pi pi-spin pi-spinner text-sm"
+                                aria-hidden="true"
+                            />
+                            <span>{{
+                                authStore.loading.changePassword
+                                    ? "Menyimpan..."
+                                    : "Simpan Password"
+                            }}</span>
+                        </button>
+
+                        <!-- Tautan Lupa Password -->
+                        <div class="text-center pt-1">
+                            <button
+                                type="button"
+                                class="text-xs font-semibold text-emerald-700 hover:text-emerald-800 transition-colors bg-transparent border-0 cursor-pointer"
+                                @click="handleLupaPassword"
+                            >
+                                Lupa password lama?
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ─── Modal Konfirmasi Logout Modern ────────────────── -->
+        <Transition name="modal-fade">
+            <div
+                v-if="showLogoutModal"
+                class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="modal-logout-title"
+                @click.self="showLogoutModal = false"
             >
-                <i
-                    class="pi pi-lock mr-2"
-                    style="color: var(--color-green-700)"
-                    aria-hidden="true"
-                />
-                Ubah Password
-            </h2>
-
-            <!-- Success -->
-            <Transition name="slide-down">
-                <div
-                    v-if="successMsg"
-                    class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm"
-                    style="
-                        background: #dcfce7;
-                        border: 1px solid #86efac;
-                        color: #15803d;
-                    "
-                    role="status"
-                >
-                    <i
-                        class="pi pi-check-circle flex-shrink-0"
-                        aria-hidden="true"
-                    />
-                    <span>{{ successMsg }}</span>
-                </div>
-            </Transition>
-
-            <!-- Error -->
-            <Transition name="slide-down">
-                <div
-                    v-if="authStore.error.changePassword"
-                    class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm"
-                    style="
-                        background: #fef2f2;
-                        border: 1px solid #fecaca;
-                        color: #b91c1c;
-                    "
-                    role="alert"
-                >
-                    <i
-                        class="pi pi-exclamation-circle flex-shrink-0"
-                        aria-hidden="true"
-                    />
-                    <span>{{ authStore.error.changePassword }}</span>
-                </div>
-            </Transition>
-
-            <form novalidate class="space-y-4" @submit.prevent="handleSubmit">
-                <!-- Password lama -->
-                <div class="space-y-1.5">
-                    <label for="password_lama_ps" class="field-label"
-                        >Password Lama</label
-                    >
-                    <div class="relative">
-                        <i class="pi pi-lock input-icon" aria-hidden="true" />
-                        <input
-                            id="password_lama_ps"
-                            v-model="form.password_lama"
-                            :type="show.lama ? 'text' : 'password'"
-                            placeholder="••••••••"
-                            autocomplete="current-password"
-                            maxlength="72"
-                            :disabled="authStore.loading.changePassword"
-                            class="input-field w-full pl-9 pr-10 py-2.5 rounded-xl text-sm"
-                            aria-required="true"
-                            :aria-invalid="!!validationErrors.password_lama"
-                            aria-describedby="password_lama_ps_error"
-                        />
-                        <button
-                            type="button"
-                            class="toggle-pass absolute right-3 top-1/2 -translate-y-1/2"
-                            :aria-label="
-                                show.lama ? 'Sembunyikan' : 'Tampilkan'
-                            "
-                            @click="show.lama = !show.lama"
-                        >
-                            <i
-                                :class="
-                                    show.lama ? 'pi pi-eye-slash' : 'pi pi-eye'
-                                "
-                                aria-hidden="true"
-                            />
-                        </button>
-                    </div>
-                    <p v-if="validationErrors.password_lama" id="password_lama_ps_error" class="error-hint">
-                        {{ validationErrors.password_lama }}
-                    </p>
-                </div>
-
-                <!-- Password baru -->
-                <div class="space-y-1.5">
-                    <label for="password_baru_ps" class="field-label">
-                        Password Baru
-                        <span
-                            class="text-xs font-normal"
-                            style="color: var(--color-text-muted)"
-                            >(min. 6 karakter)</span
-                        >
-                    </label>
-                    <div class="relative">
-                        <i class="pi pi-lock input-icon" aria-hidden="true" />
-                        <input
-                            id="password_baru_ps"
-                            v-model="form.password_baru"
-                            :type="show.baru ? 'text' : 'password'"
-                            placeholder="••••••••"
-                            autocomplete="new-password"
-                            maxlength="72"
-                            :disabled="authStore.loading.changePassword"
-                            class="input-field w-full pl-9 pr-10 py-2.5 rounded-xl text-sm"
-                            aria-required="true"
-                            :aria-invalid="!!validationErrors.password_baru"
-                            aria-describedby="password_baru_ps_error"
-                        />
-                        <button
-                            type="button"
-                            class="toggle-pass absolute right-3 top-1/2 -translate-y-1/2"
-                            :aria-label="
-                                show.baru ? 'Sembunyikan' : 'Tampilkan'
-                            "
-                            @click="show.baru = !show.baru"
-                        >
-                            <i
-                                :class="
-                                    show.baru ? 'pi pi-eye-slash' : 'pi pi-eye'
-                                "
-                                aria-hidden="true"
-                            />
-                        </button>
-                    </div>
-                    <p v-if="validationErrors.password_baru" id="password_baru_ps_error" class="error-hint">
-                        {{ validationErrors.password_baru }}
-                    </p>
-                </div>
-
-                <!-- Konfirmasi -->
-                <div class="space-y-1.5">
-                    <label for="konfirmasi_ps" class="field-label"
-                        >Konfirmasi Password Baru</label
-                    >
-                    <div class="relative">
-                        <i class="pi pi-lock input-icon" aria-hidden="true" />
-                        <input
-                            id="konfirmasi_ps"
-                            v-model="form.konfirmasi"
-                            :type="show.konfirmasi ? 'text' : 'password'"
-                            placeholder="••••••••"
-                            autocomplete="new-password"
-                            maxlength="72"
-                            :disabled="authStore.loading.changePassword"
-                            class="input-field w-full pl-9 pr-10 py-2.5 rounded-xl text-sm"
-                            aria-required="true"
-                            :aria-invalid="!!validationErrors.konfirmasi"
-                            aria-describedby="konfirmasi_ps_error"
-                        />
-                        <button
-                            type="button"
-                            class="toggle-pass absolute right-3 top-1/2 -translate-y-1/2"
-                            :aria-label="
-                                show.konfirmasi ? 'Sembunyikan' : 'Tampilkan'
-                            "
-                            @click="show.konfirmasi = !show.konfirmasi"
-                        >
-                            <i
-                                :class="
-                                    show.konfirmasi
-                                        ? 'pi pi-eye-slash'
-                                        : 'pi pi-eye'
-                                "
-                                aria-hidden="true"
-                            />
-                        </button>
-                    </div>
-                    <p v-if="validationErrors.konfirmasi" id="konfirmasi_ps_error" class="error-hint">
-                        {{ validationErrors.konfirmasi }}
-                    </p>
-                </div>
-
-                <!-- Submit -->
-                <button
-                    type="submit"
-                    class="btn-primary w-full py-3 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 cursor-pointer mt-2"
-                    :aria-busy="authStore.loading.changePassword"
-                >
-                    <i
-                        v-if="authStore.loading.changePassword"
-                        class="pi pi-spin pi-spinner"
-                        aria-hidden="true"
-                    />
-                    <span>{{
-                        authStore.loading.changePassword
-                            ? "Menyimpan..."
-                            : "Simpan Password"
-                    }}</span>
-                </button>
-
-                <!-- Lupa password -->
-                <div class="text-center pt-1">
+                <div class="relative bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-slate-100 text-center space-y-4">
+                    <!-- Tombol Silang Tutup -->
                     <button
                         type="button"
-                        class="text-sm font-medium bg-transparent border-0 cursor-pointer transition-colors hover:opacity-75"
-                        style="color: var(--color-green-700)"
-                        @click="handleLupaPassword"
+                        class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-1.5 rounded-xl transition-colors cursor-pointer"
+                        aria-label="Tutup modal"
+                        @click="showLogoutModal = false"
                     >
-                        Lupa password lama?
+                        <i class="pi pi-times text-xs" />
                     </button>
-                </div>
-            </form>
-        </div>
 
-        <!-- ─── Sesi Akun / Keluar ───────────────────────────────── -->
-        <div class="card p-5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-red-100 bg-red-50/20">
-            <div>
-                <h2 class="text-base font-semibold text-slate-800 m-0 flex items-center gap-2">
-                    <i class="pi pi-sign-out text-red-600" aria-hidden="true" />
-                    Sesi Akun
-                </h2>
-                <p class="text-xs text-slate-500 m-0 mt-1">
-                    Keluar dari aplikasi pada sesi browser saat ini
-                </p>
+                    <!-- Ikon Peringatan Keluar -->
+                    <div class="w-14 h-14 rounded-2xl bg-red-50 border border-red-100 text-red-600 flex items-center justify-center mx-auto shadow-2xs">
+                        <i class="pi pi-sign-out text-xl" aria-hidden="true" />
+                    </div>
+
+                    <!-- Judul & Keterangan -->
+                    <div class="space-y-1.5">
+                        <h3 id="modal-logout-title" class="text-base sm:text-lg font-bold text-slate-800 m-0 tracking-tight">
+                            Keluar dari Akun?
+                        </h3>
+                        <p class="text-xs text-slate-500 m-0 leading-relaxed max-w-[280px] mx-auto">
+                            Sesi Anda pada peramban ini akan diakhiri. Anda perlu masuk kembali untuk mengakses dashboard.
+                        </p>
+                    </div>
+
+                    <!-- Ringkasan Akun Pengguna -->
+                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center gap-3 text-left">
+                        <div class="w-9 h-9 rounded-xl bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                            {{ userInitial }}
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-xs font-bold text-slate-800 truncate m-0">
+                                {{ authStore.namaLengkap }}
+                            </p>
+                            <p class="text-[11px] text-slate-400 truncate m-0">
+                                {{ authStore.user?.email || '—' }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Tombol Aksi -->
+                    <div class="grid grid-cols-2 gap-2.5 pt-1">
+                        <button
+                            type="button"
+                            class="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+                            @click="showLogoutModal = false"
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="button"
+                            class="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-white bg-red-600 hover:bg-red-700 transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
+                            @click="confirmLogout"
+                        >
+                            <i class="pi pi-sign-out text-xs" />
+                            <span>Ya, Keluar</span>
+                        </button>
+                    </div>
+                </div>
             </div>
-            <button
-                type="button"
-                class="px-4 py-2.5 rounded-xl text-sm font-semibold text-red-600 bg-red-50 hover:bg-red-100 hover:text-red-700 transition-colors border border-red-200 cursor-pointer flex items-center gap-2 flex-shrink-0"
-                aria-label="Keluar dari akun"
-                @click="handleLogout"
-            >
-                <i class="pi pi-sign-out text-sm" />
-                <span>Keluar dari Akun</span>
-            </button>
-        </div>
+        </Transition>
     </div>
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted } from "vue";
-import PageHeader from "@/components/ui/PageHeader.vue";
-import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/authStore";
+import { useRouter } from "vue-router";
+import { formatTanggal, toLocalDateStr } from "@/utils/format.js";
 
 const authStore = useAuthStore();
 const router = useRouter();
+
+const todayDate = new Date();
 const successMsg = ref("");
 const attemptedSubmit = ref(false);
+const showLogoutModal = ref(false);
 
-const form = reactive({ password_lama: "", password_baru: "", konfirmasi: "" });
-const show = reactive({ lama: false, baru: false, konfirmasi: false });
+const form = reactive({
+    password_lama: "",
+    password_baru: "",
+    konfirmasi: "",
+});
 
+const show = reactive({
+    lama: false,
+    baru: false,
+    konfirmasi: false,
+});
+
+/* ── Inisial Nama Pengguna ────────────────────────────────────────── */
 const userInitial = computed(
     () => authStore.namaLengkap?.charAt(0).toUpperCase() ?? "P",
 );
 
+/* ── Validasi ────────────────────────────────────────────────────── */
 const isValid = computed(
     () =>
         Boolean(form.password_lama.trim()) &&
@@ -316,11 +375,26 @@ const validationErrors = computed(() => {
     return errors;
 });
 
+/* ── Lupa Password ──────────────────────────────────────────────── */
+const handleLupaPassword = () => {
+    authStore.logout();
+    router.push({ name: "ForgotPassword" });
+};
+
+/* ── Logout Konfirmasi ──────────────────────────────────────────── */
+const confirmLogout = () => {
+    showLogoutModal.value = false;
+    authStore.logout();
+    router.push({ name: "Login" });
+};
+
+/* ── Submit Ubah Password ───────────────────────────────────────── */
 const handleSubmit = async () => {
     if (authStore.loading.changePassword) return;
     attemptedSubmit.value = true;
     if (!isValid.value) return;
     successMsg.value = "";
+
     const ok = await authStore.changePassword(
         form.password_lama,
         form.password_baru,
@@ -334,88 +408,68 @@ const handleSubmit = async () => {
     }
 };
 
-const handleLupaPassword = () => {
-    authStore.logout();
-    router.push({ name: "ForgotPassword" });
-};
-
-const handleLogout = () => {
-    authStore.logout();
-    router.push({ name: "Login" });
-};
-
 onMounted(() => authStore.refreshProfile());
 </script>
 
 <style scoped>
 .card {
-    background: white;
-    border: 1px solid var(--color-card-border);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    background: #ffffff;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
-.field-label {
-    display: block;
-    font-size: 0.8rem;
-    font-weight: 600;
-    margin-left: 0.25rem;
-    color: var(--color-text-body);
-}
-.input-icon {
-    position: absolute;
-    left: 0.75rem;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 0.85rem;
-    color: var(--color-text-muted);
-    pointer-events: none;
-}
+
 .input-field {
-    background: var(--color-input-bg);
-    border: 1px solid var(--color-input-border);
-    color: var(--color-text-heading);
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #1e293b;
     outline: none;
-    transition:
-        border-color 0.2s,
-        box-shadow 0.2s;
-    font-family: "Poppins", sans-serif;
+    font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
-.input-field::placeholder {
-    color: var(--color-text-muted);
-    font-size: 0.82rem;
-}
+
 .input-field:focus {
-    border-color: var(--color-green-700);
-    box-shadow: 0 0 0 2px var(--color-focus-ring);
+    border-color: #059669;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
 }
+
 .input-field:disabled {
-    opacity: 0.5;
+    opacity: 0.6;
     cursor: not-allowed;
 }
-.error-hint {
-    font-size: 0.72rem;
-    color: #dc2626;
-    margin: 0 0 0 0.25rem;
-}
-.toggle-pass {
-    background: none;
-    border: none;
+
+.btn-primary {
+    border: 0;
+    background: #059669;
     cursor: pointer;
-    color: var(--color-text-muted);
-    padding: 0;
-    line-height: 1;
-    transition: color 0.15s;
+    transition: all 0.2s;
 }
-.toggle-pass:hover {
-    color: var(--color-text-body);
+
+.btn-primary:hover {
+    background: #047857;
+}
+
+.btn-primary:active {
+    transform: scale(0.99);
 }
 
 .slide-down-enter-active,
 .slide-down-leave-active {
     transition: all 0.25s ease;
 }
+
 .slide-down-enter-from,
 .slide-down-leave-to {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translateY(-6px);
+}
+
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+    transition: opacity 0.2s ease;
+}
+
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+    opacity: 0;
 }
 </style>

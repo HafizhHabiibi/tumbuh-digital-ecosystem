@@ -3,11 +3,11 @@
         <Transition name="slide-down">
             <div
                 v-if="error"
-                class="error-alert flex items-start gap-2 px-3 py-2.5 rounded-xl text-sm"
+                class="error-alert flex items-start gap-2.5 p-3 rounded-xl text-xs bg-red-50 border border-red-200 text-red-700"
                 role="alert"
                 aria-live="assertive"
             >
-                <i class="pi pi-exclamation-circle mt-0.5 flex-shrink-0" aria-hidden="true" />
+                <i class="pi pi-exclamation-circle mt-0.5 shrink-0 text-red-600" aria-hidden="true" />
                 <span>{{ error }}</span>
             </div>
         </Transition>
@@ -15,7 +15,7 @@
         <div v-if="!anakId" class="space-y-1.5">
             <label for="form_anak_id" class="field-label">Anak</label>
             <div class="relative">
-                <i class="pi pi-heart input-icon" aria-hidden="true" />
+                <i class="pi pi-user input-icon" aria-hidden="true" />
                 <select
                     id="form_anak_id"
                     v-model="form.anak_id"
@@ -37,18 +37,18 @@
             </p>
         </div>
 
-        <fieldset class="space-y-1.5 m-0 p-0 border-0">
-            <legend class="field-label mb-1.5">Jenis Pemberian</legend>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <fieldset class="space-y-2 m-0 p-0 border-0">
+            <legend class="field-label mb-1">Jenis Pemberian</legend>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <label
                     v-for="jenis in JENIS_VALID"
                     :key="jenis"
-                    class="jenis-option flex items-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer transition-all border text-sm"
-                    :class="{ 'jenis-option--active': form.jenis === jenis }"
+                    class="jenis-card flex items-center gap-2.5 p-3 rounded-xl cursor-pointer transition-all border text-sm select-none"
+                    :class="{ 'jenis-card--active shadow-2xs': form.jenis === jenis }"
                     :style="
                         form.jenis === jenis
                             ? `background: ${warnaBg[jenis]}; border-color: ${warnaText[jenis]}; color: ${warnaText[jenis]}`
-                            : 'background: var(--color-input-bg); border-color: var(--color-input-border); color: var(--color-text-body)'
+                            : 'background: #ffffff; border-color: #e2e8f0; color: #334155'
                     "
                 >
                     <input
@@ -61,8 +61,13 @@
                         :aria-invalid="!!fieldErrors.jenis"
                         aria-describedby="jenis_pemberian_error"
                     />
-                    <i :class="`pi ${ikonJenis[jenis]} text-sm`" aria-hidden="true" />
-                    <span class="font-medium text-xs">{{ LABEL_JENIS[jenis] }}</span>
+                    <div
+                        class="w-7 h-7 rounded-lg flex items-center justify-center text-xs shrink-0"
+                        :style="form.jenis === jenis ? `background: rgba(255,255,255,0.7)` : 'background: #f1f5f9; color: #64748b'"
+                    >
+                        <i :class="`pi ${ikonJenis[jenis]}`" aria-hidden="true" />
+                    </div>
+                    <span class="font-semibold text-xs leading-tight">{{ LABEL_JENIS[jenis] }}</span>
                 </label>
             </div>
             <p v-if="fieldErrors.jenis" id="jenis_pemberian_error" class="error-hint">
@@ -98,18 +103,15 @@
             <p
                 v-else-if="programNotice"
                 id="program_notice"
-                class="flex items-start gap-2 px-3 py-2 rounded-lg bg-amber-50 text-amber-800 text-xs leading-relaxed m-0"
+                class="flex items-start gap-2.5 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs leading-relaxed m-0 shadow-2xs"
             >
-                <i class="pi pi-info-circle mt-0.5" aria-hidden="true" />
+                <i class="pi pi-exclamation-triangle mt-0.5 text-amber-600 shrink-0" aria-hidden="true" />
                 <span>{{ programNotice }}</span>
             </p>
         </div>
 
         <div class="space-y-1.5">
-            <label for="dosis" class="field-label">
-                Dosis atau Jumlah
-                <span class="text-xs font-normal text-slate-400">(opsional)</span>
-            </label>
+            <label for="dosis" class="field-label">Dosis atau Jumlah</label>
             <div class="relative">
                 <i class="pi pi-bookmark input-icon" aria-hidden="true" />
                 <input
@@ -126,10 +128,7 @@
 
         <div class="space-y-1.5">
             <div class="flex items-center justify-between gap-3">
-                <label for="keterangan" class="field-label">
-                    Keterangan
-                    <span class="text-xs font-normal text-slate-400">(opsional)</span>
-                </label>
+                <label for="keterangan" class="field-label">Keterangan</label>
                 <span class="text-[10px] text-slate-400">{{ form.keterangan.length }}/2000</span>
             </div>
             <textarea
@@ -147,15 +146,14 @@
             <button
                 v-if="!loading"
                 type="button"
-                class="flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors cursor-pointer"
-                style="background: white; color: var(--color-text-body); border-color: var(--color-input-border)"
+                class="flex-1 py-2.5 rounded-xl text-sm font-semibold border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 transition-colors cursor-pointer"
                 @click="$emit('cancel')"
             >
                 Batal
             </button>
             <button
                 type="submit"
-                class="btn-submit flex-1 py-2.5 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 cursor-pointer"
+                class="btn-primary flex-1 py-2.5 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 cursor-pointer shadow-xs hover:bg-emerald-700 transition-all"
                 :aria-busy="loading"
             >
                 <i v-if="loading" class="pi pi-spin pi-spinner" aria-hidden="true" />

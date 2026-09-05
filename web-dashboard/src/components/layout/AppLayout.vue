@@ -15,6 +15,7 @@
             <main
                 id="main-content"
                 class="flex-1 overflow-y-auto"
+                style="scrollbar-gutter: stable;"
                 tabindex="-1"
             >
                 <RouterView />

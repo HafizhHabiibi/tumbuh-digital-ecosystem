@@ -1,7 +1,6 @@
 <template>
     <section
-        class="flex-1 flex items-center justify-center p-6 md:p-10"
-        style="background: var(--color-surface)"
+        class="login-form-section flex-1 flex items-center justify-center p-6 md:p-10"
         aria-label="Form lupa password"
     >
         <div class="w-full max-w-md">
@@ -16,62 +15,32 @@
                 >
             </div>
 
-            <!-- ─── Card ──────────────────────────────────────────────── -->
-            <div class="form-card">
+            <!-- ─── Card Form ─────────────────────────────────────────── -->
+            <div class="form-card rounded-2xl p-8">
                 <!-- Back link -->
-                <RouterLink
-                    :to="{ name: 'Login' }"
-                    class="back-link group"
-                >
-                    <span class="back-link__icon">
-                        <i class="pi pi-arrow-left text-xs" aria-hidden="true" />
-                    </span>
-                    <span>Kembali ke Login</span>
-                </RouterLink>
+                <div class="mb-6">
+                    <RouterLink
+                        :to="{ name: 'Login' }"
+                        class="inline-flex items-center gap-2 text-xs font-semibold text-emerald-700 hover:text-emerald-800 transition-colors group"
+                    >
+                        <span
+                            class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-100 transition-colors"
+                        >
+                            <i class="pi pi-arrow-left text-xs" aria-hidden="true" />
+                        </span>
+                        <span>Kembali ke Login</span>
+                    </RouterLink>
+                </div>
 
-                <!-- Icon + Heading -->
-                <header class="mb-8 text-center">
-                    <div class="icon-box mx-auto mb-5" aria-hidden="true">
-                        <i class="pi pi-envelope text-xl" />
-                    </div>
-                    <h1
-                        class="text-2xl font-bold mb-2"
-                        style="color: var(--color-text-heading)"
-                    >
-                        Lupa Password?
-                    </h1>
-                    <p
-                        class="text-sm leading-relaxed max-w-xs mx-auto"
-                        style="color: var(--color-text-muted)"
-                    >
-                        Masukkan email yang terdaftar. Kami akan mengirimkan
-                        tautan untuk mereset password kamu.
+                <!-- Header / Deskripsi -->
+                <header class="mb-6">
+                    <h1 class="sr-only">Lupa Password</h1>
+                    <p class="text-sm text-body leading-relaxed">
+                        Masukkan email yang terdaftar. Kami akan mengirimkan tautan untuk mereset password akun Anda.
                     </p>
                 </header>
 
-                <!-- ── Success state ──────────────────────────────────── -->
-                <Transition name="slide-down">
-                    <div
-                        v-if="submitted"
-                        class="success-card"
-                        role="status"
-                        aria-live="polite"
-                    >
-                        <div class="success-card__icon-wrap">
-                            <i class="pi pi-check text-lg" aria-hidden="true" />
-                        </div>
-                        <p class="font-semibold text-sm mt-4 mb-1">
-                            Email terkirim!
-                        </p>
-                        <p class="text-xs opacity-80 leading-relaxed">
-                            Cek inbox kamu di
-                            <strong>{{ submittedEmail }}</strong>
-                            dan ikuti instruksi di dalamnya.
-                        </p>
-                    </div>
-                </Transition>
-
-                <!-- ── Error alert ────────────────────────────────────── -->
+                <!-- Error alert -->
                 <Transition name="slide-down">
                     <div
                         v-if="error"
@@ -87,16 +56,59 @@
                     </div>
                 </Transition>
 
-                <!-- ── Turnstile ── -->
-                <div class="flex justify-center mb-5">
-                    <VueTurnstile
-                        ref="turnstileRef"
-                        :site-key="siteKey"
-                        action="forgot-password"
-                        theme="light"
-                        v-model="token"
-                    />
-                </div>
+                <!-- ── State Sukses (Setelah email terkirim) ───────────── -->
+                <Transition name="slide-down">
+                    <div v-if="submitted" class="space-y-6">
+                        <div
+                            class="p-5 rounded-2xl bg-emerald-50/70 border border-emerald-100 flex items-start gap-4"
+                            role="status"
+                            aria-live="polite"
+                        >
+                            <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center flex-shrink-0 shadow-sm shadow-emerald-600/30">
+                                <i class="pi pi-check text-base" aria-hidden="true" />
+                            </div>
+                            <div class="space-y-1">
+                                <h3 class="text-sm font-semibold text-emerald-950">
+                                    Email Berhasil Terkirim!
+                                </h3>
+                                <p class="text-xs text-emerald-800 leading-relaxed">
+                                    Instruksi reset password telah dikirimkan ke:
+                                </p>
+                                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/80 rounded-lg text-xs font-semibold text-emerald-900 border border-emerald-200/60 mt-1">
+                                    <i class="pi pi-envelope text-[11px] text-emerald-600" aria-hidden="true" />
+                                    <span>{{ submittedEmail }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="text-xs text-body leading-relaxed">
+                            Silakan periksa folder kotak masuk atau spam email Anda dan ikuti petunjuk yang tertera untuk membuat password baru.
+                        </p>
+
+                        <div class="pt-2 flex flex-col gap-3">
+                            <RouterLink
+                                :to="{ name: 'Login' }"
+                                class="btn-primary w-full text-white font-semibold text-sm py-3.5 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 text-center cursor-pointer"
+                            >
+                                <span>Kembali ke Halaman Login</span>
+                                <i class="pi pi-sign-in" aria-hidden="true" />
+                            </RouterLink>
+
+                            <div class="text-center pt-1">
+                                <p class="text-xs text-muted">
+                                    Tidak menerima email?
+                                    <button
+                                        type="button"
+                                        class="font-semibold text-emerald-700 hover:text-emerald-800 hover:underline transition-colors cursor-pointer ml-1"
+                                        @click="handleResend"
+                                    >
+                                        Kirim ulang
+                                    </button>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </Transition>
 
                 <!-- ── Form (tersembunyi setelah sukses) ──────────────── -->
                 <form
@@ -105,11 +117,11 @@
                     @submit.prevent="handleSubmit"
                 >
                     <div class="space-y-5">
+                        <!-- Email input -->
                         <div class="space-y-1.5">
                             <label
                                 for="forgot-email"
-                                class="text-sm font-semibold block ml-1"
-                                style="color: var(--color-text-body)"
+                                class="text-sm font-semibold block ml-1 text-body"
                             >
                                 Alamat Email
                             </label>
@@ -142,13 +154,24 @@
                             </p>
                         </div>
 
+                        <!-- Turnstile widget -->
+                        <div class="flex justify-center">
+                            <VueTurnstile
+                                ref="turnstileRef"
+                                :site-key="siteKey"
+                                action="forgot-password"
+                                theme="light"
+                                v-model="token"
+                            />
+                        </div>
                         <p v-if="fieldErrors.turnstile" class="field-error text-center" role="alert">
                             {{ fieldErrors.turnstile }}
                         </p>
 
+                        <!-- Submit button -->
                         <button
                             type="submit"
-                            class="btn-primary w-full text-white font-semibold text-sm py-3.5 rounded-xl transition-all duration-200 active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                            class="btn-primary w-full text-white font-semibold text-sm py-3.5 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
                             :aria-busy="loading"
                         >
                             <template v-if="loading">
@@ -165,23 +188,6 @@
                         </button>
                     </div>
                 </form>
-
-                <!-- ── Kirim ulang (setelah sukses) ───────────────────── -->
-                <div v-else class="mt-2 text-center">
-                    <p
-                        class="text-sm"
-                        style="color: var(--color-text-body)"
-                    >
-                        Tidak menerima email?
-                        <button
-                            type="button"
-                            class="font-bold text-brand-primary hover:opacity-70 transition-opacity cursor-pointer"
-                            @click="handleResend"
-                        >
-                            Kirim ulang
-                        </button>
-                    </p>
-                </div>
             </div>
         </div>
     </section>
@@ -252,85 +258,16 @@ defineExpose({
 </script>
 
 <style scoped>
+/* ─── Section background ──────────────────────────────────────────── */
+.login-form-section {
+    background: var(--color-surface);
+}
+
 /* ─── Card ────────────────────────────────────────────────────────── */
 .form-card {
     background: white;
-    border-radius: 1.25rem;
-    padding: 2.5rem;
-    box-shadow:
-        0 4px 24px rgba(0, 0, 0, 0.05),
-        0 1px 3px rgba(0, 0, 0, 0.04);
-    border: 1px solid rgba(190, 202, 184, 0.3);
-}
-
-/* ─── Back link ──────────────────────────────────────────────────── */
-.back-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--color-green-700);
-    text-decoration: none;
-    margin-bottom: 1.75rem;
-    transition: all 0.2s;
-}
-.back-link:hover {
-    opacity: 0.75;
-}
-.back-link__icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.75rem;
-    height: 1.75rem;
-    border-radius: 0.5rem;
-    background: var(--color-green-50);
-    transition: background 0.2s;
-}
-.back-link:hover .back-link__icon {
-    background: var(--color-green-100);
-}
-
-/* ─── Icon dekoratif ──────────────────────────────────────────────── */
-.icon-box {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 3.5rem;
-    height: 3.5rem;
-    border-radius: 1rem;
-    background: linear-gradient(
-        135deg,
-        var(--color-green-500),
-        var(--color-green-700)
-    );
-    color: white;
-    box-shadow:
-        0 8px 20px var(--color-shadow-green),
-        0 2px 6px rgba(0, 0, 0, 0.06);
-}
-
-/* ─── Success card ───────────────────────────────────────────────── */
-.success-card {
-    text-align: center;
-    padding: 1.5rem;
-    margin-bottom: 1.25rem;
-    border-radius: 1rem;
-    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-    border: 1px solid #bbf7d0;
-    color: #15803d;
-}
-.success-card__icon-wrap {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.75rem;
-    height: 2.75rem;
-    border-radius: 50%;
-    background: #22c55e;
-    color: white;
-    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(190, 202, 184, 0.4);
 }
 
 /* ─── Input icon (auth layout) ────────────────────────────────────── */
@@ -343,11 +280,28 @@ defineExpose({
     pointer-events: none;
 }
 
+/* ─── Tombol Submit (senada dengan Login & Profil) ─────────────────── */
+.btn-primary {
+    border: 0;
+    background: #059669;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary:hover {
+    background: #047857;
+}
+
+.btn-primary:active {
+    transform: scale(0.99);
+}
+
 /* ─── Ilustrasi mobile ────────────────────────────────────────────── */
 .illustration--green {
     filter: invert(28%) sepia(64%) saturate(620%) hue-rotate(94deg)
         brightness(85%) contrast(101%);
 }
+
 .field-error {
     margin: 0.35rem 0 0 0.25rem;
     color: #dc2626;

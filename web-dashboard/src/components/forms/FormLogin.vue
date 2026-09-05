@@ -173,7 +173,7 @@
                         <!-- Submit -->
                         <button
                             type="submit"
-                            class="btn-primary w-full text-white font-semibold text-sm py-3.5 rounded-xl transition-all duration-200 active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                            class="btn-primary w-full text-white font-semibold text-sm py-3.5 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
                             :aria-busy="loading"
                         >
                             <template v-if="loading">
@@ -289,5 +289,21 @@ defineExpose({
     margin: 0.35rem 0 0 0.25rem;
     color: #dc2626;
     font-size: 0.72rem;
+}
+
+/* ─── Tombol Masuk (senada dengan tombol Simpan Password di Profil) ── */
+.btn-primary {
+    border: 0;
+    background: #059669;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary:hover {
+    background: #047857;
+}
+
+.btn-primary:active {
+    transform: scale(0.99);
 }
 </style>

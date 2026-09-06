@@ -160,7 +160,7 @@ const kaderMenuGroups = [
             {
                 name: "KaderRanking",
                 label: "Pemantauan",
-                icon: "pi-sort-amount-down-alt",
+                icon: "pi-chart-bar",
             },
         ],
     },
@@ -170,7 +170,7 @@ const kaderMenuGroups = [
             {
                 name: "KaderAnak",
                 label: "Data Anak",
-                icon: "pi-heart",
+                icon: "pi-user",
                 subRoutes: ["KaderDetailAnak"],
             },
             {
@@ -222,7 +222,7 @@ const puskesmasMenuGroups = [
             {
                 name: "PuskesmasRanking",
                 label: "Pemantauan",
-                icon: "pi-sort-amount-down-alt",
+                icon: "pi-chart-bar",
             },
         ],
     },
@@ -232,7 +232,7 @@ const puskesmasMenuGroups = [
             {
                 name: "PuskesmasAnak",
                 label: "Data Anak",
-                icon: "pi-heart",
+                icon: "pi-user",
                 subRoutes: ["PuskesmasDetailAnak"],
             },
             {

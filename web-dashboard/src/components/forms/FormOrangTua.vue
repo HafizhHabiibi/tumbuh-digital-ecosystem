@@ -1,15 +1,15 @@
 <template>
-    <form class="space-y-4 pt-4" novalidate @submit.prevent="handleSubmit">
+    <form class="space-y-4 pt-2" novalidate @submit.prevent="handleSubmit">
         <!-- Error dari API -->
         <Transition name="slide-down">
             <div
                 v-if="error"
-                class="error-alert flex items-start gap-2 px-3 py-2.5 rounded-xl text-sm"
+                class="flex items-start gap-2.5 p-3 rounded-xl text-xs bg-red-50 border border-red-200 text-red-700"
                 role="alert"
                 aria-live="assertive"
             >
                 <i
-                    class="pi pi-exclamation-circle mt-0.5 flex-shrink-0"
+                    class="pi pi-exclamation-circle mt-0.5 shrink-0 text-red-600"
                     aria-hidden="true"
                 />
                 <span>{{ error }}</span>
@@ -18,9 +18,14 @@
 
         <!-- Nama Lengkap -->
         <div class="space-y-1.5">
-            <label for="nama_lengkap" class="field-label">Nama Lengkap</label>
+            <label for="nama_lengkap" class="text-xs font-semibold text-slate-700 block ml-0.5">
+                Nama Lengkap
+            </label>
             <div class="relative">
-                <i class="pi pi-user input-icon" aria-hidden="true" />
+                <i
+                    class="pi pi-user absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none"
+                    aria-hidden="true"
+                />
                 <input
                     id="nama_lengkap"
                     v-model="form.nama_lengkap"
@@ -28,28 +33,26 @@
                     placeholder="Masukkan nama lengkap"
                     autocomplete="name"
                     :disabled="loading"
-                    class="input-field w-full pl-9 pr-4 py-2.5 rounded-xl text-sm"
+                    class="w-full pl-9 pr-4 py-2.5 rounded-xl text-sm bg-white border border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all text-slate-800 outline-none"
                     aria-required="true"
                     :aria-invalid="!!fieldError.nama_lengkap"
                 />
             </div>
-            <p v-if="fieldError.nama_lengkap" class="error-hint">
+            <p v-if="fieldError.nama_lengkap" class="text-xs text-red-600 mt-1 ml-0.5">
                 {{ fieldError.nama_lengkap }}
             </p>
         </div>
 
         <!-- NIK -->
         <div class="space-y-1.5">
-            <label for="nik" class="field-label"
-                >NIK
-                <span
-                    class="text-xs font-normal"
-                    style="color: var(--color-text-muted)"
-                    >(16 digit)</span
-                ></label
-            >
+            <label for="nik" class="text-xs font-semibold text-slate-700 block ml-0.5">
+                NIK
+            </label>
             <div class="relative">
-                <i class="pi pi-id-card input-icon" aria-hidden="true" />
+                <i
+                    class="pi pi-id-card absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none"
+                    aria-hidden="true"
+                />
                 <input
                     id="nik"
                     v-model="form.nik"
@@ -58,20 +61,27 @@
                     inputmode="numeric"
                     maxlength="16"
                     :disabled="loading"
-                    class="input-field w-full pl-9 pr-4 py-2.5 rounded-xl text-sm font-mono"
+                    class="w-full pl-9 pr-4 py-2.5 rounded-xl text-sm font-mono tracking-wider bg-white border border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all text-slate-800 outline-none"
                     aria-required="true"
                     :aria-invalid="!!fieldError.nik"
                     @input="form.nik = form.nik.replace(/\D/g, '')"
                 />
             </div>
-            <p v-if="fieldError.nik" class="error-hint">{{ fieldError.nik }}</p>
+            <p v-if="fieldError.nik" class="text-xs text-red-600 mt-1 ml-0.5">
+                {{ fieldError.nik }}
+            </p>
         </div>
 
         <!-- Email -->
         <div class="space-y-1.5">
-            <label for="email_ot" class="field-label">Email</label>
+            <label for="email_ot" class="text-xs font-semibold text-slate-700 block ml-0.5">
+                Email
+            </label>
             <div class="relative">
-                <i class="pi pi-envelope input-icon" aria-hidden="true" />
+                <i
+                    class="pi pi-envelope absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none"
+                    aria-hidden="true"
+                />
                 <input
                     id="email_ot"
                     v-model="form.email"
@@ -79,50 +89,40 @@
                     placeholder="nama@email.com"
                     autocomplete="email"
                     :disabled="loading || isEdit"
-                    class="input-field w-full pl-9 pr-4 py-2.5 rounded-xl text-sm"
+                    class="w-full pl-9 pr-4 py-2.5 rounded-xl text-sm bg-white border border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all text-slate-800 outline-none disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200"
                     :aria-required="!isEdit"
                     :aria-invalid="!!fieldError.email"
                 />
             </div>
-            <p v-if="fieldError.email" class="error-hint">
+            <p v-if="fieldError.email" class="text-xs text-red-600 mt-1 ml-0.5">
                 {{ fieldError.email }}
-            </p>
-            <p
-                v-else-if="isEdit"
-                class="text-xs m-0"
-                style="color: var(--color-text-muted)"
-            >
-                Email akun tidak dapat diubah dari data master.
             </p>
         </div>
 
-        <!-- Password -->
+        <!-- Password (hanya saat tambah baru) -->
         <div v-if="!isEdit" class="space-y-1.5">
-            <label for="password_ot" class="field-label"
-                >Password
-                <span
-                    class="text-xs font-normal"
-                    style="color: var(--color-text-muted)"
-                    >(min. 6 karakter)</span
-                ></label
-            >
+            <label for="password_ot" class="text-xs font-semibold text-slate-700 block ml-0.5">
+                Password
+            </label>
             <div class="relative">
-                <i class="pi pi-lock input-icon" aria-hidden="true" />
+                <i
+                    class="pi pi-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none"
+                    aria-hidden="true"
+                />
                 <input
                     id="password_ot"
                     v-model="form.password"
                     :type="showPassword ? 'text' : 'password'"
-                    placeholder="••••••••"
+                    placeholder="Minimal 6 karakter"
                     :disabled="loading"
                     maxlength="72"
-                    class="input-field w-full pl-9 pr-10 py-2.5 rounded-xl text-sm"
+                    class="w-full pl-9 pr-10 py-2.5 rounded-xl text-sm bg-white border border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all text-slate-800 outline-none"
                     aria-required="true"
                     :aria-invalid="!!fieldError.password"
                 />
                 <button
                     type="button"
-                    class="absolute right-3 top-1/2 -translate-y-1/2 bg-transparent border-0 cursor-pointer p-0 leading-none"
-                    style="color: var(--color-text-muted)"
+                    class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1.5 rounded-lg cursor-pointer transition-colors"
                     :aria-label="
                         showPassword
                             ? 'Sembunyikan password'
@@ -133,20 +133,26 @@
                 >
                     <i
                         :class="showPassword ? 'pi pi-eye-slash' : 'pi pi-eye'"
+                        class="text-xs"
                         aria-hidden="true"
                     />
                 </button>
             </div>
-            <p v-if="fieldError.password" class="error-hint">
+            <p v-if="fieldError.password" class="text-xs text-red-600 mt-1 ml-0.5">
                 {{ fieldError.password }}
             </p>
         </div>
 
-        <!-- No HP -->
+        <!-- No Telepon -->
         <div class="space-y-1.5">
-            <label for="no_hp" class="field-label">No. HP</label>
+            <label for="no_hp" class="text-xs font-semibold text-slate-700 block ml-0.5">
+                No Telepon
+            </label>
             <div class="relative">
-                <i class="pi pi-phone input-icon" aria-hidden="true" />
+                <i
+                    class="pi pi-phone absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none"
+                    aria-hidden="true"
+                />
                 <input
                     id="no_hp"
                     v-model="form.no_hp"
@@ -154,46 +160,43 @@
                     placeholder="08xxxxxxxxxx"
                     inputmode="tel"
                     :disabled="loading"
-                    class="input-field w-full pl-9 pr-4 py-2.5 rounded-xl text-sm"
+                    class="w-full pl-9 pr-4 py-2.5 rounded-xl text-sm bg-white border border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all text-slate-800 outline-none"
                     aria-required="true"
                     :aria-invalid="!!fieldError.no_hp"
                     @input="form.no_hp = form.no_hp.replace(/[^\d+]/g, '')"
                 />
             </div>
-            <p v-if="fieldError.no_hp" class="error-hint">
+            <p v-if="fieldError.no_hp" class="text-xs text-red-600 mt-1 ml-0.5">
                 {{ fieldError.no_hp }}
             </p>
         </div>
 
         <!-- Alamat -->
         <div class="space-y-1.5">
-            <label for="alamat" class="field-label">Alamat</label>
+            <label for="alamat" class="text-xs font-semibold text-slate-700 block ml-0.5">
+                Alamat
+            </label>
             <textarea
                 id="alamat"
                 v-model="form.alamat"
                 placeholder="Masukkan alamat lengkap"
                 rows="3"
                 :disabled="loading"
-                class="input-field w-full px-4 py-2.5 rounded-xl text-sm resize-none"
+                class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-white border border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all text-slate-800 outline-none resize-none"
                 aria-required="true"
                 :aria-invalid="!!fieldError.alamat"
             />
-            <p v-if="fieldError.alamat" class="error-hint">
+            <p v-if="fieldError.alamat" class="text-xs text-red-600 mt-1 ml-0.5">
                 {{ fieldError.alamat }}
             </p>
         </div>
 
         <!-- Tombol aksi -->
-        <div class="flex gap-3 pt-2">
+        <div class="flex gap-3 pt-3">
             <button
                 type="button"
                 :disabled="loading"
-                class="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors border"
-                style="
-                    background: white;
-                    color: var(--color-text-body);
-                    border-color: var(--color-input-border);
-                "
+                class="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer border-0 disabled:opacity-50"
                 @click="$emit('cancel')"
             >
                 Batal
@@ -201,11 +204,11 @@
             <button
                 type="submit"
                 :disabled="loading || !isValid"
-                class="btn-submit flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                class="btn-primary flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 <i
                     v-if="loading"
-                    class="pi pi-spin pi-spinner"
+                    class="pi pi-spin pi-spinner text-xs"
                     aria-hidden="true"
                 />
                 <span>{{ submitLabel }}</span>
@@ -249,7 +252,7 @@ watch(
         form.nik = data?.nik || "";
         form.email = data?.email || "";
         form.password = "";
-        form.no_hp = data?.no_hp || "";
+        form.no_hp = data?.no_hp || data?.no_telepon || "";
         form.alamat = data?.alamat || "";
         submitted.value = false;
         showPassword.value = false;
@@ -270,7 +273,7 @@ const fieldError = computed(() => {
     else if (!isEdit.value && form.password.length > 72)
         e.password = "Password maksimal 72 karakter";
     if (form.no_hp && !/^\+?\d{8,20}$/.test(form.no_hp))
-        e.no_hp = "Format nomor HP tidak valid";
+        e.no_hp = "Format nomor telepon tidak valid";
     if (form.alamat && form.alamat.trim().length < 3)
         e.alamat = "Alamat minimal 3 karakter";
 
@@ -282,7 +285,7 @@ const fieldError = computed(() => {
             e.email = "Email wajib diisi";
         if (!isEdit.value && !e.password && !form.password)
             e.password = "Password wajib diisi";
-        if (!e.no_hp && !form.no_hp.trim()) e.no_hp = "No. HP wajib diisi";
+        if (!e.no_hp && !form.no_hp.trim()) e.no_hp = "No Telepon wajib diisi";
         if (!form.alamat.trim()) e.alamat = "Alamat wajib diisi";
     }
     return e;
@@ -322,3 +325,30 @@ const handleSubmit = () => {
     emit("submit", payload);
 };
 </script>
+
+<style scoped>
+.btn-primary {
+    border: 0;
+    background: #059669;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: #047857;
+}
+
+.btn-primary:active:not(:disabled) {
+    transform: scale(0.99);
+}
+
+.slide-down-enter-active,
+.slide-down-leave-active {
+    transition: all 0.25s ease;
+}
+.slide-down-enter-from,
+.slide-down-leave-to {
+    opacity: 0;
+    transform: translateY(-8px);
+}
+</style>

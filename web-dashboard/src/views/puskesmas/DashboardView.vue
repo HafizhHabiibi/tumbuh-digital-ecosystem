@@ -68,33 +68,26 @@
         <section aria-label="Rujukan aktif">
             <div class="card rounded-2xl overflow-hidden border border-slate-200/80 shadow-xs">
                 <div class="flex items-center justify-between p-4 border-b border-slate-100">
-                    <h2
-                        class="text-base font-bold m-0 text-slate-800"
-                    >
-                        <i
-                            class="pi pi-send mr-1.5"
-                            style="color: var(--color-green-700)"
-                            aria-hidden="true"
-                        />
+                    <h2 class="text-base font-bold m-0 text-slate-800">
                         Rujukan Masuk
                     </h2>
-                    <div class="flex items-center gap-2">
+                    <div class="bg-slate-100/90 p-1 rounded-2xl flex gap-1 border border-slate-200/70">
                         <span
-                            class="text-xs px-2.5 py-1 rounded-full font-semibold"
-                            style="background: #fef3c7; color: #d97706"
+                            class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 text-white shadow-xs"
                         >
-                            {{ rujukanStore.rujukanAktif.length }} aktif
+                            <span>Aktif</span>
+                            <span
+                                class="min-w-5 px-1.5 py-0.5 rounded-full text-[10px] font-bold text-center bg-white/20 text-white"
+                            >
+                                {{ rujukanStore.rujukanAktif.length }}
+                            </span>
                         </span>
                         <button
-                            class="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
-                            style="
-                                background: var(--color-green-100);
-                                color: var(--color-green-700);
-                                border: none;
-                            "
+                            type="button"
+                            class="flex items-center px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 transition-all cursor-pointer whitespace-nowrap border-0 bg-transparent"
                             @click="router.push({ name: 'PuskesmasRujukan' })"
                         >
-                            Lihat Semua
+                            <span>Lihat Semua</span>
                         </button>
                     </div>
                 </div>
@@ -114,13 +107,10 @@
                     class="flex flex-col items-center py-10 gap-2"
                 >
                     <i
-                        class="pi pi-check-circle text-3xl"
-                        style="color: var(--color-green-600)"
+                        class="pi pi-check-circle text-3xl text-emerald-600"
                         aria-hidden="true"
                     />
-                    <p
-                        class="text-sm m-0 text-slate-500"
-                    >
+                    <p class="text-sm m-0 text-slate-500">
                         Tidak ada rujukan aktif saat ini
                     </p>
                 </div>
@@ -135,27 +125,20 @@
                         :key="r.id"
                         class="flex items-center justify-between p-4 hover:bg-slate-50/80 transition-colors"
                     >
-                        <div class="space-y-0.5">
-                            <p
-                                class="text-sm font-semibold m-0 text-slate-900"
-                            >
+                        <div class="space-y-0.5 min-w-0">
+                            <p class="text-sm font-semibold m-0 text-slate-900 truncate">
                                 {{ r.nama_anak }}
                             </p>
-                            <p
-                                class="text-xs m-0 text-slate-500"
-                            >
-                                {{ r.nama_posyandu }} —
+                            <p class="text-xs m-0 text-slate-500 truncate">
+                                {{ r.nama_kader ? `Kader: ${r.nama_kader}` : (r.nama_orang_tua ? `Orang Tua: ${r.nama_orang_tua}` : "Posyandu") }} —
                                 {{ formatTanggal(r.created_at) }}
                             </p>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <StatusBadge :status="r.status" />
+                        <div class="flex items-center gap-2 shrink-0">
+                            <StatusBadge type="rujukan" :value="r.status" />
                             <button
-                                class="text-xs font-medium px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer border-0"
-                                style="
-                                    background: var(--color-green-50);
-                                    color: var(--color-green-700);
-                                "
+                                type="button"
+                                class="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-700 inline-flex items-center gap-1 border-0"
                                 @click="
                                     router.push({
                                         name: 'PuskesmasRujukan',
@@ -163,7 +146,8 @@
                                     })
                                 "
                             >
-                                Detail
+                                <i class="pi pi-eye text-xs" aria-hidden="true" />
+                                <span>Detail</span>
                             </button>
                         </div>
                     </div>

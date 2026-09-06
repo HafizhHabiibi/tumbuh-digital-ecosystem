@@ -1,7 +1,118 @@
 <template>
     <div class="p-6 max-w-6xl mx-auto space-y-6">
-        <!-- ─── Header Halaman ─────────────────────────────────────── -->
+        <!-- ─── Header Halaman ────────────────────────────────────────── -->
         <PageHeader title="Data Anak" />
+
+        <!-- ─── 3 Kartu Ringkasan Gender (Stat Total + Filter Gender) ── -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <!-- Total Anak -->
+            <button
+                type="button"
+                class="p-4 rounded-2xl border text-left transition-all duration-200 cursor-pointer"
+                :class="
+                    filterJenisKelamin === 'semua'
+                        ? 'border-emerald-500 bg-emerald-50/70 ring-2 ring-emerald-500/20 shadow-xs'
+                        : 'border-slate-100 bg-white hover:border-emerald-200 hover:bg-emerald-50/30'
+                "
+                @click="filterJenisKelamin = 'semua'"
+            >
+                <div class="flex items-center justify-between mb-2">
+                    <span
+                        class="text-xs font-bold text-emerald-700 flex items-center gap-1.5"
+                    >
+                        <span class="w-2 h-2 rounded-full bg-emerald-500" />
+                        Total Anak Terdaftar
+                    </span>
+                    <i class="pi pi-users text-emerald-600 text-sm" />
+                </div>
+                <div
+                    class="text-2xl font-extrabold text-slate-900 tracking-tight"
+                >
+                    {{ store.totalAnak }}
+                    <span class="text-xs font-normal text-slate-400">anak</span>
+                </div>
+                <p class="text-[11px] font-medium text-emerald-700/80 mt-1">
+                    Semua anak dalam pantauan posyandu
+                </p>
+            </button>
+
+            <!-- Laki-laki -->
+            <button
+                type="button"
+                class="p-4 rounded-2xl border text-left transition-all duration-200 cursor-pointer"
+                :class="
+                    filterJenisKelamin === 'L'
+                        ? 'border-sky-500 bg-sky-50/70 ring-2 ring-sky-500/20 shadow-xs'
+                        : 'border-slate-100 bg-white hover:border-sky-200 hover:bg-sky-50/30'
+                "
+                @click="toggleFilterJK('L')"
+            >
+                <div class="flex items-center justify-between mb-2">
+                    <span
+                        class="text-xs font-bold text-sky-700 flex items-center gap-1.5"
+                    >
+                        <span class="w-2 h-2 rounded-full bg-sky-500" />
+                        Laki-laki
+                    </span>
+                    <i class="pi pi-user text-sky-600 text-sm" />
+                </div>
+                <div
+                    class="text-2xl font-extrabold text-slate-900 tracking-tight"
+                >
+                    {{ store.anakLaki.length }}
+                    <span class="text-xs font-normal text-slate-400">anak</span>
+                </div>
+                <p class="text-[11px] font-medium text-sky-700/80 mt-1">
+                    Klik untuk filter anak laki-laki
+                </p>
+            </button>
+
+            <!-- Perempuan -->
+            <button
+                type="button"
+                class="p-4 rounded-2xl border text-left transition-all duration-200 cursor-pointer"
+                :class="
+                    filterJenisKelamin === 'P'
+                        ? 'border-rose-500 bg-rose-50/70 ring-2 ring-rose-500/20 shadow-xs'
+                        : 'border-slate-100 bg-white hover:border-rose-200 hover:bg-rose-50/30'
+                "
+                @click="toggleFilterJK('P')"
+            >
+                <div class="flex items-center justify-between mb-2">
+                    <span
+                        class="text-xs font-bold text-rose-700 flex items-center gap-1.5"
+                    >
+                        <span class="w-2 h-2 rounded-full bg-rose-500" />
+                        Perempuan
+                    </span>
+                    <i class="pi pi-user text-rose-600 text-sm" />
+                </div>
+                <div
+                    class="text-2xl font-extrabold text-slate-900 tracking-tight"
+                >
+                    {{ store.anakPerempuan.length }}
+                    <span class="text-xs font-normal text-slate-400">anak</span>
+                </div>
+                <p class="text-[11px] font-medium text-rose-700/80 mt-1">
+                    Klik untuk filter anak perempuan
+                </p>
+            </button>
+        </div>
+
+        <!-- ─── Error Alert ────────────────────────────────────────── -->
+        <Transition name="slide-down">
+            <div
+                v-if="store.error.anakList"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm bg-red-50 border border-red-200 text-red-700"
+                role="alert"
+            >
+                <i
+                    class="pi pi-exclamation-circle flex-shrink-0"
+                    aria-hidden="true"
+                />
+                <span>{{ store.error.anakList }}</span>
+            </div>
+        </Transition>
 
         <!-- ─── Action Toolbar: Search + Filter Pills ──────────────── -->
         <div
@@ -15,9 +126,9 @@
                 />
                 <input
                     v-model="search"
-                    class="input-field w-full pl-10 pr-9 py-2 rounded-xl text-sm"
                     type="search"
                     placeholder="Cari nama anak atau orang tua..."
+                    class="input-field w-full pl-10 pr-9 py-2 rounded-xl text-sm"
                     aria-label="Cari anak"
                 />
                 <button
@@ -31,46 +142,50 @@
                 </button>
             </div>
 
-            <!-- Segmented Filter Pills -->
-            <div class="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
-                <button
-                    type="button"
-                    class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-150 cursor-pointer"
-                    :class="
-                        filterJenisKelamin === 'semua'
-                            ? 'bg-slate-900 text-white shadow-xs'
-                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200/80'
-                    "
-                    @click="filterJenisKelamin = 'semua'"
-                >
-                    Semua
-                </button>
-                <button
-                    type="button"
-                    class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-150 flex items-center gap-1.5 cursor-pointer"
-                    :class="
-                        filterJenisKelamin === 'L'
-                            ? 'bg-sky-600 text-white shadow-xs'
-                            : 'bg-slate-100 text-slate-600 hover:bg-sky-50 hover:text-sky-700'
-                    "
-                    @click="filterJenisKelamin = 'L'"
-                >
-                    <span class="w-1.5 h-1.5 rounded-full bg-sky-400" />
-                    Laki-laki
-                </button>
-                <button
-                    type="button"
-                    class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-150 flex items-center gap-1.5 cursor-pointer"
-                    :class="
-                        filterJenisKelamin === 'P'
-                            ? 'bg-rose-600 text-white shadow-xs'
-                            : 'bg-slate-100 text-slate-600 hover:bg-rose-50 hover:text-rose-700'
-                    "
-                    @click="filterJenisKelamin = 'P'"
-                >
-                    <span class="w-1.5 h-1.5 rounded-full bg-rose-400" />
-                    Perempuan
-                </button>
+            <!-- Group Kanan: Segmented Filter Pills -->
+            <div
+                class="flex items-center gap-3 justify-between md:justify-end flex-wrap"
+            >
+                <div class="flex items-center gap-1.5">
+                    <button
+                        type="button"
+                        class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-150 cursor-pointer"
+                        :class="
+                            filterJenisKelamin === 'semua'
+                                ? 'bg-slate-900 text-white shadow-xs'
+                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200/80'
+                        "
+                        @click="filterJenisKelamin = 'semua'"
+                    >
+                        Semua
+                    </button>
+                    <button
+                        type="button"
+                        class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-150 flex items-center gap-1.5 cursor-pointer"
+                        :class="
+                            filterJenisKelamin === 'L'
+                                ? 'bg-sky-600 text-white shadow-xs'
+                                : 'bg-slate-100 text-slate-600 hover:bg-sky-50 hover:text-sky-700'
+                        "
+                        @click="filterJenisKelamin = 'L'"
+                    >
+                        <span class="w-1.5 h-1.5 rounded-full bg-sky-400" />
+                        Laki-laki
+                    </button>
+                    <button
+                        type="button"
+                        class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-150 flex items-center gap-1.5 cursor-pointer"
+                        :class="
+                            filterJenisKelamin === 'P'
+                                ? 'bg-rose-600 text-white shadow-xs'
+                                : 'bg-slate-100 text-slate-600 hover:bg-rose-50 hover:text-rose-700'
+                        "
+                        @click="filterJenisKelamin = 'P'"
+                    >
+                        <span class="w-1.5 h-1.5 rounded-full bg-rose-400" />
+                        Perempuan
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -78,49 +193,41 @@
         <div class="card rounded-2xl overflow-hidden">
             <!-- Skeleton -->
             <div v-if="store.loading.anakList" class="p-6 space-y-4">
-                <div v-for="item in 5" :key="item" class="skeleton h-14 rounded-xl" />
+                <div v-for="i in 6" :key="i" class="skeleton h-14 rounded-xl" />
             </div>
 
-            <!-- Error -->
-            <div
-                v-else-if="store.error.anakList"
-                class="p-12 flex flex-col items-center gap-3 text-center"
-                role="alert"
-            >
-                <i class="pi pi-exclamation-circle text-4xl text-red-600" />
-                <p class="text-sm m-0 text-slate-500">
-                    {{ store.error.anakList }}
-                </p>
-                <button class="btn-primary cursor-pointer px-4 py-2 rounded-lg text-sm font-semibold text-white" @click="loadData()">
-                    Coba Lagi
-                </button>
-            </div>
-
-            <!-- Empty -->
+            <!-- Empty state -->
             <div
                 v-else-if="filteredAnak.length === 0"
-                class="p-16 flex flex-col items-center gap-3 text-center"
+                class="flex flex-col items-center justify-center py-16 gap-3 text-center"
             >
-                <i class="pi pi-users text-4xl text-slate-300" />
-                <p class="text-sm m-0 text-slate-500">
+                <i
+                    class="pi pi-users text-4xl text-slate-300"
+                    aria-hidden="true"
+                />
+                <p class="text-sm font-medium m-0 text-slate-500">
                     {{
                         search || filterJenisKelamin !== "semua"
-                            ? "Tidak ada data yang cocok."
-                            : "Belum ada anak terdaftar."
+                            ? "Tidak ada hasil yang cocok"
+                            : "Belum ada anak terdaftar"
                     }}
                 </p>
             </div>
 
-            <!-- Table -->
+            <!-- Tabel -->
             <div v-else class="overflow-x-auto">
-                <table class="w-full text-sm" aria-label="Daftar anak Puskesmas">
+                <table class="w-full text-sm" aria-label="Daftar anak">
                     <thead>
                         <tr class="bg-slate-50 border-b border-slate-100">
                             <th class="th-cell">Nama Anak</th>
                             <th class="th-cell">Jenis Kelamin</th>
-                            <th class="th-cell hidden md:table-cell">Tanggal Lahir</th>
-                            <th class="th-cell hidden lg:table-cell">Usia</th>
-                            <th class="th-cell">Orang Tua</th>
+                            <th class="th-cell hidden md:table-cell">
+                                Tanggal Lahir
+                            </th>
+                            <th class="th-cell hidden md:table-cell">Usia</th>
+                            <th class="th-cell hidden lg:table-cell">
+                                Orang Tua
+                            </th>
                             <th class="th-cell text-center w-14">Aksi</th>
                         </tr>
                     </thead>
@@ -131,6 +238,7 @@
                             class="hover:bg-slate-50/80 transition-colors duration-150 cursor-pointer"
                             @click="lihatDetail(anak.id)"
                         >
+                            <!-- Nama -->
                             <td class="px-4 py-3.5">
                                 <div class="flex items-center gap-3">
                                     <div
@@ -144,16 +252,13 @@
                                     >
                                         {{ anak.nama.charAt(0).toUpperCase() }}
                                     </div>
-                                    <div>
-                                        <div class="font-semibold text-slate-800">
-                                            {{ anak.nama }}
-                                        </div>
-                                        <div class="text-xs md:hidden text-slate-400">
-                                            {{ hitungUsia(anak.tanggal_lahir) }}
-                                        </div>
-                                    </div>
+                                    <span class="font-semibold text-slate-800">
+                                        {{ anak.nama }}
+                                    </span>
                                 </div>
                             </td>
+
+                            <!-- JK -->
                             <td class="px-4 py-3.5">
                                 <span
                                     class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
@@ -178,15 +283,29 @@
                                     }}
                                 </span>
                             </td>
-                            <td class="px-4 py-3.5 hidden md:table-cell text-slate-600">
+
+                            <!-- Tanggal Lahir -->
+                            <td
+                                class="px-4 py-3.5 hidden md:table-cell text-slate-600"
+                            >
                                 {{ formatTanggal(anak.tanggal_lahir) }}
                             </td>
-                            <td class="px-4 py-3.5 hidden lg:table-cell text-slate-600 font-medium">
+
+                            <!-- Usia -->
+                            <td
+                                class="px-4 py-3.5 hidden md:table-cell text-slate-600 font-medium"
+                            >
                                 {{ hitungUsia(anak.tanggal_lahir) }}
                             </td>
-                            <td class="px-4 py-3.5 text-slate-700">
+
+                            <!-- Orang Tua -->
+                            <td
+                                class="px-4 py-3.5 hidden lg:table-cell text-slate-700"
+                            >
                                 {{ anak.nama_orang_tua || "—" }}
                             </td>
+
+                            <!-- Aksi -->
                             <td class="px-4 py-3.5 text-center" @click.stop>
                                 <button
                                     type="button"
@@ -202,13 +321,13 @@
                     </tbody>
                 </table>
             </div>
-
             <PaginationControls
                 :pagination="store.pagination"
                 :loading="store.loading.anakList"
-                @change-page="loadData"
+                @change-page="changePage"
             />
         </div>
+
         <!-- ─── Action Menu Popover ────────────────────────────────── -->
         <Menu ref="actionMenu" :model="menuItems" :popup="true">
             <template #item="{ item }">
@@ -237,17 +356,18 @@
 </template>
 
 <script setup>
-import PageHeader from "@/components/ui/PageHeader.vue";
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { ref, computed, onBeforeUnmount, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
-import Menu from "primevue/menu";
 import { usePuskesmasStore } from "@/stores/puskesmasStore";
-import { formatTanggal, hitungUsia } from "@/utils/format";
+import Menu from "primevue/menu";
+import PageHeader from "@/components/ui/PageHeader.vue";
 import PaginationControls from "@/components/ui/PaginationControls.vue";
+import { formatTanggal, hitungUsia } from "@/utils/format.js";
 import { debounce } from "@/utils/debounce.js";
 
 const router = useRouter();
 const store = usePuskesmasStore();
+
 const search = ref("");
 const filterJenisKelamin = ref("semua");
 const actionMenu = ref(null);
@@ -269,7 +389,7 @@ const menuItems = computed(() => {
     if (!selectedAnak.value) return [];
     return [
         {
-            label: "Detail Riwayat",
+            label: "Detail Anak",
             icon: "pi pi-eye",
             command: () => {
                 lihatDetail(selectedAnak.value.id);
@@ -277,6 +397,12 @@ const menuItems = computed(() => {
         },
     ];
 });
+
+/* ── Toggle Filter JK dari Kartu Stat ───────────────────────────── */
+const toggleFilterJK = (val) => {
+    filterJenisKelamin.value =
+        filterJenisKelamin.value === val ? "semua" : val;
+};
 
 const filteredAnak = computed(() => store.anakList);
 
@@ -295,7 +421,12 @@ watch([search, filterJenisKelamin], reloadFromFirstPage);
 const lihatDetail = (id) =>
     router.push({ name: "PuskesmasDetailAnak", params: { id } });
 
-onMounted(() => loadData());
+const changePage = (page) => loadData(page);
+
+onMounted(async () => {
+    await Promise.all([loadData(), store.fetchAnakOptions()]);
+});
+
 onBeforeUnmount(reloadFromFirstPage.cancel);
 </script>
 
@@ -305,41 +436,53 @@ onBeforeUnmount(reloadFromFirstPage.cancel);
     border: 1px solid var(--color-card-border);
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
+
+.th-cell {
+    text-align: left;
+    padding: 0.75rem 1rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #1e293b;
+}
+
 .input-field {
-    background: var(--color-input-bg);
+    background: white;
     border: 1px solid var(--color-input-border);
     color: var(--color-text-heading);
     outline: none;
-    font-family: "Poppins", sans-serif;
     transition:
         border-color 0.2s,
         box-shadow 0.2s;
+    font-family: "Poppins", sans-serif;
 }
 .input-field:focus {
     border-color: var(--color-green-700);
     box-shadow: 0 0 0 2px var(--color-focus-ring);
 }
-.th-cell {
-    padding: 0.75rem 1rem;
-    text-align: left;
-    color: #1e293b;
-    font-size: 0.7rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-.btn-primary {
-    border: 0;
-    background: var(--color-green-700);
-    color: white;
-}
+
 .skeleton {
     background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
 }
 @keyframes shimmer {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+.slide-down-enter-active,
+.slide-down-leave-active {
+    transition: all 0.25s ease;
+}
+.slide-down-enter-from,
+.slide-down-leave-to {
+    opacity: 0;
+    transform: translateY(-8px);
 }
 </style>

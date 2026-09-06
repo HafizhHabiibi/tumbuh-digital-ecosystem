@@ -150,7 +150,7 @@
                     class="flex flex-1 min-w-max items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
                     :class="
                         activeTab === tab.key
-                            ? 'bg-white text-emerald-800 shadow-xs'
+                            ? 'bg-emerald-600 text-white shadow-xs'
                             : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
                     "
                     @click="activeTab = tab.key"
@@ -159,13 +159,12 @@
                     @keydown.home.prevent="moveToTab(0)"
                     @keydown.end.prevent="moveToTab(tabs.length - 1)"
                 >
-                    <i :class="`pi ${tab.icon} text-xs`" aria-hidden="true" />
                     <span>{{ tab.label }}</span>
                     <span
-                        class="min-w-5 px-1.5 py-0.5 rounded-full text-[10px] font-bold text-center"
+                        class="min-w-5 px-1.5 py-0.5 rounded-full text-[10px] font-bold text-center transition-colors"
                         :class="
                             activeTab === tab.key
-                                ? 'bg-emerald-100 text-emerald-700'
+                                ? 'bg-white/20 text-white'
                                 : 'bg-slate-200 text-slate-600'
                         "
                     >
@@ -588,7 +587,7 @@
             v-model:visible="showDetailRujukan"
             modal
             header="Detail Rujukan"
-            :style="{ width: '520px', maxWidth: '95vw' }"
+            :style="{ width: '640px', maxWidth: '95vw' }"
             :pt="{
                 header: {
                     style: 'border-bottom: 1px solid var(--color-input-border)',
@@ -601,6 +600,7 @@
             <RujukanDetailCard
                 v-else-if="rujukanStore.rujukanDetail"
                 :rujukan="rujukanStore.rujukanDetail"
+                @close="showDetailRujukan = false"
             />
         </Dialog>
 
@@ -868,19 +868,16 @@ const tabs = computed(() => [
     {
         key: "pengukuran",
         label: "Pengukuran & Pertumbuhan",
-        icon: "pi-chart-line",
         count: pengukuranStore.riwayat.list.length,
     },
     {
         key: "pemberian",
         label: "Pemberian PMT & Vitamin",
-        icon: "pi-shield",
         count: pemberianStore.riwayat.list.length,
     },
     {
         key: "rujukan",
         label: "Riwayat Rujukan",
-        icon: "pi-send",
         count: rujukanStore.riwayatAnak.list.length,
     },
 ]);

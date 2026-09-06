@@ -68,8 +68,7 @@
             <button
                 type="button"
                 :disabled="loading"
-                class="flex-1 py-2.5 rounded-xl text-sm font-semibold border"
-                style="background: white; color: var(--color-text-body); border-color: var(--color-input-border)"
+                class="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer border-0"
                 @click="$emit('cancel')"
             >
                 Batal
@@ -77,9 +76,11 @@
             <button
                 type="submit"
                 :disabled="loading || !isValid"
-                class="btn-submit flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-60"
+                class="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-                {{ loading ? "Menyimpan..." : "Simpan Pengaturan" }}
+                <i v-if="loading" class="pi pi-spin pi-spinner text-xs" aria-hidden="true" />
+                <i v-else class="pi pi-check text-xs" aria-hidden="true" />
+                <span>{{ loading ? "Menyimpan..." : "Simpan Pengaturan" }}</span>
             </button>
         </div>
     </form>

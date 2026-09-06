@@ -215,7 +215,7 @@
             <button
                 v-if="activeFilter === 'mendatang'"
                 type="button"
-                class="btn-primary px-4 py-2 rounded-xl text-xs font-semibold text-white cursor-pointer mt-1 shadow-xs hover:bg-emerald-700 transition-all inline-flex items-center gap-1.5"
+                class="text-xs font-semibold px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition-colors cursor-pointer mt-1 shadow-xs inline-flex items-center gap-1.5"
                 @click="openForm"
             >
                 <i class="pi pi-plus text-[10px]" aria-hidden="true" />
@@ -351,60 +351,156 @@
             v-model:visible="showDetail"
             modal
             header="Detail Jadwal Posyandu"
-            :style="{ width: '460px', maxWidth: '95vw' }"
+            :style="{ width: '480px', maxWidth: '95vw' }"
             :pt="{ header: { style: 'border-bottom: 1px solid var(--color-input-border)' } }"
         >
-            <div v-if="jadwalStore.loading.fetchDetail" class="p-4 space-y-3">
-                <div v-for="i in 4" :key="i" class="skeleton h-10 rounded-xl" />
+            <div v-if="jadwalStore.loading.fetchDetail" class="p-5 space-y-3">
+                <div v-for="i in 4" :key="i" class="skeleton h-12 rounded-xl" />
             </div>
             <div v-else-if="jadwalStore.jadwalDetail" class="space-y-4 pt-3">
-                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-3">
-                    <div>
-                        <p class="text-[10px] uppercase font-bold tracking-wider text-slate-400 m-0">Tanggal Pelaksanaan</p>
-                        <p class="text-sm font-bold text-slate-800 mt-0.5 mb-0">
-                            {{ formatTanggalPanjang(jadwalStore.jadwalDetail.tanggal) }}
-                        </p>
+                <!-- Hero Header Kartu Jadwal -->
+                <div
+                    class="p-4 rounded-2xl border flex items-center justify-between gap-3"
+                    :class="
+                        isHariIni(jadwalStore.jadwalDetail.tanggal)
+                            ? 'bg-amber-50/70 border-amber-200'
+                            : isLewat(jadwalStore.jadwalDetail.tanggal)
+                                ? 'bg-slate-50 border-slate-200/80'
+                                : 'bg-emerald-50/70 border-emerald-200/80'
+                    "
+                >
+                    <div class="flex items-center gap-3.5 min-w-0">
+                        <!-- Kotak Tanggal Visual -->
+                        <div
+                            class="w-14 h-14 rounded-xl flex flex-col items-center justify-center shrink-0 border shadow-2xs select-none"
+                            :class="
+                                isHariIni(jadwalStore.jadwalDetail.tanggal)
+                                    ? 'bg-amber-100 border-amber-300 text-amber-900'
+                                    : isLewat(jadwalStore.jadwalDetail.tanggal)
+                                        ? 'bg-white border-slate-200 text-slate-600'
+                                        : 'bg-white border-emerald-200 text-emerald-800'
+                            "
+                        >
+                            <span class="text-[9px] uppercase font-bold tracking-wider leading-none">
+                                {{ namaHari(jadwalStore.jadwalDetail.tanggal) }}
+                            </span>
+                            <span class="text-xl font-extrabold tracking-tight leading-none my-0.5">
+                                {{ angkaTanggal(jadwalStore.jadwalDetail.tanggal) }}
+                            </span>
+                            <span class="text-[9px] font-semibold leading-none opacity-80">
+                                {{ bulanSingkat(jadwalStore.jadwalDetail.tanggal) }}
+                            </span>
+                        </div>
+
+                        <div class="min-w-0">
+                            <h3 class="text-sm sm:text-base font-bold text-slate-800 m-0 truncate">
+                                {{ jadwalStore.jadwalDetail.lokasi }}
+                            </h3>
+                            <p class="text-xs text-slate-500 m-0 mt-0.5">
+                                {{ formatTanggalPanjang(jadwalStore.jadwalDetail.tanggal) }}
+                            </p>
+                        </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-3 pt-1 border-t border-slate-200/60">
-                        <div>
-                            <p class="text-[10px] uppercase font-bold tracking-wider text-slate-400 m-0">Waktu</p>
-                            <p class="text-xs font-semibold text-slate-700 mt-0.5 mb-0">
+
+                    <!-- Badge Status -->
+                    <span
+                        v-if="isHariIni(jadwalStore.jadwalDetail.tanggal)"
+                        class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200 shrink-0"
+                    >
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                        Hari Ini
+                    </span>
+                    <span
+                        v-else-if="isLewat(jadwalStore.jadwalDetail.tanggal)"
+                        class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-200 shrink-0"
+                    >
+                        Selesai
+                    </span>
+                    <span
+                        v-else
+                        class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0"
+                    >
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                        Mendatang
+                    </span>
+                </div>
+
+                <!-- Rincian Waktu & Lokasi (Atas Bawah agar tidak terpotong) -->
+                <div class="space-y-3">
+                    <!-- Kartu Waktu -->
+                    <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="pi pi-clock text-xs" />
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[11px] font-semibold text-slate-500 m-0">
+                                Waktu Pelaksanaan
+                            </p>
+                            <p class="text-xs font-bold text-slate-800 m-0 mt-0.5">
                                 {{ formatWaktu(jadwalStore.jadwalDetail.waktu_mulai) }} – {{ formatWaktu(jadwalStore.jadwalDetail.waktu_selesai) }} WIB
                             </p>
                         </div>
-                        <div>
-                            <p class="text-[10px] uppercase font-bold tracking-wider text-slate-400 m-0">Lokasi</p>
-                            <p class="text-xs font-semibold text-slate-700 mt-0.5 mb-0">
+                    </div>
+
+                    <!-- Kartu Lokasi -->
+                    <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="pi pi-map-marker text-xs" />
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[11px] font-semibold text-slate-500 m-0">
+                                Lokasi Pelaksanaan
+                            </p>
+                            <p class="text-xs font-bold text-slate-800 m-0 mt-0.5 break-words">
                                 {{ jadwalStore.jadwalDetail.lokasi }}
                             </p>
                         </div>
                     </div>
-                    <div class="pt-1 border-t border-slate-200/60">
-                        <p class="text-[10px] uppercase font-bold tracking-wider text-slate-400 m-0">Dicatat Oleh</p>
-                        <p class="text-xs font-semibold text-slate-700 mt-0.5 mb-0">
-                            {{ jadwalStore.jadwalDetail.dibuat_oleh || 'Kader' }}
-                        </p>
+                </div>
+
+                <!-- Box Catatan / Instruksi Khusus (jika ada) -->
+                <div
+                    v-if="jadwalStore.jadwalDetail.keterangan"
+                    class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-start gap-3"
+                >
+                    <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 mt-0.5">
+                        <i class="pi pi-info-circle text-xs" />
                     </div>
-                    <div v-if="jadwalStore.jadwalDetail.keterangan" class="pt-1 border-t border-slate-200/60">
-                        <p class="text-[10px] uppercase font-bold tracking-wider text-slate-400 m-0">Keterangan / Catatan</p>
-                        <p class="text-xs text-slate-600 mt-0.5 mb-0">
+                    <div class="min-w-0 flex-1">
+                        <p class="text-[11px] font-semibold text-slate-700 m-0">
+                            Catatan & Instruksi
+                        </p>
+                        <p class="text-xs text-slate-600 m-0 mt-0.5 leading-relaxed break-words">
                             {{ jadwalStore.jadwalDetail.keterangan }}
                         </p>
                     </div>
                 </div>
 
-                <div class="flex items-center justify-between gap-2 pt-1">
+                <!-- Petugas Pencatat (Di paling bawah, di bawah catatan) -->
+                <div class="p-3 rounded-xl bg-slate-50/70 border border-slate-200/60 flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <div class="w-7 h-7 rounded-lg bg-slate-200/80 text-slate-600 flex items-center justify-center font-bold text-xs shrink-0">
+                            <i class="pi pi-user text-xs" />
+                        </div>
+                        <div class="min-w-0">
+                            <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">
+                                Dicatat Oleh
+                            </span>
+                            <span class="text-xs font-semibold text-slate-700 block truncate">
+                                {{ jadwalStore.jadwalDetail.dibuat_oleh || 'Kader Posyandu' }}
+                            </span>
+                        </div>
+                    </div>
+                    <span class="text-[10px] px-2 py-0.5 rounded-md font-semibold bg-slate-200/70 text-slate-600 shrink-0">
+                        Kader
+                    </span>
+                </div>
+
+                <!-- Footer Aksi -->
+                <div class="flex justify-end pt-1">
                     <button
                         type="button"
-                        class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/80 transition-colors cursor-pointer inline-flex items-center gap-1.5"
-                        @click="salinPengumuman(jadwalStore.jadwalDetail)"
-                    >
-                        <i class="pi pi-share-alt text-xs" />
-                        <span>Salin Pesan WhatsApp</span>
-                    </button>
-                    <button
-                        type="button"
-                        class="px-4 py-2 rounded-xl text-xs font-semibold bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 transition-colors cursor-pointer"
+                        class="px-5 py-2.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer border-0"
                         @click="showDetail = false"
                     >
                         Tutup
@@ -439,6 +535,7 @@
             :closable="!jadwalStore.loading.pengaturan"
             header="Pengaturan Jadwal Bulanan"
             :style="{ width: '460px', maxWidth: '95vw' }"
+            :pt="{ header: { style: 'border-bottom: 1px solid var(--color-input-border)' } }"
         >
             <FormPengaturanJadwal
                 :initial-data="jadwalStore.pengaturan"
@@ -473,6 +570,7 @@
             :closable="!jadwalStore.loading.generate"
             header="Generate Jadwal Otomatis"
             :style="{ width: '460px', maxWidth: '95vw' }"
+            :pt="{ header: { style: 'border-bottom: 1px solid var(--color-input-border)' } }"
         >
             <div class="space-y-4 pt-2">
                 <div class="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs leading-relaxed flex items-start gap-2.5">
@@ -504,7 +602,7 @@
                 <div class="flex justify-end gap-2 pt-2">
                     <button
                         type="button"
-                        class="px-4 py-2 rounded-xl text-xs font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+                        class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer border-0"
                         :disabled="jadwalStore.loading.generate"
                         @click="showConfirmGenerate = false"
                     >
@@ -512,14 +610,14 @@
                     </button>
                     <button
                         type="button"
-                        class="btn-primary px-4 py-2 rounded-xl text-xs font-semibold text-white inline-flex items-center gap-2 cursor-pointer shadow-xs hover:bg-emerald-700 transition-all"
+                        class="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] inline-flex items-center gap-2 cursor-pointer shadow-sm transition-all disabled:opacity-50"
                         :disabled="jadwalStore.loading.generate"
                         :aria-busy="jadwalStore.loading.generate"
                         @click="confirmGenerate"
                     >
-                        <i v-if="jadwalStore.loading.generate" class="pi pi-spin pi-spinner" aria-hidden="true" />
-                        <i v-else class="pi pi-calendar-plus" aria-hidden="true" />
-                        {{ jadwalStore.loading.generate ? "Memproses..." : `Generate ${jumlahBulan} Bulan` }}
+                        <i v-if="jadwalStore.loading.generate" class="pi pi-spin pi-spinner text-xs" aria-hidden="true" />
+                        <i v-else class="pi pi-calendar-plus text-xs" aria-hidden="true" />
+                        <span>{{ jadwalStore.loading.generate ? "Memproses..." : `Generate ${jumlahBulan} Bulan` }}</span>
                     </button>
                 </div>
             </div>

@@ -112,7 +112,7 @@
                             <th class="th-cell">Nama Lengkap</th>
                             <th class="th-cell">NIK</th>
                             <th class="th-cell hidden md:table-cell">
-                                No. Handphone
+                                No Telepon
                             </th>
                             <th class="th-cell hidden lg:table-cell">
                                 Alamat
@@ -262,6 +262,114 @@
                 <div v-else class="my-1 border-t border-slate-100" />
             </template>
         </Menu>
+
+        <!-- ─── Modal Konfirmasi Hapus Data Orang Tua ───────────────── -->
+        <Transition name="modal-fade">
+            <div
+                v-if="showDeleteModal"
+                class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="modal-hapus-orang-tua-title"
+                @click.self="tutupModalHapus"
+            >
+                <div
+                    class="relative bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-slate-100 text-center space-y-4"
+                >
+                    <!-- Tombol Silang Tutup -->
+                    <button
+                        type="button"
+                        class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-1.5 rounded-xl transition-colors cursor-pointer"
+                        aria-label="Tutup modal"
+                        :disabled="deletingOrangTuaId !== null"
+                        @click="tutupModalHapus"
+                    >
+                        <i class="pi pi-times text-xs" />
+                    </button>
+
+                    <!-- Ikon Peringatan Hapus -->
+                    <div
+                        class="w-14 h-14 rounded-2xl bg-red-50 border border-red-100 text-red-600 flex items-center justify-center mx-auto shadow-2xs"
+                    >
+                        <i class="pi pi-trash text-xl" aria-hidden="true" />
+                    </div>
+
+                    <!-- Judul & Keterangan -->
+                    <div class="space-y-1.5">
+                        <h3
+                            id="modal-hapus-orang-tua-title"
+                            class="text-base sm:text-lg font-bold text-slate-800 m-0 tracking-tight"
+                        >
+                            Hapus Data Orang Tua?
+                        </h3>
+                        <p
+                            class="text-xs text-slate-500 m-0 leading-relaxed max-w-[280px] mx-auto"
+                        >
+                            Data dan akun login orang tua akan dihapus. Hanya dapat dilakukan jika belum memiliki anak terdaftar.
+                        </p>
+                    </div>
+
+                    <!-- Ringkasan Info Orang Tua Yang Akan Dihapus -->
+                    <div
+                        v-if="orangTuaToDelete"
+                        class="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center gap-3 text-left"
+                    >
+                        <div
+                            class="w-10 h-10 rounded-xl font-bold text-xs text-white flex items-center justify-center shrink-0 shadow-2xs"
+                            :style="{ backgroundColor: avatarColor(orangTuaToDelete.nama_lengkap) }"
+                        >
+                            {{ orangTuaToDelete.nama_lengkap?.charAt(0)?.toUpperCase() || 'O' }}
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-xs font-bold text-slate-800 truncate m-0">
+                                {{ orangTuaToDelete.nama_lengkap }}
+                            </p>
+                            <p
+                                v-if="orangTuaToDelete.no_telepon || orangTuaToDelete.no_hp"
+                                class="text-[11px] text-slate-400 truncate m-0 mt-0.5"
+                            >
+                                {{ orangTuaToDelete.no_telepon || orangTuaToDelete.no_hp }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Alert Error Jika Hapus Gagal -->
+                    <div
+                        v-if="kaderStore.error.deleteOrangTua"
+                        class="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs text-left flex items-start gap-2.5"
+                        role="alert"
+                    >
+                        <i class="pi pi-exclamation-circle text-sm mt-0.5 shrink-0" />
+                        <span class="leading-relaxed">{{ kaderStore.error.deleteOrangTua }}</span>
+                    </div>
+
+                    <!-- Tombol Aksi -->
+                    <div class="grid grid-cols-2 gap-2.5 pt-1">
+                        <button
+                            type="button"
+                            class="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+                            :disabled="deletingOrangTuaId !== null"
+                            @click="tutupModalHapus"
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="button"
+                            class="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-white bg-red-600 hover:bg-red-700 active:scale-[0.99] transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                            :disabled="deletingOrangTuaId !== null"
+                            @click="konfirmasiHapusOrangTua"
+                        >
+                            <i
+                                v-if="deletingOrangTuaId !== null"
+                                class="pi pi-spinner pi-spin text-xs"
+                            />
+                            <i v-else class="pi pi-trash text-xs" />
+                            <span>{{ deletingOrangTuaId !== null ? "Menghapus..." : "Ya, Hapus" }}</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </Transition>
     </div>
 </template>
 
@@ -283,6 +391,8 @@ const search = ref("");
 const showForm = ref(false);
 const editingOrangTua = ref(null);
 const deletingOrangTuaId = ref(null);
+const showDeleteModal = ref(false);
+const orangTuaToDelete = ref(null);
 const actionMenu = ref(null);
 const selectedOrangTua = ref(null);
 
@@ -409,16 +519,28 @@ const lihatDetail = (id) => {
     router.push({ name: "KaderDetailOrangTua", params: { id } });
 };
 
-const hapusOrangTua = async (orangTua) => {
+const hapusOrangTua = (orangTua) => {
     kaderStore.resetDeleteOrangTua();
-    const confirmed = window.confirm(
-        `Hapus data ${orangTua.nama_lengkap} beserta akun loginnya? Data hanya dapat dihapus jika belum memiliki anak terdaftar.`,
-    );
-    if (!confirmed) return;
+    orangTuaToDelete.value = orangTua;
+    showDeleteModal.value = true;
+};
 
-    deletingOrangTuaId.value = orangTua.id;
-    await kaderStore.deleteOrangTua(orangTua.id);
+const tutupModalHapus = () => {
+    if (deletingOrangTuaId.value) return;
+    showDeleteModal.value = false;
+    orangTuaToDelete.value = null;
+    kaderStore.resetDeleteOrangTua();
+};
+
+const konfirmasiHapusOrangTua = async () => {
+    if (!orangTuaToDelete.value) return;
+    deletingOrangTuaId.value = orangTuaToDelete.value.id;
+    const ok = await kaderStore.deleteOrangTua(orangTuaToDelete.value.id);
     deletingOrangTuaId.value = null;
+    if (ok) {
+        showDeleteModal.value = false;
+        orangTuaToDelete.value = null;
+    }
 };
 
 const changePage = (page) => loadData(page);
@@ -488,5 +610,14 @@ onBeforeUnmount(reloadFromFirstPage.cancel);
 .slide-down-leave-to {
     opacity: 0;
     transform: translateY(-8px);
+}
+
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+    transition: opacity 0.2s ease;
+}
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+    opacity: 0;
 }
 </style>

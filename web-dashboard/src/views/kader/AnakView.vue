@@ -215,7 +215,7 @@
                 class="flex flex-col items-center justify-center py-16 gap-3 text-center"
             >
                 <i
-                    class="pi pi-heart text-4xl text-slate-300"
+                    class="pi pi-users text-4xl text-slate-300"
                     aria-hidden="true"
                 />
                 <p class="text-sm font-medium m-0 text-slate-500">
@@ -354,12 +354,7 @@
             modal
             :closable="!formLoading"
             :header="editingAnak ? 'Edit Data Anak' : 'Tambah Data Anak'"
-            :style="{ width: '480px', maxWidth: '95vw' }"
-            :pt="{
-                header: {
-                    style: 'border-bottom: 1px solid var(--color-input-border)',
-                },
-            }"
+            :style="{ width: '520px', maxWidth: '95vw' }"
         >
             <FormAnak
                 :key="editingAnak?.id || 'create'"
@@ -397,6 +392,112 @@
                 <div v-else class="my-1 border-t border-slate-100" />
             </template>
         </Menu>
+
+        <!-- ─── Modal Konfirmasi Hapus Data Anak ────────────────────── -->
+        <Transition name="modal-fade">
+            <div
+                v-if="showDeleteModal"
+                class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="modal-hapus-anak-title"
+                @click.self="tutupModalHapus"
+            >
+                <div
+                    class="relative bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-slate-100 text-center space-y-4"
+                >
+                    <!-- Tombol Silang Tutup -->
+                    <button
+                        type="button"
+                        class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-1.5 rounded-xl transition-colors cursor-pointer"
+                        aria-label="Tutup modal"
+                        :disabled="deletingAnakId !== null"
+                        @click="tutupModalHapus"
+                    >
+                        <i class="pi pi-times text-xs" />
+                    </button>
+
+                    <!-- Ikon Peringatan Hapus -->
+                    <div
+                        class="w-14 h-14 rounded-2xl bg-red-50 border border-red-100 text-red-600 flex items-center justify-center mx-auto shadow-2xs"
+                    >
+                        <i class="pi pi-trash text-xl" aria-hidden="true" />
+                    </div>
+
+                    <!-- Judul & Keterangan -->
+                    <div class="space-y-1.5">
+                        <h3
+                            id="modal-hapus-anak-title"
+                            class="text-base sm:text-lg font-bold text-slate-800 m-0 tracking-tight"
+                        >
+                            Hapus Data {{ anakToDelete?.nama }}?
+                        </h3>
+                        <p
+                            class="text-xs text-slate-500 m-0 leading-relaxed max-w-[280px] mx-auto"
+                        >
+                            Data hanya dapat dihapus jika belum memiliki riwayat pengukuran atau pemberian.
+                        </p>
+                    </div>
+
+                    <!-- Ringkasan Info Anak Yang Akan Dihapus -->
+                    <div
+                        v-if="anakToDelete"
+                        class="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center gap-3 text-left"
+                    >
+                        <div
+                            class="w-10 h-10 rounded-xl font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs"
+                            :class="
+                                anakToDelete.jenis_kelamin === 'L'
+                                    ? 'bg-sky-100 text-sky-700'
+                                    : 'bg-rose-100 text-rose-700'
+                            "
+                        >
+                            {{ anakToDelete.nama?.charAt(0)?.toUpperCase() || 'A' }}
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-xs font-bold text-slate-800 truncate m-0">
+                                {{ anakToDelete.nama }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Alert Error Jika Hapus Gagal -->
+                    <div
+                        v-if="kaderStore.error.deleteAnak"
+                        class="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs text-left flex items-start gap-2.5"
+                        role="alert"
+                    >
+                        <i class="pi pi-exclamation-circle text-sm mt-0.5 shrink-0" />
+                        <span class="leading-relaxed">{{ kaderStore.error.deleteAnak }}</span>
+                    </div>
+
+                    <!-- Tombol Aksi -->
+                    <div class="grid grid-cols-2 gap-2.5 pt-1">
+                        <button
+                            type="button"
+                            class="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+                            :disabled="deletingAnakId !== null"
+                            @click="tutupModalHapus"
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="button"
+                            class="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-white bg-red-600 hover:bg-red-700 active:scale-[0.99] transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                            :disabled="deletingAnakId !== null"
+                            @click="konfirmasiHapusAnak"
+                        >
+                            <i
+                                v-if="deletingAnakId !== null"
+                                class="pi pi-spinner pi-spin text-xs"
+                            />
+                            <i v-else class="pi pi-trash text-xs" />
+                            <span>{{ deletingAnakId !== null ? "Menghapus..." : "Ya, Hapus" }}</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </Transition>
     </div>
 </template>
 
@@ -420,6 +521,8 @@ const filterJK = ref("semua");
 const showForm = ref(false);
 const editingAnak = ref(null);
 const deletingAnakId = ref(null);
+const showDeleteModal = ref(false);
+const anakToDelete = ref(null);
 const actionMenu = ref(null);
 const selectedAnak = ref(null);
 
@@ -529,16 +632,28 @@ const handleSubmit = async (payload) => {
 const lihatDetail = (id) =>
     router.push({ name: "KaderDetailAnak", params: { id } });
 
-const hapusAnak = async (anak) => {
+const hapusAnak = (anak) => {
     kaderStore.resetDeleteAnak();
-    const confirmed = window.confirm(
-        `Hapus data ${anak.nama}? Data hanya dapat dihapus jika belum memiliki riwayat pengukuran atau pemberian.`,
-    );
-    if (!confirmed) return;
+    anakToDelete.value = anak;
+    showDeleteModal.value = true;
+};
 
-    deletingAnakId.value = anak.id;
-    await kaderStore.deleteAnak(anak.id);
+const tutupModalHapus = () => {
+    if (deletingAnakId.value) return;
+    showDeleteModal.value = false;
+    anakToDelete.value = null;
+    kaderStore.resetDeleteAnak();
+};
+
+const konfirmasiHapusAnak = async () => {
+    if (!anakToDelete.value) return;
+    deletingAnakId.value = anakToDelete.value.id;
+    const ok = await kaderStore.deleteAnak(anakToDelete.value.id);
     deletingAnakId.value = null;
+    if (ok) {
+        showDeleteModal.value = false;
+        anakToDelete.value = null;
+    }
 };
 
 const changePage = (page) => loadData(page);
@@ -608,5 +723,14 @@ onBeforeUnmount(reloadFromFirstPage.cancel);
 .slide-down-leave-to {
     opacity: 0;
     transform: translateY(-8px);
+}
+
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+    transition: opacity 0.2s ease;
+}
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+    opacity: 0;
 }
 </style>

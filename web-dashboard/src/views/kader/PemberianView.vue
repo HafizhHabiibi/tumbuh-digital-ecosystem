@@ -244,7 +244,7 @@
                     </div>
                     <button
                         type="button"
-                        class="btn-primary px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white cursor-pointer mt-0.5 shadow-xs hover:bg-emerald-700 transition-all inline-flex items-center gap-1.5"
+                        class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition-colors cursor-pointer mt-0.5 shadow-xs inline-flex items-center gap-1.5"
                         @click="openForm"
                     >
                         <i class="pi pi-plus text-[10px]" aria-hidden="true" />
@@ -387,17 +387,21 @@
             :pt="{ header: { style: 'border-bottom: 1px solid var(--color-input-border)' } }"
         >
             <div class="pt-2">
-                <div v-if="selectedAnak" class="p-3 rounded-xl bg-emerald-50/80 border border-emerald-100 flex items-center gap-3 mb-2">
+                <div v-if="selectedAnak" class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center gap-3 mb-3">
                     <div
-                        class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs shrink-0"
+                        class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs"
                         :class="selectedAnak.jenis_kelamin === 'L' ? 'bg-blue-100 text-blue-700' : 'bg-rose-100 text-rose-700'"
                     >
                         {{ getInitials(selectedAnak.nama) }}
                     </div>
-                    <div class="min-w-0">
-                        <p class="text-[10px] uppercase tracking-wider font-semibold text-slate-500 m-0">Pencatatan untuk</p>
-                        <p class="text-sm font-bold text-slate-800 m-0 truncate">
-                            {{ selectedAnak.nama }} ({{ selectedAnak.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan' }})
+                    <div class="min-w-0 flex-1">
+                        <p class="text-xs font-bold text-slate-800 truncate m-0">
+                            {{ selectedAnak.nama }}
+                        </p>
+                        <p class="text-[11px] text-slate-500 m-0 flex items-center gap-1.5 mt-0.5">
+                            <span>{{ selectedAnak.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan' }}</span>
+                            <span>•</span>
+                            <span>Usia: {{ hitungUsia(selectedAnak.tanggal_lahir) }}</span>
                         </p>
                     </div>
                 </div>
@@ -459,7 +463,8 @@
                     </button>
                     <button
                         type="button"
-                        class="btn-primary px-4 py-2 rounded-xl text-xs font-semibold text-white inline-flex items-center gap-2 cursor-pointer shadow-xs hover:bg-emerald-700 transition-all"
+                        class="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] inline-flex items-center gap-2 cursor-pointer shadow-sm transition-all disabled:opacity-50"
+                        :disabled="pemberianStore.loading.create"
                         :aria-busy="pemberianStore.loading.create"
                         @click="confirmSubmission"
                     >

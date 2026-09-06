@@ -221,7 +221,7 @@
                     class="flex flex-col items-center py-14 gap-2 text-center"
                 >
                     <i
-                        class="pi pi-heart text-4xl text-slate-300"
+                        class="pi pi-users text-4xl text-slate-300"
                         aria-hidden="true"
                     />
                     <p class="text-sm font-medium text-slate-500 m-0">
@@ -369,12 +369,7 @@
                 modal
                 :closable="!kaderStore.loading.createAnak"
                 header="Tambah Data Anak"
-                :style="{ width: '480px', maxWidth: '95vw' }"
-                :pt="{
-                    header: {
-                        style: 'border-bottom: 1px solid var(--color-input-border)',
-                    },
-                }"
+                :style="{ width: '520px', maxWidth: '95vw' }"
             >
                 <FormAnak
                     mode="create"

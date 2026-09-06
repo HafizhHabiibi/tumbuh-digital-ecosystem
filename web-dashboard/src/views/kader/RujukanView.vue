@@ -297,7 +297,7 @@
                     <button
                         v-if="filterStatus === 'semua' && !activeRujukan"
                         type="button"
-                        class="btn-primary px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white cursor-pointer mt-0.5 shadow-xs hover:bg-emerald-700 transition-all inline-flex items-center gap-1.5"
+                        class="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition-colors cursor-pointer mt-0.5 shadow-xs inline-flex items-center gap-1.5"
                         @click="openForm"
                     >
                         <i class="pi pi-plus text-[10px]" aria-hidden="true" />
@@ -348,7 +348,7 @@
                                     <td class="px-4 py-3.5 text-center whitespace-nowrap">
                                         <button
                                             type="button"
-                                            class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200/60 transition-colors cursor-pointer inline-flex items-center gap-1"
+                                            class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer inline-flex items-center gap-1"
                                             @click="lihatDetail(item.id)"
                                         >
                                             <i class="pi pi-eye text-[10px]" aria-hidden="true" />
@@ -381,9 +381,12 @@
             v-model:visible="showDetail"
             modal
             header="Detail Rujukan"
-            :style="{ width: '620px', maxWidth: '95vw' }"
+            :style="{ width: '640px', maxWidth: '95vw' }"
+            :pt="{
+                header: { class: '!pb-3 !border-b !border-slate-100' },
+            }"
         >
-            <div v-if="rujukanStore.loading.fetchDetail" class="p-6 space-y-3">
+            <div v-if="rujukanStore.loading.fetchDetail" class="p-4 space-y-3">
                 <div v-for="i in 5" :key="i" class="skeleton h-12 rounded-xl" />
             </div>
             <div
@@ -396,6 +399,7 @@
             <RujukanDetailCard
                 v-else-if="rujukanStore.rujukanDetail"
                 :rujukan="rujukanStore.rujukanDetail"
+                @close="showDetail = false"
             />
         </Dialog>
 
@@ -406,22 +410,37 @@
             :closable="!rujukanStore.loading.create"
             header="Ajukan Rujukan"
             :style="{ width: '520px', maxWidth: '95vw' }"
+            :pt="{ header: { style: 'border-bottom: 1px solid var(--color-input-border)' } }"
         >
-            <div v-if="selectedAnak" class="mt-3 px-3 py-2.5 rounded-xl bg-emerald-50 border border-emerald-100">
-                <p class="text-[10px] uppercase tracking-wider font-semibold text-slate-400 m-0">Rujukan untuk</p>
-                <p class="text-sm font-bold text-slate-800 mt-1 mb-0">
-                    {{ selectedAnak.nama }} ({{ selectedAnak.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan' }})
-                </p>
+            <div class="pt-2">
+                <div v-if="selectedAnak" class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center gap-3 mb-3">
+                    <div
+                        class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs"
+                        :class="selectedAnak.jenis_kelamin === 'L' ? 'bg-blue-100 text-blue-700' : 'bg-rose-100 text-rose-700'"
+                    >
+                        {{ getInitials(selectedAnak.nama) }}
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-xs font-bold text-slate-800 truncate m-0">
+                            {{ selectedAnak.nama }}
+                        </p>
+                        <p class="text-[11px] text-slate-500 m-0 flex items-center gap-1.5 mt-0.5">
+                            <span>{{ selectedAnak.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan' }}</span>
+                            <span>•</span>
+                            <span>Usia: {{ hitungUsia(selectedAnak.tanggal_lahir) }}</span>
+                        </p>
+                    </div>
+                </div>
+                <FormRujukan
+                    :loading="rujukanStore.loading.create"
+                    :error="rujukanStore.error.create"
+                    :anak-id="anakTerpilihId"
+                    :riwayat-pengukuran="pengukuranStore.riwayat.list"
+                    :loading-pengukuran="pengukuranStore.loading.riwayat"
+                    @submit="reviewSubmission"
+                    @cancel="closeForm"
+                />
             </div>
-            <FormRujukan
-                :loading="rujukanStore.loading.create"
-                :error="rujukanStore.error.create"
-                :anak-id="anakTerpilihId"
-                :riwayat-pengukuran="pengukuranStore.riwayat.list"
-                :loading-pengukuran="pengukuranStore.loading.riwayat"
-                @submit="reviewSubmission"
-                @cancel="closeForm"
-            />
         </Dialog>
 
         <!-- ─── Dialog Konfirmasi Rujukan ─────────────────────────── -->
@@ -431,43 +450,46 @@
             :closable="!rujukanStore.loading.create"
             header="Konfirmasi Rujukan"
             :style="{ width: '500px', maxWidth: '95vw' }"
+            :pt="{ header: { style: 'border-bottom: 1px solid var(--color-input-border)' } }"
         >
-            <div v-if="pendingPayload" class="space-y-4">
-                <div class="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs leading-relaxed">
-                    Pengajuan akan dikirim ke puskesmas dan orang tua akan menerima pemberitahuan. Pastikan data sudah benar.
+            <div v-if="pendingPayload" class="pt-2 space-y-4">
+                <div class="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs leading-relaxed flex items-start gap-2">
+                    <i class="pi pi-exclamation-triangle mt-0.5 text-amber-600 shrink-0" aria-hidden="true" />
+                    <span>Pengajuan akan dikirim ke puskesmas dan orang tua akan menerima pemberitahuan. Pastikan data sudah benar.</span>
                 </div>
-                <dl class="review-grid">
-                    <div>
-                        <dt>Anak</dt>
-                        <dd>{{ selectedAnak?.nama || "—" }}</dd>
+                <dl class="review-grid bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 m-0 text-xs space-y-2.5">
+                    <div class="flex justify-between items-center pb-2 border-b border-slate-200/60">
+                        <dt class="text-slate-500 font-medium">Anak</dt>
+                        <dd class="font-bold text-slate-800 m-0">{{ selectedAnak?.nama || "—" }}</dd>
+                    </div>
+                    <div class="flex justify-between items-center pb-2 border-b border-slate-200/60">
+                        <dt class="text-slate-500 font-medium">Dasar Pengukuran</dt>
+                        <dd class="font-semibold text-slate-700 m-0">{{ formatTanggal(pendingMeasurement?.tanggal_ukur) }}</dd>
                     </div>
                     <div>
-                        <dt>Dasar Pengukuran</dt>
-                        <dd>{{ formatTanggal(pendingMeasurement?.tanggal_ukur) }}</dd>
-                    </div>
-                    <div class="sm:col-span-2">
-                        <dt>Alasan dan Kondisi Anak</dt>
-                        <dd>{{ pendingPayload.catatan_kader }}</dd>
+                        <dt class="text-slate-500 font-medium mb-1">Alasan dan Kondisi Anak</dt>
+                        <dd class="text-slate-700 bg-white p-2.5 rounded-lg border border-slate-200/80 m-0 leading-relaxed">{{ pendingPayload.catatan_kader }}</dd>
                     </div>
                 </dl>
-                <div class="flex justify-end gap-2">
+                <div class="flex justify-end gap-2 pt-1">
                     <button
                         v-if="!rujukanStore.loading.create"
                         type="button"
-                        class="px-4 py-2 rounded-xl text-xs font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+                        class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer border-0"
                         @click="showConfirmation = false"
                     >
                         Periksa Kembali
                     </button>
                     <button
                         type="button"
-                        class="btn-primary px-4 py-2 rounded-xl text-xs font-semibold text-white inline-flex items-center gap-2 cursor-pointer shadow-xs hover:bg-emerald-700 transition-all"
+                        class="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] inline-flex items-center gap-2 cursor-pointer shadow-sm transition-all disabled:opacity-50"
+                        :disabled="rujukanStore.loading.create"
                         :aria-busy="rujukanStore.loading.create"
                         @click="confirmSubmission"
                     >
-                        <i v-if="rujukanStore.loading.create" class="pi pi-spin pi-spinner" aria-hidden="true" />
-                        <i v-else class="pi pi-send" aria-hidden="true" />
-                        {{ rujukanStore.loading.create ? "Mengajukan..." : "Ajukan Rujukan" }}
+                        <i v-if="rujukanStore.loading.create" class="pi pi-spin pi-spinner text-xs" aria-hidden="true" />
+                        <i v-else class="pi pi-send text-xs" aria-hidden="true" />
+                        <span>{{ rujukanStore.loading.create ? "Mengajukan..." : "Ajukan Rujukan" }}</span>
                     </button>
                 </div>
             </div>

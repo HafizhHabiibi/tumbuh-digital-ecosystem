@@ -93,15 +93,10 @@
             </p>
         </div>
 
-        <!-- Keterangan (opsional) -->
+        <!-- Keterangan -->
         <div class="space-y-1.5">
             <label for="keterangan_jadwal" class="field-label">
                 Keterangan
-                <span
-                    class="text-xs font-normal"
-                    style="color: var(--color-text-muted)"
-                    >(opsional)</span
-                >
             </label>
             <textarea
                 id="keterangan_jadwal"
@@ -142,12 +137,7 @@
             <button
                 type="button"
                 :disabled="loading"
-                class="flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors"
-                style="
-                    background: white;
-                    color: var(--color-text-body);
-                    border-color: var(--color-input-border);
-                "
+                class="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer border-0"
                 @click="$emit('cancel')"
             >
                 Batal
@@ -155,11 +145,16 @@
             <button
                 type="submit"
                 :disabled="loading || !isValid"
-                class="btn-submit flex-1 py-2.5 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                class="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 <i
                     v-if="loading"
-                    class="pi pi-spin pi-spinner"
+                    class="pi pi-spin pi-spinner text-xs"
+                    aria-hidden="true"
+                />
+                <i
+                    v-else
+                    class="pi pi-check text-xs"
                     aria-hidden="true"
                 />
                 <span>{{

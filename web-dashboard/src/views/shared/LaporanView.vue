@@ -149,10 +149,8 @@
                                                 {{ selectedAnak.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan' }}
                                             </span>
                                         </div>
-                                        <p class="text-xs text-slate-500 mt-1 mb-0">
+                                        <p class="text-xs text-slate-500 mt-1 mb-0 truncate">
                                             <span class="text-slate-600 font-medium">Orang Tua:</span> {{ selectedAnak.nama_orang_tua || '—' }}
-                                            <span class="mx-1.5 text-slate-300">•</span>
-                                            <span class="text-slate-600 font-medium">Usia:</span> {{ hitungUsia(selectedAnak.tanggal_lahir) }}
                                         </p>
                                     </div>
                                 </div>
@@ -383,7 +381,7 @@ import laporanService, {
     savePdfResponse,
 } from "@/services/laporanService";
 import { extractPaginatedData } from "@/utils/apiResponse";
-import { formatTanggal, hitungUsia, toLocalDateStr } from "@/utils/format.js";
+import { formatTanggal, toLocalDateStr } from "@/utils/format.js";
 
 const authStore = useAuthStore();
 

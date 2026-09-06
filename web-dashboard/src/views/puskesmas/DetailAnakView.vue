@@ -302,7 +302,8 @@
 
                                     <!-- Indeks Massa Tubuh (IMT) -->
                                     <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-slate-700 tabular-nums">
-                                        {{ p.nilai_imt ? Number(p.nilai_imt).toFixed(1) : '—' }}
+                                        {{ formatNullableNumber(p.nilai_imt, 1) }}
+                                        <span v-if="p.nilai_imt !== null && p.nilai_imt !== undefined" class="text-xs font-normal text-slate-400">kg/m²</span>
                                     </td>
 
                                     <!-- Status Berat Badan menurut Umur -->
@@ -622,6 +623,12 @@ const formatZScore = (value) => {
 
 const formatSkor = (value) =>
     value === null || value === undefined ? "—" : Number(value).toFixed(4);
+
+const formatNullableNumber = (value, decimals = 1) => {
+    if (value === null || value === undefined || value === "") return "—";
+    const number = Number(value);
+    return Number.isFinite(number) ? number.toFixed(decimals) : "—";
+};
 
 /* ── Fallback List Data Gabungan ──────────────────────────────────── */
 const riwayatPengukuranList = computed(() => {

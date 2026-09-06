@@ -137,19 +137,35 @@
 
         <!-- ─── Toolbar Aksi & Filter ─────────────────────────────── -->
         <section class="card p-3.5 sm:p-4 rounded-2xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3.5 w-full min-w-0" aria-label="Menu navigasi dan aksi jadwal">
-            <!-- Filter Pills -->
-            <div class="flex items-center gap-1.5 overflow-x-auto pb-0.5 filter-scroll" role="group" aria-label="Filter status jadwal">
+            <!-- Filter Chips (Style Riwayat Rujukan) -->
+            <div
+                class="bg-slate-100/90 p-0.5 rounded-xl flex items-center gap-0.5 border border-slate-200/70 overflow-x-auto min-w-0 filter-scroll self-start sm:self-auto"
+                role="tablist"
+                aria-label="Filter status jadwal"
+            >
                 <button
                     v-for="tab in filterTabs"
                     :key="tab.key"
                     type="button"
-                    class="filter-pill"
-                    :class="{ 'filter-pill--active': activeFilter === tab.key }"
-                    :aria-pressed="activeFilter === tab.key"
+                    role="tab"
+                    :aria-selected="activeFilter === tab.key"
+                    class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 tracking-tight focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+                    :class="
+                        activeFilter === tab.key
+                            ? 'bg-emerald-600 text-white shadow-2xs'
+                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                    "
                     @click="activeFilter = tab.key"
                 >
-                    {{ tab.label }}
-                    <span class="ml-1.5 text-[10px] opacity-80 px-1.5 py-0.2 rounded-full" :class="activeFilter === tab.key ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'">
+                    <span>{{ tab.label }}</span>
+                    <span
+                        class="min-w-3.5 px-1 py-0.2 rounded-full text-[9px] font-bold text-center leading-none transition-colors"
+                        :class="
+                            activeFilter === tab.key
+                                ? 'bg-white/20 text-white'
+                                : 'bg-slate-200 text-slate-600'
+                        "
+                    >
                         {{ getTabCount(tab.key) }}
                     </span>
                 </button>
@@ -867,39 +883,6 @@ onMounted(() =>
 }
 .filter-scroll::-webkit-scrollbar {
     display: none;
-}
-
-.filter-pill {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.38rem 0.75rem;
-    border-radius: 0.65rem;
-    font-size: 0.72rem;
-    font-weight: 600;
-    white-space: nowrap;
-    background: white;
-    color: #64748b;
-    border: 1px solid #e2e8f0;
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: all 0.15s ease;
-}
-.filter-pill:hover {
-    background: #f8fafc;
-    color: #1e293b;
-    border-color: #cbd5e1;
-}
-.filter-pill--active {
-    background: #047857;
-    color: white;
-    border-color: #047857;
-    box-shadow: 0 1px 2px rgba(4, 120, 87, 0.2);
-}
-.filter-pill--active:hover {
-    background: #065f46;
-    color: white;
-    border-color: #065f46;
 }
 
 .skeleton {

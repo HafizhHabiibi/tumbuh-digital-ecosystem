@@ -287,15 +287,8 @@
                         <i class="pi pi-times text-xs" />
                     </button>
 
-                    <!-- Ikon Peringatan Hapus -->
-                    <div
-                        class="w-14 h-14 rounded-2xl bg-red-50 border border-red-100 text-red-600 flex items-center justify-center mx-auto shadow-2xs"
-                    >
-                        <i class="pi pi-trash text-xl" aria-hidden="true" />
-                    </div>
-
                     <!-- Judul & Keterangan -->
-                    <div class="space-y-1.5">
+                    <div class="space-y-1.5 pt-1">
                         <h3
                             id="modal-hapus-orang-tua-title"
                             class="text-base sm:text-lg font-bold text-slate-800 m-0 tracking-tight"
@@ -323,12 +316,6 @@
                         <div class="min-w-0 flex-1">
                             <p class="text-xs font-bold text-slate-800 truncate m-0">
                                 {{ orangTuaToDelete.nama_lengkap }}
-                            </p>
-                            <p
-                                v-if="orangTuaToDelete.no_telepon || orangTuaToDelete.no_hp"
-                                class="text-[11px] text-slate-400 truncate m-0 mt-0.5"
-                            >
-                                {{ orangTuaToDelete.no_telepon || orangTuaToDelete.no_hp }}
                             </p>
                         </div>
                     </div>

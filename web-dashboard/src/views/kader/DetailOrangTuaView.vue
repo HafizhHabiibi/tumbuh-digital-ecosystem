@@ -186,14 +186,9 @@
                 <div
                     class="flex items-center justify-between p-4 border-b border-slate-100 flex-wrap gap-2"
                 >
-                    <div>
-                        <h3 class="text-sm font-bold text-slate-800 m-0">
-                            Daftar Anak
-                        </h3>
-                        <p class="text-xs text-slate-400 mt-1.5 mb-0">
-                            Daftar anak yang terdaftar di bawah pengasuhan orang tua ini
-                        </p>
-                    </div>
+                    <h3 class="text-sm font-bold text-slate-800 m-0">
+                        Daftar Anak
+                    </h3>
                     <div class="flex items-center gap-2">
                         <span
                             class="text-xs px-2.5 py-1 rounded-full font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100"
@@ -350,10 +345,10 @@
                                 <td class="px-4 py-3.5 text-center" @click.stop>
                                     <button
                                         type="button"
-                                        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/60 transition-colors cursor-pointer"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
                                         @click.stop="lihatDetailAnak(anak.id)"
                                     >
-                                        <i class="pi pi-eye text-xs" />
+                                        <i class="pi pi-eye text-xs" aria-hidden="true" />
                                         <span>Detail</span>
                                     </button>
                                 </td>

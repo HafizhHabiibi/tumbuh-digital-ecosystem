@@ -18,15 +18,14 @@
         aria-label="Navigasi utama"
     >
         <!-- Brand Header: HANYA Logo tanpa background & Teks Tumbuh -->
-        <div class="flex items-center justify-between px-4 py-4 border-b border-slate-100 flex-shrink-0">
-            <div class="flex items-center gap-3 min-w-0">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
+            <div class="flex items-center gap-3.5 min-w-0">
                 <BrandingIllustration
                     image-class="h-10 w-auto object-contain flex-shrink-0"
                     aria-label="Logo Tumbuh"
                 />
                 <span
-                    class="text-2xl font-semibold tracking-tight leading-none"
-                    style="color: var(--color-green-800)"
+                    class="text-3xl font-bold tracking-tight leading-none text-slate-900"
                 >
                     Tumbuh
                 </span>

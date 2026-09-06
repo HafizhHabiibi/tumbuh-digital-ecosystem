@@ -236,39 +236,39 @@
             <!-- ─── Section Riwayat Rujukan (Satu Card Besar) ──────── -->
             <section class="card p-4 sm:p-5 rounded-2xl space-y-4 w-full min-w-0" aria-labelledby="history-title">
                 <div class="flex items-center gap-3.5 sm:gap-4 min-w-0">
-                    <h2 id="history-title" class="text-base font-bold text-slate-800 m-0 shrink-0">
+                    <h2 id="history-title" class="text-base sm:text-lg font-bold text-slate-800 m-0 shrink-0 whitespace-nowrap tracking-tight">
                         Riwayat Rujukan
                     </h2>
-                    <div class="flex items-center gap-1.5 overflow-x-auto pb-0.5 min-w-0 flex-1 filter-scroll" role="group" aria-label="Filter status rujukan">
+                    <div
+                        class="bg-slate-100/90 p-0.5 rounded-xl flex items-center gap-0.5 border border-slate-200/70 overflow-x-auto min-w-0 filter-scroll"
+                        role="tablist"
+                        aria-label="Filter status rujukan"
+                    >
                         <button
+                            v-for="chip in filterChips"
+                            :key="chip.value"
                             type="button"
-                            class="filter-pill"
-                            :class="{ 'filter-pill--active': filterStatus === 'semua' }"
-                            :aria-pressed="filterStatus === 'semua'"
-                            @click="filterStatus = 'semua'"
+                            role="tab"
+                            :aria-selected="filterStatus === chip.value"
+                            class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 tracking-tight focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+                            :class="
+                                filterStatus === chip.value
+                                    ? 'bg-emerald-600 text-white shadow-2xs'
+                                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                            "
+                            @click="filterStatus = chip.value"
                         >
-                            Semua
-                            <span class="ml-1 text-[10px] opacity-75">({{ rujukanStore.riwayatAnak.list.length }})</span>
-                        </button>
-                        <button
-                            type="button"
-                            class="filter-pill"
-                            :class="{ 'filter-pill--active': filterStatus === 'aktif' }"
-                            :aria-pressed="filterStatus === 'aktif'"
-                            @click="filterStatus = 'aktif'"
-                        >
-                            Aktif
-                            <span class="ml-1 text-[10px] opacity-75">({{ jumlahAktif }})</span>
-                        </button>
-                        <button
-                            type="button"
-                            class="filter-pill"
-                            :class="{ 'filter-pill--active': filterStatus === 'selesai' }"
-                            :aria-pressed="filterStatus === 'selesai'"
-                            @click="filterStatus = 'selesai'"
-                        >
-                            Selesai
-                            <span class="ml-1 text-[10px] opacity-75">({{ jumlahSelesai }})</span>
+                            <span>{{ chip.label }}</span>
+                            <span
+                                class="min-w-3.5 px-1 py-0.2 rounded-full text-[9px] font-bold text-center leading-none transition-colors"
+                                :class="
+                                    filterStatus === chip.value
+                                        ? 'bg-white/20 text-white'
+                                        : 'bg-slate-200 text-slate-600'
+                                "
+                            >
+                                {{ chip.count }}
+                            </span>
                         </button>
                     </div>
                 </div>
@@ -288,14 +288,14 @@
                     </div>
                     <div>
                         <p class="text-xs sm:text-sm font-semibold text-slate-700 m-0">
-                            {{ filterStatus === "semua" ? "Belum ada riwayat rujukan" : `Tidak ada rujukan berstatus ${filterStatus}` }}
+                            {{ rujukanStore.riwayatAnak.list.length === 0 ? "Belum ada riwayat rujukan" : `Tidak ada rujukan berstatus ${filterStatus}` }}
                         </p>
                         <p class="text-[11px] sm:text-xs text-slate-400 mt-0.5 mb-0">
                             Ajukan rujukan ke puskesmas jika anak membutuhkan pemeriksaan lanjutan atau penanganan khusus.
                         </p>
                     </div>
                     <button
-                        v-if="filterStatus === 'semua' && !activeRujukan"
+                        v-if="!activeRujukan"
                         type="button"
                         class="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition-colors cursor-pointer mt-0.5 shadow-xs inline-flex items-center gap-1.5"
                         @click="openForm"
@@ -311,47 +311,164 @@
                         Geser tabel ke samping untuk melihat seluruh informasi.
                     </p>
                     <div class="overflow-x-auto w-full max-w-full rounded-xl border border-slate-200/80 overflow-hidden">
-                        <table class="w-full min-w-[700px] text-sm" aria-label="Riwayat rujukan anak">
+                        <!-- Tabel Khusus Chip Selesai: Sama persis dengan Antrean/Riwayat Rujukan Puskesmas -->
+                        <table v-if="filterStatus === 'selesai'" class="w-full min-w-[1200px] text-left border-collapse" aria-label="Riwayat rujukan selesai anak">
                             <thead>
-                                <tr class="bg-slate-50 border-b border-slate-100">
-                                    <th class="th-cell">Tanggal Diajukan</th>
-                                    <th class="th-cell">Status Rujukan</th>
-                                    <th class="th-cell">Dasar Pengukuran</th>
-                                    <th class="th-cell">Prioritas Pemantauan</th>
-                                    <th class="th-cell">Ditangani Oleh</th>
-                                    <th class="th-cell text-center w-28">Aksi</th>
+                                <tr class="bg-slate-50/80 border-b border-slate-200/80">
+                                    <th class="px-4 py-3 text-[11px] font-bold text-slate-600 uppercase tracking-wider whitespace-nowrap">Nama Anak</th>
+                                    <th class="px-4 py-3 text-[11px] font-bold text-slate-600 uppercase tracking-wider whitespace-nowrap">Jenis Kelamin</th>
+                                    <th class="px-4 py-3 text-[11px] font-bold text-slate-600 uppercase tracking-wider whitespace-nowrap">Nama Orang Tua</th>
+                                    <th class="px-4 py-3 text-[11px] font-bold text-slate-600 uppercase tracking-wider whitespace-nowrap">Status</th>
+                                    <th class="px-4 py-3 text-[11px] font-bold text-slate-600 uppercase tracking-wider whitespace-nowrap">Prioritas</th>
+                                    <th class="px-4 py-3 text-[11px] font-bold text-slate-600 uppercase tracking-wider whitespace-nowrap">Tanggal Diajukan</th>
+                                    <th class="px-4 py-3 text-[11px] font-bold text-slate-600 uppercase tracking-wider whitespace-nowrap">Tanggal Ditangani</th>
+                                    <th class="px-4 py-3 text-[11px] font-bold text-slate-600 uppercase tracking-wider whitespace-nowrap">Tanggal Selesai</th>
+                                    <th class="px-4 py-3 text-[11px] font-bold text-slate-600 uppercase tracking-wider whitespace-nowrap">Kader</th>
+                                    <th class="px-4 py-3 text-[11px] font-bold text-slate-600 uppercase tracking-wider whitespace-nowrap">Puskesmas</th>
+                                    <th class="px-4 py-3 text-[11px] font-bold text-slate-600 uppercase tracking-wider text-right whitespace-nowrap">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 bg-white">
                                 <tr
-                                    v-for="item in riwayatTampil"
+                                    v-for="(item, index) in riwayatTampil"
                                     :key="item.id"
-                                    class="hover:bg-slate-50/80 transition-colors duration-150"
+                                    class="hover:bg-slate-50/70 transition-colors"
+                                    :class="{ 'bg-slate-50/30': index % 2 !== 0 }"
                                 >
-                                    <td class="px-4 py-3.5 whitespace-nowrap">
-                                        <div class="font-semibold text-slate-800">
-                                            {{ formatTanggal(item.created_at) }}
+                                    <!-- 1. Kolom Nama Anak -->
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        <div class="flex items-center gap-2.5">
+                                            <div
+                                                class="w-7 h-7 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs"
+                                                :class="(selectedAnak?.jenis_kelamin || item.jenis_kelamin) === 'L' ? 'bg-sky-100 text-sky-700' : 'bg-rose-100 text-rose-700'"
+                                                aria-hidden="true"
+                                            >
+                                                {{ getInitials(selectedAnak?.nama || item.nama_anak) }}
+                                            </div>
+                                            <span class="font-bold text-slate-800 text-xs">
+                                                {{ selectedAnak?.nama || item.nama_anak }}
+                                            </span>
                                         </div>
                                     </td>
-                                    <td class="px-4 py-3.5 whitespace-nowrap">
+
+                                    <!-- 2. Kolom Jenis Kelamin -->
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        <span
+                                            class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold"
+                                            :class="
+                                                (selectedAnak?.jenis_kelamin || item.jenis_kelamin) === 'L'
+                                                    ? 'bg-sky-50 text-sky-700 border border-sky-200/80'
+                                                    : 'bg-rose-50 text-rose-700 border border-rose-200/80'
+                                            "
+                                        >
+                                            <span
+                                                class="w-1.5 h-1.5 rounded-full"
+                                                :class="(selectedAnak?.jenis_kelamin || item.jenis_kelamin) === 'L' ? 'bg-sky-500' : 'bg-rose-500'"
+                                            />
+                                            {{ (selectedAnak?.jenis_kelamin || item.jenis_kelamin) === "L" ? "Laki-laki" : ((selectedAnak?.jenis_kelamin || item.jenis_kelamin) === "P" ? "Perempuan" : "—") }}
+                                        </span>
+                                    </td>
+
+                                    <!-- 3. Kolom Nama Orang Tua -->
+                                    <td class="px-4 py-3 whitespace-nowrap text-xs text-slate-600 font-medium">
+                                        {{ selectedAnak?.nama_orang_tua || item.nama_orang_tua || "—" }}
+                                    </td>
+
+                                    <!-- 4. Kolom Status Rujukan -->
+                                    <td class="px-4 py-3 whitespace-nowrap">
                                         <StatusBadge type="rujukan" :value="item.status" />
                                     </td>
-                                    <td class="px-4 py-3.5 whitespace-nowrap text-slate-600">
-                                        {{ formatTanggal(item.tanggal_ukur) }}
+
+                                    <!-- 5. Kolom Prioritas Pemantauan -->
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        <StatusBadge type="prioritas" :value="item.prioritas_pemantauan?.kategori || item.kategori_prioritas" />
                                     </td>
-                                    <td class="px-4 py-3.5 whitespace-nowrap">
-                                        <StatusBadge type="prioritas" :value="item.prioritas_pemantauan?.kategori" />
+
+                                    <!-- 6. Kolom Tanggal Diajukan -->
+                                    <td class="px-4 py-3 whitespace-nowrap text-xs text-slate-600 font-medium">
+                                        {{ formatTanggal(item.created_at) }}
                                     </td>
-                                    <td class="px-4 py-3.5 text-slate-600">
+
+                                    <!-- 7. Kolom Tanggal Ditangani -->
+                                    <td class="px-4 py-3 whitespace-nowrap text-xs text-slate-600 font-medium">
+                                        {{ item.validated_at ? formatTanggal(item.validated_at) : "—" }}
+                                    </td>
+
+                                    <!-- 8. Kolom Tanggal Selesai -->
+                                    <td class="px-4 py-3 whitespace-nowrap text-xs text-slate-600 font-medium">
+                                        {{ item.completed_at ? formatTanggal(item.completed_at) : "—" }}
+                                    </td>
+
+                                    <!-- 9. Kolom Kader -->
+                                    <td class="px-4 py-3 whitespace-nowrap text-xs text-slate-600 font-medium">
+                                        {{ item.nama_kader || authStore.namaLengkap || "Kader" }}
+                                    </td>
+
+                                    <!-- 10. Kolom Puskesmas -->
+                                    <td class="px-4 py-3 whitespace-nowrap text-xs text-slate-600 font-medium">
                                         {{ item.ditangani_oleh || "—" }}
                                     </td>
-                                    <td class="px-4 py-3.5 text-center whitespace-nowrap">
+
+                                    <!-- 11. Kolom Detail / Aksi -->
+                                    <td class="px-4 py-3 text-right whitespace-nowrap">
                                         <button
                                             type="button"
-                                            class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer inline-flex items-center gap-1"
+                                            class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer inline-flex items-center gap-1.5"
                                             @click="lihatDetail(item.id)"
                                         >
-                                            <i class="pi pi-eye text-[10px]" aria-hidden="true" />
+                                            <i class="pi pi-eye text-xs" aria-hidden="true" />
+                                            <span>Detail</span>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- Tabel untuk Chip Diajukan & Ditangani -->
+                        <table v-else class="w-full min-w-[750px] text-left border-collapse" aria-label="Riwayat rujukan aktif anak">
+                            <thead>
+                                <tr class="bg-slate-50/80 border-b border-slate-200/80">
+                                    <th class="px-4 py-3 text-[11px] font-bold text-slate-600 uppercase tracking-wider whitespace-nowrap">Tanggal Diajukan</th>
+                                    <th v-if="filterStatus === 'ditangani'" class="px-4 py-3 text-[11px] font-bold text-slate-600 uppercase tracking-wider whitespace-nowrap">Tanggal Ditangani</th>
+                                    <th class="px-4 py-3 text-[11px] font-bold text-slate-600 uppercase tracking-wider whitespace-nowrap">Status Rujukan</th>
+                                    <th class="px-4 py-3 text-[11px] font-bold text-slate-600 uppercase tracking-wider whitespace-nowrap">Dasar Pengukuran</th>
+                                    <th class="px-4 py-3 text-[11px] font-bold text-slate-600 uppercase tracking-wider whitespace-nowrap">Prioritas Pemantauan</th>
+                                    <th class="px-4 py-3 text-[11px] font-bold text-slate-600 uppercase tracking-wider whitespace-nowrap">Ditangani Oleh</th>
+                                    <th class="px-4 py-3 text-[11px] font-bold text-slate-600 uppercase tracking-wider text-right whitespace-nowrap w-28">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 bg-white">
+                                <tr
+                                    v-for="(item, index) in riwayatTampil"
+                                    :key="item.id"
+                                    class="hover:bg-slate-50/70 transition-colors"
+                                    :class="{ 'bg-slate-50/30': index % 2 !== 0 }"
+                                >
+                                    <td class="px-4 py-3 whitespace-nowrap text-xs text-slate-800 font-semibold">
+                                        {{ formatTanggal(item.created_at) }}
+                                    </td>
+                                    <td v-if="filterStatus === 'ditangani'" class="px-4 py-3 whitespace-nowrap text-xs text-slate-600 font-medium">
+                                        {{ item.validated_at ? formatTanggal(item.validated_at) : "—" }}
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        <StatusBadge type="rujukan" :value="item.status" />
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-xs text-slate-600 font-medium">
+                                        {{ formatTanggal(item.tanggal_ukur) }}
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        <StatusBadge type="prioritas" :value="item.prioritas_pemantauan?.kategori || item.kategori_prioritas" />
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-xs text-slate-600 font-medium">
+                                        {{ item.ditangani_oleh || "—" }}
+                                    </td>
+                                    <td class="px-4 py-3 text-right whitespace-nowrap">
+                                        <button
+                                            type="button"
+                                            class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer inline-flex items-center gap-1.5"
+                                            @click="lihatDetail(item.id)"
+                                        >
+                                            <i class="pi pi-eye text-xs" aria-hidden="true" />
                                             <span>Detail</span>
                                         </button>
                                     </td>
@@ -413,7 +530,7 @@
             :pt="{ header: { style: 'border-bottom: 1px solid var(--color-input-border)' } }"
         >
             <div class="pt-2">
-                <div v-if="selectedAnak" class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center gap-3 mb-3">
+                <div v-if="selectedAnak" class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 shadow-sm flex items-center gap-3 mb-3">
                     <div
                         class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs"
                         :class="selectedAnak.jenis_kelamin === 'L' ? 'bg-blue-100 text-blue-700' : 'bg-rose-100 text-rose-700'"
@@ -424,10 +541,12 @@
                         <p class="text-xs font-bold text-slate-800 truncate m-0">
                             {{ selectedAnak.nama }}
                         </p>
-                        <p class="text-[11px] text-slate-500 m-0 flex items-center gap-1.5 mt-0.5">
+                        <p class="text-[11px] text-slate-500 m-0 flex items-center gap-1.5 mt-0.5 flex-wrap">
                             <span>{{ selectedAnak.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan' }}</span>
-                            <span>•</span>
+                            <span class="text-slate-300">•</span>
                             <span>Usia: {{ hitungUsia(selectedAnak.tanggal_lahir) }}</span>
+                            <span class="text-slate-300">•</span>
+                            <span>Orang Tua: {{ selectedAnak.nama_orang_tua || '—' }}</span>
                         </p>
                     </div>
                 </div>
@@ -457,13 +576,13 @@
                     <i class="pi pi-exclamation-triangle mt-0.5 text-amber-600 shrink-0" aria-hidden="true" />
                     <span>Pengajuan akan dikirim ke puskesmas dan orang tua akan menerima pemberitahuan. Pastikan data sudah benar.</span>
                 </div>
-                <dl class="review-grid bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 m-0 text-xs space-y-2.5">
+                <dl class="review-grid bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 shadow-sm m-0 text-xs space-y-2.5">
                     <div class="flex justify-between items-center pb-2 border-b border-slate-200/60">
                         <dt class="text-slate-500 font-medium">Anak</dt>
                         <dd class="font-bold text-slate-800 m-0">{{ selectedAnak?.nama || "—" }}</dd>
                     </div>
                     <div class="flex justify-between items-center pb-2 border-b border-slate-200/60">
-                        <dt class="text-slate-500 font-medium">Dasar Pengukuran</dt>
+                        <dt class="text-slate-500 font-medium">Tanggal Pengukuran</dt>
                         <dd class="font-semibold text-slate-700 m-0">{{ formatTanggal(pendingMeasurement?.tanggal_ukur) }}</dd>
                     </div>
                     <div>
@@ -507,17 +626,19 @@ import FormRujukan from "@/components/forms/FormRujukan.vue";
 import { useRujukanStore } from "@/stores/rujukanStore";
 import { usePengukuranStore } from "@/stores/pengukuranStore";
 import { useKaderStore } from "@/stores/kaderStore";
+import { useAuthStore } from "@/stores/authStore";
 import { formatTanggal, hitungUsia, toLocalDateStr } from "@/utils/format.js";
 
 const route = useRoute();
 const rujukanStore = useRujukanStore();
 const pengukuranStore = usePengukuranStore();
 const kaderStore = useKaderStore();
+const authStore = useAuthStore();
 
 const todayDate = new Date();
 const anakTerpilihId = ref("");
 const searchAnak = ref("");
-const filterStatus = ref("semua");
+const filterStatus = ref("diajukan");
 const showForm = ref(false);
 const showDetail = ref(false);
 const showConfirmation = ref(false);
@@ -537,21 +658,42 @@ const filteredAnakOptions = computed(() => {
 });
 
 const selectedAnak = computed(() => {
+    const fallback = kaderStore.anakOptions.find((item) => String(item.id) === String(anakTerpilihId.value)) || null;
     if (rujukanStore.riwayatAnak.anak && String(rujukanStore.riwayatAnak.anak.id) === String(anakTerpilihId.value)) {
-        return rujukanStore.riwayatAnak.anak;
+        return {
+            ...fallback,
+            ...rujukanStore.riwayatAnak.anak,
+            nama_orang_tua: rujukanStore.riwayatAnak.anak.nama_orang_tua || fallback?.nama_orang_tua || null,
+        };
     }
-    return kaderStore.anakOptions.find((item) => String(item.id) === String(anakTerpilihId.value)) || null;
+    return fallback;
 });
 
 const activeRujukan = computed(() => rujukanStore.riwayatAnak.list.find((item) => item.status !== "selesai") || null);
-const jumlahAktif = computed(() => rujukanStore.riwayatAnak.list.filter((item) => item.status !== "selesai").length);
+const jumlahDiajukan = computed(() => rujukanStore.riwayatAnak.list.filter((item) => item.status === "diajukan").length);
+const jumlahDitangani = computed(() => rujukanStore.riwayatAnak.list.filter((item) => item.status === "ditangani").length);
 const jumlahSelesai = computed(() => rujukanStore.riwayatAnak.list.filter((item) => item.status === "selesai").length);
 
+const filterChips = computed(() => [
+    {
+        value: "diajukan",
+        label: "Diajukan",
+        count: jumlahDiajukan.value,
+    },
+    {
+        value: "ditangani",
+        label: "Ditangani",
+        count: jumlahDitangani.value,
+    },
+    {
+        value: "selesai",
+        label: "Selesai",
+        count: jumlahSelesai.value,
+    },
+]);
+
 const riwayatTampil = computed(() => {
-    const list = rujukanStore.riwayatAnak.list;
-    if (filterStatus.value === "aktif") return list.filter((item) => item.status !== "selesai");
-    if (filterStatus.value === "selesai") return list.filter((item) => item.status === "selesai");
-    return list;
+    return rujukanStore.riwayatAnak.list.filter((item) => item.status === filterStatus.value);
 });
 
 const pendingMeasurement = computed(() => {
@@ -575,15 +717,24 @@ const handleGantiAnak = () => {
     onAnakChange();
 };
 
-const loadSelectedAnakData = () => {
+const loadSelectedAnakData = async () => {
     if (!anakTerpilihId.value) return;
-    rujukanStore.fetchRujukanByAnak(anakTerpilihId.value);
+    await rujukanStore.fetchRujukanByAnak(anakTerpilihId.value);
     pengukuranStore.fetchRiwayat(anakTerpilihId.value);
+    if (jumlahDiajukan.value > 0) {
+        filterStatus.value = "diajukan";
+    } else if (jumlahDitangani.value > 0) {
+        filterStatus.value = "ditangani";
+    } else if (jumlahSelesai.value > 0) {
+        filterStatus.value = "selesai";
+    } else {
+        filterStatus.value = "diajukan";
+    }
 };
 
 const onAnakChange = () => {
     selectionMessage.value = "";
-    filterStatus.value = "semua";
+    filterStatus.value = "diajukan";
     rujukanStore.resetCreateState();
     if (anakTerpilihId.value) loadSelectedAnakData();
     else {
@@ -638,6 +789,7 @@ const confirmSubmission = async () => {
         showConfirmation.value = false;
         showForm.value = false;
         pendingPayload.value = null;
+        filterStatus.value = "diajukan";
     } else {
         showConfirmation.value = false;
     }
@@ -678,48 +830,6 @@ onMounted(async () => {
 }
 .filter-scroll::-webkit-scrollbar {
     display: none;
-}
-.filter-pill {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.38rem 0.75rem;
-    border-radius: 0.65rem;
-    font-size: 0.72rem;
-    font-weight: 600;
-    white-space: nowrap;
-    background: white;
-    color: #64748b;
-    border: 1px solid #e2e8f0;
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: all 0.15s ease;
-}
-.filter-pill:hover {
-    background: #f8fafc;
-    color: #1e293b;
-    border-color: #cbd5e1;
-}
-.filter-pill--active {
-    background: #047857;
-    color: white;
-    border-color: #047857;
-    box-shadow: 0 1px 2px rgba(4, 120, 87, 0.2);
-}
-.filter-pill--active:hover {
-    background: #065f46;
-    color: white;
-    border-color: #065f46;
-}
-.th-cell {
-    text-align: left;
-    padding: 0.75rem 1rem;
-    font-size: 0.7rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #1e293b;
-    white-space: nowrap;
 }
 .review-grid {
     display: grid;

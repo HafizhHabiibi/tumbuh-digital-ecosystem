@@ -198,29 +198,63 @@
             <!-- ─── Section Riwayat Pemberian (Satu Card Besar) ────────── -->
             <section class="card p-4 sm:p-5 rounded-2xl space-y-4 w-full min-w-0" aria-labelledby="riwayat-pemberian-title">
                 <div class="flex items-center gap-3.5 sm:gap-4 min-w-0">
-                    <h2 id="riwayat-pemberian-title" class="text-base font-bold text-slate-800 m-0 shrink-0">
+                    <h2 id="riwayat-pemberian-title" class="text-base sm:text-lg font-bold text-slate-800 m-0 shrink-0 whitespace-nowrap tracking-tight">
                         Riwayat Pemberian
                     </h2>
-                    <div class="flex items-center gap-1.5 overflow-x-auto pb-0.5 min-w-0 flex-1 filter-scroll" role="group" aria-label="Filter jenis pemberian">
+                    <div
+                        class="bg-slate-100/90 p-0.5 rounded-xl flex items-center gap-0.5 border border-slate-200/70 overflow-x-auto min-w-0 filter-scroll"
+                        role="tablist"
+                        aria-label="Filter jenis pemberian"
+                    >
                         <button
                             type="button"
-                            class="filter-pill"
-                            :class="{ 'filter-pill--active': filterAktif === 'semua' }"
-                            :aria-pressed="filterAktif === 'semua'"
+                            role="tab"
+                            :aria-selected="filterAktif === 'semua'"
+                            class="flex items-center gap-1 px-2 py-1 rounded-lg text-[10.5px] font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 tracking-tight focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+                            :class="
+                                filterAktif === 'semua'
+                                    ? 'bg-emerald-600 text-white shadow-2xs'
+                                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                            "
                             @click="setFilter('semua')"
                         >
-                            Semua
+                            <span>Semua</span>
+                            <span
+                                class="min-w-3.5 px-1 py-0.2 rounded-full text-[9px] font-bold text-center leading-none transition-colors"
+                                :class="
+                                    filterAktif === 'semua'
+                                        ? 'bg-white/20 text-white'
+                                        : 'bg-slate-200 text-slate-600'
+                                "
+                            >
+                                {{ getFilterCount('semua') }}
+                            </span>
                         </button>
                         <button
                             v-for="jenis in JENIS_VALID"
                             :key="jenis"
                             type="button"
-                            class="filter-pill"
-                            :class="{ 'filter-pill--active': filterAktif === jenis }"
-                            :aria-pressed="filterAktif === jenis"
+                            role="tab"
+                            :aria-selected="filterAktif === jenis"
+                            class="flex items-center gap-1 px-2 py-1 rounded-lg text-[10.5px] font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 tracking-tight focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+                            :class="
+                                filterAktif === jenis
+                                    ? 'bg-emerald-600 text-white shadow-2xs'
+                                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                            "
                             @click="setFilter(jenis)"
                         >
-                            {{ LABEL_JENIS[jenis] }}
+                            <span>{{ LABEL_JENIS[jenis] }}</span>
+                            <span
+                                class="min-w-3.5 px-1 py-0.2 rounded-full text-[9px] font-bold text-center leading-none transition-colors"
+                                :class="
+                                    filterAktif === jenis
+                                        ? 'bg-white/20 text-white'
+                                        : 'bg-slate-200 text-slate-600'
+                                "
+                            >
+                                {{ getFilterCount(jenis) }}
+                            </span>
                         </button>
                     </div>
                 </div>
@@ -571,6 +605,12 @@ const setFilter = (jenis) => {
     filterAktif.value = jenis;
 };
 
+const getFilterCount = (jenis) => {
+    const list = pemberianStore.riwayat?.list || [];
+    if (jenis === "semua") return list.length;
+    return list.filter((item) => item.jenis === jenis).length;
+};
+
 const openForm = async () => {
     if (!anakTerpilihId.value) {
         selectionMessage.value = "Pilih anak sebelum mencatat pemberian.";
@@ -647,38 +687,7 @@ onMounted(async () => {
 .filter-scroll::-webkit-scrollbar {
     display: none;
 }
-.filter-pill {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.38rem 0.75rem;
-    border-radius: 0.65rem;
-    font-size: 0.72rem;
-    font-weight: 600;
-    white-space: nowrap;
-    background: white;
-    color: #64748b;
-    border: 1px solid #e2e8f0;
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: all 0.15s ease;
-}
-.filter-pill:hover {
-    background: #f8fafc;
-    color: #1e293b;
-    border-color: #cbd5e1;
-}
-.filter-pill--active {
-    background: #047857;
-    color: white;
-    border-color: #047857;
-    box-shadow: 0 1px 2px rgba(4, 120, 87, 0.2);
-}
-.filter-pill--active:hover {
-    background: #065f46;
-    color: white;
-    border-color: #065f46;
-}
+
 .th-cell {
     text-align: left;
     padding: 0.75rem 1rem;

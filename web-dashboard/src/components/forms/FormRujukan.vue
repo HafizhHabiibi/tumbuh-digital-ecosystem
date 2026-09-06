@@ -13,15 +13,15 @@
             </div>
         </Transition>
 
-        <!-- Dasar Pengukuran -->
-        <div class="space-y-1.5">
-            <label for="pengukuran_id" class="text-xs font-semibold text-slate-700 block ml-0.5">
-                Dasar Pengukuran
+        <!-- Card Tanggal Pengukuran -->
+        <div class="rounded-xl bg-slate-50 border border-slate-200/80 p-3.5 space-y-2 shadow-sm">
+            <label for="pengukuran_id" class="text-xs font-bold text-slate-800 block">
+                Tanggal Pengukuran
             </label>
 
             <div
                 v-if="loadingPengukuran"
-                class="flex items-center gap-2 px-3.5 py-3 rounded-xl text-xs bg-slate-50 border border-slate-200 text-slate-500"
+                class="flex items-center gap-2 px-3 py-2 rounded-lg text-xs bg-white border border-slate-200 text-slate-500"
                 role="status"
             >
                 <i class="pi pi-spin pi-spinner text-xs" aria-hidden="true" />
@@ -30,7 +30,7 @@
 
             <div
                 v-else-if="riwayatPengukuran.length === 0"
-                class="flex items-start gap-2.5 p-3.5 rounded-xl text-xs bg-amber-50 border border-amber-200 text-amber-800"
+                class="flex items-start gap-2.5 p-3 rounded-lg text-xs bg-amber-50 border border-amber-200 text-amber-800"
                 role="alert"
             >
                 <i class="pi pi-exclamation-triangle mt-0.5 shrink-0 text-amber-600" aria-hidden="true" />
@@ -44,10 +44,10 @@
                         id="pengukuran_id"
                         v-model="form.pengukuran_id"
                         :disabled="loading"
-                        class="w-full pl-9 pr-8 py-2.5 rounded-xl text-sm appearance-none bg-white border border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all text-slate-800 outline-none"
+                        class="w-full pl-9 pr-8 py-2.5 rounded-xl text-sm appearance-none bg-white border border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all text-slate-800 outline-none shadow-2xs"
                         aria-required="true"
                         :aria-invalid="!!fieldErrors.pengukuran_id"
-                        aria-describedby="pengukuran_id_error pengukuran_hint"
+                        aria-describedby="pengukuran_id_error"
                     >
                         <option value="" disabled>Pilih tanggal pengukuran</option>
                         <option v-for="pengukuran in riwayatPengukuran" :key="pengukuran.id" :value="pengukuran.id">
@@ -56,30 +56,23 @@
                     </select>
                     <i class="pi pi-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none text-slate-400" aria-hidden="true" />
                 </div>
-                <p id="pengukuran_hint" class="text-[11px] text-slate-400 mt-2 mb-1 ml-0.5 leading-relaxed">
-                    Pengukuran terbaru dipilih otomatis. Pilih tanggal lain bila rujukan didasarkan pada pemeriksaan sebelumnya.
-                </p>
             </template>
 
-            <p v-if="fieldErrors.pengukuran_id" id="pengukuran_id_error" class="text-xs text-red-600 mt-1 ml-0.5">
+            <p v-if="fieldErrors.pengukuran_id" id="pengukuran_id_error" class="text-xs text-red-600 mt-1">
                 {{ fieldErrors.pengukuran_id }}
             </p>
+        </div>
 
             <!-- Card Ringkasan Pengukuran Terpilih -->
             <Transition name="slide-down">
                 <section
                     v-if="pengukuranTerpilih"
-                    class="rounded-xl bg-slate-50 border border-slate-200/80 p-3.5 space-y-3 mt-2.5"
+                    class="rounded-xl bg-slate-50 border border-slate-200/80 p-3.5 space-y-3 mt-2.5 shadow-sm"
                 >
                     <div class="flex items-center justify-between gap-2 flex-wrap">
-                        <div>
-                            <span class="text-[10px] uppercase tracking-wider font-semibold text-slate-400 block">
-                                Rincian Hasil Ukur
-                            </span>
-                            <span class="text-xs font-bold text-slate-800">
-                                {{ formatTanggal(pengukuranTerpilih.tanggal_ukur) }}
-                            </span>
-                        </div>
+                        <span class="text-xs font-bold text-slate-800">
+                            Rincian Hasil Ukur
+                        </span>
                         <span
                             class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full capitalize"
                             :style="`background: ${warnaBg[pengukuranTerpilih.prioritas_pemantauan?.kategori] || '#f1f5f9'}; color: ${warnaHex[pengukuranTerpilih.prioritas_pemantauan?.kategori] || '#475569'}`"
@@ -130,15 +123,14 @@
                     </div>
                 </section>
             </Transition>
-        </div>
 
-        <!-- Alasan dan Kondisi Anak -->
-        <div class="space-y-1.5 pt-3.5">
+        <!-- Card Alasan dan Kondisi Anak -->
+        <div class="rounded-xl bg-slate-50 border border-slate-200/80 p-3.5 space-y-2 shadow-sm">
             <div class="flex items-center justify-between gap-3">
-                <label for="catatan_kader" class="text-xs font-semibold text-slate-700 block ml-0.5">
+                <label for="catatan_kader" class="text-xs font-bold text-slate-800 block">
                     Alasan dan Kondisi Anak
                 </label>
-                <span class="text-[10px] text-slate-400">{{ form.catatan_kader.length }}/2000</span>
+                <span class="text-[10px] text-slate-400 font-medium">{{ form.catatan_kader.length }}/2000</span>
             </div>
             <textarea
                 id="catatan_kader"
@@ -147,12 +139,12 @@
                 placeholder="Jelaskan alasan rujukan, kondisi yang ditemukan, dan tindakan awal yang sudah dilakukan..."
                 :disabled="loading"
                 maxlength="2000"
-                class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-white border border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all text-slate-800 outline-none resize-none"
+                class="w-full px-3.5 py-2.5 rounded-xl text-sm bg-white border border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all text-slate-800 outline-none resize-none shadow-2xs"
                 aria-required="true"
                 :aria-invalid="!!fieldErrors.catatan_kader"
                 aria-describedby="catatan_kader_error"
             />
-            <p v-if="fieldErrors.catatan_kader" id="catatan_kader_error" class="text-xs text-red-600 mt-1 ml-0.5">
+            <p v-if="fieldErrors.catatan_kader" id="catatan_kader_error" class="text-xs text-red-600 mt-1">
                 {{ fieldErrors.catatan_kader }}
             </p>
         </div>
@@ -234,7 +226,7 @@ const getStatusBadgeClass = (value) => {
 const fieldErrors = computed(() => {
     if (!attemptedSubmit.value) return {};
     const errors = {};
-    if (!form.pengukuran_id) errors.pengukuran_id = "Dasar pengukuran wajib dipilih";
+    if (!form.pengukuran_id) errors.pengukuran_id = "Tanggal pengukuran wajib dipilih";
     const noteLength = form.catatan_kader.trim().length;
     if (!noteLength) {
         errors.catatan_kader = "Alasan dan kondisi anak wajib dijelaskan";

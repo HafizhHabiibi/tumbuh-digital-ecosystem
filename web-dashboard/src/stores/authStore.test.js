@@ -26,6 +26,7 @@ describe("authStore membatasi sesi dashboard ke role web", () => {
         storage.clear();
         setActivePinia(createPinia());
         authService.login.mockReset();
+        authService.changePassword.mockReset();
     });
 
     it("tidak menyimpan hasil login orang tua", async () => {
@@ -64,6 +65,21 @@ describe("authStore membatasi sesi dashboard ke role web", () => {
         })).toBe(true);
         expect(store.isLoggedIn).toBe(true);
         expect(storage.get("token")).toBe("token-kader");
+    });
+
+    it("mengakhiri sesi setelah password berhasil diubah", async () => {
+        authService.changePassword.mockResolvedValue({ success: true });
+        const store = useAuthStore();
+        store.setAuth({
+            token: "token-kader",
+            user: { id: "user-2", role: "kader" },
+        });
+
+        expect(await store.changePassword("password-lama", "password-baru"))
+            .toBe(true);
+        expect(store.isLoggedIn).toBe(false);
+        expect(store.user).toBeNull();
+        expect(storage.size).toBe(0);
     });
 });
 

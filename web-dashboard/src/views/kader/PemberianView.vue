@@ -16,65 +16,20 @@
         </div>
 
         <!-- ─── Section Pemilihan Anak ────────────────────────────── -->
-        <section class="card p-4 sm:p-5 rounded-2xl space-y-3.5 w-full min-w-0" aria-labelledby="pilih-anak-title">
-            <div class="flex items-center justify-between">
-                <label id="pilih-anak-title" for="pilih_anak" class="text-sm font-semibold text-slate-800">
-                    Pilih Anak
-                </label>
-                <span v-if="kaderStore.anakOptions.length > 0 && !selectedAnak" class="text-xs text-slate-400">
-                    {{ kaderStore.anakOptions.length }} anak terdaftar
-                </span>
-            </div>
-
-            <!-- Pencarian & Dropdown jika anak belum dipilih -->
-            <div v-if="!selectedAnak" class="space-y-2.5">
-                <!-- Pencarian Cepat Anak -->
-                <div class="relative">
-                    <i class="pi pi-search input-icon" aria-hidden="true" />
-                    <input
-                        v-model="searchAnak"
-                        type="text"
-                        placeholder="Cari nama anak, orang tua, atau NIK..."
-                        class="input-field w-full pl-9 pr-8 py-2 text-xs rounded-xl"
-                        :disabled="kaderStore.loading.anakOptions"
-                    />
-                    <button
-                        v-if="searchAnak"
-                        type="button"
-                        class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
-                        @click="searchAnak = ''"
-                    >
-                        <i class="pi pi-times text-xs" />
-                    </button>
-                </div>
-
-                <!-- Dropdown Select Anak -->
-                <div class="relative">
-                    <i class="pi pi-user input-icon" aria-hidden="true" />
-                    <select
-                        id="pilih_anak"
-                        ref="anakSelect"
-                        v-model="anakTerpilihId"
-                        :disabled="kaderStore.loading.anakOptions"
-                        class="input-field w-full pl-9 pr-8 py-2.5 rounded-xl text-sm appearance-none"
-                        :aria-invalid="!!selectionMessage"
-                        aria-describedby="pilih_anak_message"
-                        @change="onAnakChange"
-                    >
-                        <option value="">
-                            {{ kaderStore.loading.anakOptions ? "Memuat data anak..." : (filteredAnakOptions.length === 0 ? "Tidak ditemukan anak yang cocok" : "Pilih nama anak") }}
-                        </option>
-                        <option
-                            v-for="anak in filteredAnakOptions"
-                            :key="anak.id"
-                            :value="anak.id"
-                        >
-                            {{ anak.nama }} ({{ anak.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan' }}) — Ortu: {{ anak.nama_orang_tua || '—' }}
-                        </option>
-                    </select>
-                    <i class="pi pi-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none text-slate-400" aria-hidden="true" />
-                </div>
-            </div>
+        <section class="card p-4 sm:p-5 rounded-2xl space-y-3.5 w-full min-w-0">
+            <AnakSearchSelect
+                v-if="!selectedAnak"
+                ref="anakSelect"
+                :model-value="anakTerpilihId"
+                input-id="pilih_anak"
+                :options="kaderStore.anakOptions"
+                :loading="kaderStore.loading.anakOptions"
+                :error="kaderStore.error.anakOptions"
+                :invalid="!!selectionMessage"
+                described-by="pilih_anak_message"
+                @update:model-value="handleAnakSelected"
+                @retry="loadAnakOptions"
+            />
 
             <!-- Alert Pesan Seleksi -->
             <div
@@ -85,18 +40,6 @@
             >
                 <i class="pi pi-info-circle shrink-0" aria-hidden="true" />
                 <span>{{ selectionMessage }}</span>
-            </div>
-
-            <!-- Error Fetching Anak Options -->
-            <div
-                v-if="kaderStore.error.anakOptions"
-                class="flex items-center justify-between gap-3 text-xs text-red-700 bg-red-50 p-3 rounded-xl border border-red-200"
-                role="alert"
-            >
-                <span>{{ kaderStore.error.anakOptions }}</span>
-                <button type="button" class="font-semibold underline cursor-pointer" @click="loadAnakOptions">
-                    Coba lagi
-                </button>
             </div>
 
             <!-- Kartu Profil Anak Terpilih -->
@@ -517,6 +460,7 @@ import { computed, nextTick, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { Dialog } from "primevue";
 import FormPemberian from "@/components/forms/FormPemberian.vue";
+import AnakSearchSelect from "@/components/forms/AnakSearchSelect.vue";
 import {
     usePemberianStore,
     JENIS_VALID,
@@ -533,24 +477,12 @@ const kaderStore = useKaderStore();
 
 const todayDate = new Date();
 const anakTerpilihId = ref("");
-const searchAnak = ref("");
 const filterAktif = ref("semua");
 const showForm = ref(false);
 const showConfirmation = ref(false);
 const pendingPayload = ref(null);
 const selectionMessage = ref("");
 const anakSelect = ref(null);
-
-const filteredAnakOptions = computed(() => {
-    const query = searchAnak.value.trim().toLowerCase();
-    if (!query) return kaderStore.anakOptions;
-    return kaderStore.anakOptions.filter((anak) => {
-        const nama = (anak.nama || "").toLowerCase();
-        const nik = (anak.nik || "").toLowerCase();
-        const orangTua = (anak.nama_orang_tua || "").toLowerCase();
-        return nama.includes(query) || nik.includes(query) || orangTua.includes(query);
-    });
-});
 
 const selectedAnak = computed(() => {
     if (
@@ -584,7 +516,11 @@ const getInitials = (nama) => {
 
 const handleGantiAnak = () => {
     anakTerpilihId.value = "";
-    searchAnak.value = "";
+    onAnakChange();
+};
+
+const handleAnakSelected = (id) => {
+    anakTerpilihId.value = id;
     onAnakChange();
 };
 

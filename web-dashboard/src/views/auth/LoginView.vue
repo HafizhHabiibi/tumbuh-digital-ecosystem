@@ -11,6 +11,7 @@
             :is-valid="isFormValid"
             :loading="authStore.loading.login"
             :error="authStore.error.login"
+            :success-message="passwordChangeMessage"
             @submit="handleLogin"
         />
     </main>
@@ -18,14 +19,21 @@
 
 <script setup>
 import { ref, computed } from "vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/authStore";
 import LoginBranding from "@/components/layout/LoginBranding.vue";
 import LoginForm from "@/components/forms/FormLogin.vue";
 import { dashboardPathForRole } from "@/utils/authRouting.js";
 
 const router = useRouter();
+const route = useRoute();
 const authStore = useAuthStore();
+
+const passwordChangeMessage = computed(() =>
+    route.query.passwordChanged === "1"
+        ? "Password berhasil diubah, silakan login kembali."
+        : null,
+);
 
 // [1] Ref ke komponen FormLogin untuk akses defineExpose-nya
 const loginFormRef = ref(null);

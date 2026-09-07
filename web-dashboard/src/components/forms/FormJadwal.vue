@@ -31,6 +31,7 @@
                 fluid
                 class="w-full"
                 aria-required="true"
+                :aria-invalid="!!fieldError.tanggal"
             />
             <p v-if="fieldError.tanggal" class="error-hint">
                 {{ fieldError.tanggal }}
@@ -50,6 +51,7 @@
                         :disabled="loading"
                         class="input-field w-full pl-9 pr-4 py-2.5 rounded-xl text-sm"
                         aria-required="true"
+                        :aria-invalid="!!fieldError.waktu"
                     />
                 </div>
             </div>
@@ -66,6 +68,7 @@
                         :disabled="loading"
                         class="input-field w-full pl-9 pr-4 py-2.5 rounded-xl text-sm"
                         aria-required="true"
+                        :aria-invalid="!!fieldError.waktu"
                     />
                 </div>
             </div>
@@ -86,6 +89,7 @@
                     maxlength="255"
                     class="input-field w-full pl-9 pr-4 py-2.5 rounded-xl text-sm"
                     aria-required="true"
+                    :aria-invalid="!!fieldError.lokasi"
                 />
             </div>
             <p v-if="fieldError.lokasi" class="error-hint">
@@ -144,8 +148,8 @@
             </button>
             <button
                 type="submit"
-                :disabled="loading || !isValid"
-                class="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                :aria-busy="loading"
+                class="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer shadow-sm transition-all"
             >
                 <i
                     v-if="loading"
@@ -170,7 +174,7 @@
 </template>
 
 <script setup>
-import { reactive, computed, watch } from "vue";
+import { reactive, computed, ref, watch } from "vue";
 import { DatePicker } from "primevue";
 import { toLocalDateStr } from "@/utils/format.js";
 
@@ -184,6 +188,7 @@ const emit = defineEmits(["submit", "cancel"]);
 
 const todayDate = new Date();
 const todayStr = toLocalDateStr(todayDate);
+const submitted = ref(false);
 
 const form = reactive({
     tanggal: "",
@@ -203,6 +208,7 @@ watch(
         form.waktu_selesai = data?.waktu_selesai?.slice(0, 5) ?? "11:00";
         form.lokasi = data?.lokasi ?? "";
         form.keterangan = data?.keterangan ?? "";
+        submitted.value = false;
     },
     { immediate: true },
 );
@@ -221,6 +227,12 @@ const fieldError = computed(() => {
         e.waktu = "Waktu selesai harus setelah waktu mulai";
     if (form.lokasi && form.lokasi.trim().length < 3)
         e.lokasi = "Lokasi minimal 3 karakter";
+    if (submitted.value) {
+        if (!tanggalStr) e.tanggal = "Tanggal wajib diisi";
+        if (!form.waktu_mulai || !form.waktu_selesai)
+            e.waktu = "Waktu mulai dan selesai wajib diisi";
+        if (!form.lokasi.trim()) e.lokasi = "Lokasi wajib diisi";
+    }
     return e;
 });
 
@@ -235,6 +247,7 @@ const isValid = computed(
 
 /* ── Submit ──────────────────────────────────────────────────────── */
 const handleSubmit = () => {
+    submitted.value = true;
     if (!isValid.value || props.loading) return;
     const payload = {
         tanggal: toLocalDateStr(form.tanggal) || "",

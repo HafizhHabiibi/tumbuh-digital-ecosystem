@@ -9,10 +9,11 @@ const buildListFilter = ({ search } = {}) => {
         sql: `WHERE (
             ot.nama_lengkap LIKE ? ESCAPE '!'
             OR ot.nik LIKE ? ESCAPE '!'
+            OR ot.no_hp LIKE ? ESCAPE '!'
             OR ot.alamat LIKE ? ESCAPE '!'
             OR u.email LIKE ? ESCAPE '!'
         )`,
-        params: [pattern, pattern, pattern, pattern],
+        params: [pattern, pattern, pattern, pattern, pattern],
     };
 };
 

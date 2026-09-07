@@ -29,103 +29,25 @@
                         </h2>
                     </div>
 
-                    <!-- State: Loading Anak -->
-                    <div v-if="loadingAnak" class="space-y-3" aria-live="polite">
-                        <div class="skeleton h-10 rounded-xl" />
-                        <div class="skeleton h-10 rounded-xl" />
-                        <span class="sr-only">Memuat daftar anak</span>
-                    </div>
-
-                    <!-- State: Error Memuat Anak -->
-                    <div
-                        v-else-if="anakError"
-                        class="flex items-start justify-between gap-3 text-xs text-red-700 bg-red-50 p-3.5 rounded-xl border border-red-200"
-                        role="alert"
-                    >
-                        <div class="flex items-start gap-2">
-                            <i class="pi pi-exclamation-circle mt-0.5 shrink-0" />
-                            <span>{{ anakError }}</span>
-                        </div>
-                        <button
-                            type="button"
-                            class="text-xs font-semibold underline shrink-0 cursor-pointer hover:text-red-900"
-                            @click="loadAnak"
-                        >
-                            Coba lagi
-                        </button>
-                    </div>
-
                     <!-- Form Laporan Individual -->
-                    <form v-else class="flex flex-col justify-between flex-1 space-y-4" @submit.prevent="downloadIndividual">
-                        <div v-if="anakOptions.length" class="space-y-3.5">
-                            <!-- Jika Belum Ada Anak Terpilih: Tampilkan Search & Select -->
-                            <div v-if="!selectedAnak" class="space-y-3">
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5" for="cari-anak">
-                                        Cari Anak
-                                    </label>
-                                    <div class="relative">
-                                        <i
-                                            class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"
-                                            aria-hidden="true"
-                                        />
-                                        <input
-                                            id="cari-anak"
-                                            v-model="searchAnak"
-                                            class="input-field w-full pl-9 pr-8 py-2 text-xs rounded-xl"
-                                            type="search"
-                                            placeholder="Ketik nama anak atau orang tua..."
-                                            autocomplete="off"
-                                        />
-                                        <button
-                                            v-if="searchAnak"
-                                            type="button"
-                                            class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
-                                            @click="searchAnak = ''"
-                                        >
-                                            <i class="pi pi-times text-xs" />
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5" for="pilih-anak">
-                                        Pilih Anak
-                                    </label>
-                                    <div class="relative">
-                                        <i
-                                            class="pi pi-user absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"
-                                            aria-hidden="true"
-                                        />
-                                        <select
-                                            id="pilih-anak"
-                                            ref="individualSelect"
-                                            v-model="selectedAnakId"
-                                            class="input-field w-full pl-9 pr-8 py-2.5 rounded-xl text-sm appearance-none"
-                                            required
-                                            :aria-invalid="individualSelectionError"
-                                            aria-describedby="individual-message"
-                                            @change="clearIndividualSelectionError"
-                                        >
-                                            <option value="" disabled>Pilih nama anak</option>
-                                            <option
-                                                v-for="anak in filteredAnakOptions"
-                                                :key="anak.id"
-                                                :value="anak.id"
-                                            >
-                                                {{ labelAnak(anak) }}
-                                            </option>
-                                        </select>
-                                        <i class="pi pi-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none text-slate-400" aria-hidden="true" />
-                                    </div>
-                                    <p
-                                        v-if="filteredAnakOptions.length === 0"
-                                        class="text-xs text-slate-400 mt-1.5 mb-0"
-                                    >
-                                        Tidak ada anak yang cocok dengan pencarian "{{ searchAnak }}".
-                                    </p>
-                                </div>
-                            </div>
+                    <form class="flex flex-col justify-between flex-1 space-y-4" @submit.prevent="downloadIndividual">
+                        <div
+                            v-if="selectedAnak || loadingAnak || anakError || anakOptions.length"
+                            class="space-y-3.5"
+                        >
+                            <AnakSearchSelect
+                                v-if="!selectedAnak"
+                                ref="individualSelect"
+                                :model-value="selectedAnakId"
+                                input-id="pilih-anak-laporan"
+                                :options="anakOptions"
+                                :loading="loadingAnak"
+                                :error="anakError"
+                                :invalid="individualSelectionError"
+                                described-by="individual-message"
+                                @update:model-value="handleAnakSelected"
+                                @retry="loadAnak"
+                            />
 
                             <!-- Kartu Profil Anak Terpilih -->
                             <div
@@ -374,6 +296,7 @@
 <script setup>
 import { computed, nextTick, onMounted, reactive, ref } from "vue";
 import { useAuthStore } from "@/stores/authStore";
+import AnakSearchSelect from "@/components/forms/AnakSearchSelect.vue";
 import kaderService from "@/services/kaderService";
 import puskesmasService from "@/services/puskesmasService";
 import laporanService, {
@@ -399,7 +322,6 @@ const today = formatInputDate(todayDate);
 const anakOptions = ref([]);
 const loadingAnak = ref(false);
 const anakError = ref("");
-const searchAnak = ref("");
 const selectedAnakId = ref("");
 const individualSelect = ref(null);
 const downloading = reactive({ individual: false, rekap: false });
@@ -427,25 +349,13 @@ const getInitials = (nama) => {
 
 const handleGantiAnak = () => {
     selectedAnakId.value = "";
-    searchAnak.value = "";
     individualMessage.text = "";
 };
 
-const filteredAnakOptions = computed(() => {
-    const query = searchAnak.value.trim().toLocaleLowerCase("id-ID");
-    if (!query) return anakOptions.value;
-
-    return anakOptions.value.filter((anak) =>
-        [anak.nama, anak.nama_orang_tua]
-            .filter(Boolean)
-            .some((value) =>
-                String(value).toLocaleLowerCase("id-ID").includes(query),
-            ),
-    );
-});
-
-const labelAnak = (anak) =>
-    `${anak.nama} (${anak.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan'}) — Ortu: ${anak.nama_orang_tua || '—'}`;
+const handleAnakSelected = (id) => {
+    selectedAnakId.value = id;
+    clearIndividualSelectionError();
+};
 
 const getAnakService = () =>
     authStore.isKader ? kaderService : puskesmasService;

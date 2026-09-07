@@ -57,7 +57,7 @@
                     class="text-xs font-medium text-slate-500 bg-slate-100/80 px-3 py-2 rounded-xl border border-slate-200/60 flex items-center gap-1.5"
                 >
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                    <span>{{ filteredList.length }} dari {{ kaderStore.totalOrangTua }} data</span>
+                    <span>{{ resultCounter }}</span>
                 </div>
 
                 <!-- Tombol Tambah Orang Tua -->
@@ -370,6 +370,7 @@ import FormOrangTua from "@/components/forms/FormOrangTua.vue";
 import PageHeader from "@/components/ui/PageHeader.vue";
 import PaginationControls from "@/components/ui/PaginationControls.vue";
 import { debounce } from "@/utils/debounce.js";
+import { formatSearchResultCount } from "@/utils/searchResult.js";
 
 const router = useRouter();
 const kaderStore = useKaderStore();
@@ -438,6 +439,15 @@ const formError = computed(() =>
 );
 
 const filteredList = computed(() => kaderStore.orangTuaList);
+const resultCounter = computed(() =>
+    formatSearchResultCount({
+        visible: filteredList.value.length,
+        total: search.value.trim()
+            ? kaderStore.pagination.orangTua.total
+            : kaderStore.totalOrangTua,
+        search: search.value,
+    }),
+);
 
 /* ── Jumlah Anak per Orang Tua dari Cache Store ──────────────────── */
 const anakCountMap = computed(() => {

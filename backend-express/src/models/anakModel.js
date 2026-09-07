@@ -7,10 +7,10 @@ const buildListFilter = ({ search, jenis_kelamin } = {}) => {
     const params = [];
     if (search) {
         clauses.push(
-            "(a.nama LIKE ? ESCAPE '!' OR ot.nama_lengkap LIKE ? ESCAPE '!')",
+            "(a.nama LIKE ? ESCAPE '!' OR a.nik LIKE ? ESCAPE '!' OR ot.nama_lengkap LIKE ? ESCAPE '!')",
         );
         const pattern = toLikePattern(search);
-        params.push(pattern, pattern);
+        params.push(pattern, pattern, pattern);
     }
     if (jenis_kelamin) {
         clauses.push("a.jenis_kelamin = ?");

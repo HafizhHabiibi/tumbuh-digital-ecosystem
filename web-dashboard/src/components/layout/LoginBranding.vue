@@ -23,8 +23,8 @@
             <p
                 class="branding-tagline text-base leading-relaxed max-w-xs mx-auto font-medium"
             >
-                Ekosistem digital Posyandu untuk pemantauan tumbuh kembang anak
-                dan pencegahan stunting
+                Platform Digital Posyandu untuk Pemantauan dan Edukasi Risiko
+                Stunting
             </p>
         </div>
     </section>

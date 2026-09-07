@@ -136,7 +136,7 @@
                         v-model="search"
                         type="search"
                         placeholder="Cari nama anak atau nama orang tua..."
-                        class="w-full pl-9 pr-9 py-2.5 rounded-xl text-xs bg-slate-50/70 border border-slate-200/90 text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/20 transition-all shadow-2xs"
+                        class="rujukan-search-input w-full pl-9 pr-9 py-2.5 rounded-xl text-xs bg-slate-50/70 border border-slate-200/90 text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/20 transition-all shadow-2xs"
                         aria-label="Cari rujukan"
                     />
                     <button
@@ -151,8 +151,20 @@
                 </div>
             </div>
                 <!-- Skeleton Loading -->
-                <div v-if="rujukanStore.loading.fetchAll" class="p-4 space-y-3">
+                <div v-if="initialListLoading" class="p-4 space-y-3" aria-live="polite">
                     <div v-for="i in 5" :key="i" class="skeleton h-14 rounded-xl" />
+                    <span class="sr-only">Memuat daftar rujukan</span>
+                </div>
+
+                <!-- Refresh tanpa data lama: pertahankan tinggi seperti empty state -->
+                <div
+                    v-else-if="refreshingEmptyList"
+                    class="flex flex-col items-center justify-center py-16 gap-2 text-xs text-slate-500"
+                    role="status"
+                    aria-live="polite"
+                >
+                    <i class="pi pi-spinner pi-spin text-lg text-emerald-600" aria-hidden="true" />
+                    <span>Memperbarui daftar rujukan...</span>
                 </div>
 
                 <!-- Empty State -->
@@ -171,11 +183,29 @@
                 </div>
 
                 <!-- Content Table -->
-                <template v-else>
-                    <p class="sm:hidden text-[11px] text-slate-400 px-4 pt-3 mb-0">
-                        Geser tabel ke samping untuk melihat seluruh informasi.
-                    </p>
-                    <div class="overflow-x-auto">
+                <div v-else class="relative">
+                    <div
+                        v-if="rujukanStore.loading.fetchAll"
+                        class="absolute inset-0 z-20 flex items-start justify-center bg-white/55 pt-8 cursor-wait"
+                        role="status"
+                        aria-live="polite"
+                        aria-label="Memperbarui daftar rujukan"
+                    >
+                        <span class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 shadow-sm">
+                            <i class="pi pi-spinner pi-spin text-emerald-600" aria-hidden="true" />
+                            Memperbarui data...
+                        </span>
+                    </div>
+
+                    <div
+                        :inert="rujukanStore.loading.fetchAll"
+                        :class="rujukanStore.loading.fetchAll ? 'opacity-60' : ''"
+                        class="transition-opacity"
+                    >
+                        <p class="sm:hidden text-[11px] text-slate-400 px-4 pt-3 mb-0">
+                            Geser tabel ke samping untuk melihat seluruh informasi.
+                        </p>
+                        <div class="overflow-x-auto">
                         <table class="w-full min-w-[1200px] text-left border-collapse" aria-label="Antrean rujukan puskesmas">
                             <thead>
                                 <tr class="bg-slate-50/80 border-b border-slate-200/80">
@@ -299,15 +329,16 @@
                                 </tr>
                             </tbody>
                         </table>
+                        </div>
+                        <div class="p-3 border-t border-slate-100">
+                            <PaginationControls
+                                :pagination="rujukanStore.pagination"
+                                :loading="rujukanStore.loading.fetchAll"
+                                @change-page="changePage"
+                            />
+                        </div>
                     </div>
-                    <div class="p-3 border-t border-slate-100">
-                        <PaginationControls
-                            :pagination="rujukanStore.pagination"
-                            :loading="rujukanStore.loading.fetchAll"
-                            @change-page="changePage"
-                        />
-                    </div>
-                </template>
+                </div>
         </section>
 
         <!-- ─── Dialog Detail Rujukan ────────────────────────────── -->
@@ -378,6 +409,7 @@ const filterStatus = ref("diajukan");
 const showDetail = ref(false);
 const showUpdateStatus = ref(false);
 const rujukanDipilih = ref(null);
+const hasCompletedInitialLoad = ref(false);
 
 const filterChips = computed(() => [
     {
@@ -441,16 +473,36 @@ const updateDialogTitle = computed(() => {
     return "Selesaikan Rujukan";
 });
 
-const loadData = (page = rujukanStore.pagination.page) => {
-    return rujukanStore.fetchAllRujukan({
-        page,
-        search: search.value.trim() || undefined,
-        status: selectedStatus.value,
-    });
+const initialListLoading = computed(
+    () => rujukanStore.loading.fetchAll && !hasCompletedInitialLoad.value,
+);
+const refreshingEmptyList = computed(
+    () =>
+        rujukanStore.loading.fetchAll &&
+        hasCompletedInitialLoad.value &&
+        rujukanStore.rujukanList.length === 0,
+);
+
+const loadData = async (page = rujukanStore.pagination.page) => {
+    try {
+        await rujukanStore.fetchAllRujukan({
+            page,
+            search: search.value.trim() || undefined,
+            status: selectedStatus.value,
+        });
+    } finally {
+        hasCompletedInitialLoad.value = true;
+    }
 };
 
-const reloadFromFirstPage = debounce(() => loadData(1));
-watch([search, filterStatus], reloadFromFirstPage);
+const reloadSearchFromFirstPage = debounce(() => loadData(1));
+const handleFilterStatusChange = () => {
+    reloadSearchFromFirstPage.cancel();
+    loadData(1);
+};
+
+watch(search, reloadSearchFromFirstPage);
+watch(filterStatus, handleFilterStatusChange);
 
 const lihatDetail = async (id) => {
     showDetail.value = true;
@@ -501,7 +553,7 @@ const getInitials = (name) => {
 };
 
 onMounted(() => loadData());
-onBeforeUnmount(reloadFromFirstPage.cancel);
+onBeforeUnmount(reloadSearchFromFirstPage.cancel);
 </script>
 
 <style scoped>
@@ -509,6 +561,16 @@ onBeforeUnmount(reloadFromFirstPage.cancel);
     background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
+}
+
+.rujukan-search-input::-webkit-search-cancel-button {
+    display: none;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.rujukan-search-input::-ms-clear {
+    display: none;
 }
 
 @keyframes shimmer {

@@ -98,9 +98,65 @@ test("model anak menerapkan search sebelum pagination dan count", async () => {
     assert.equal(calls.length, 2);
     for (const call of calls) {
         assert.match(call.sql, /LIKE/i);
+        assert.match(call.sql, /a\.nik LIKE/i);
         assert.ok(call.params.some((value) =>
             String(value).includes("Target Halaman Tiga")
         ));
+    }
+});
+
+test("model anak mencari NIK dan dapat menggabungkan filter jenis kelamin", async () => {
+    const AnakModel = await import("../src/models/anakModel.js");
+    const calls = [];
+    const database = {
+        query: async (sql, params) => {
+            calls.push({ sql, params });
+            if (/COUNT\(/i.test(sql)) return [[{ total: 1 }]];
+            return [[{ id: "anak-nik", nik: "3273010101010001" }]];
+        },
+    };
+
+    const result = await AnakModel.buatFindAll(database)({
+        search: "3273%_!",
+        jenis_kelamin: "P",
+    });
+
+    assert.equal(result.total, 1);
+    assert.equal(calls.length, 2);
+    for (const call of calls) {
+        assert.match(call.sql, /a\.nama LIKE/i);
+        assert.match(call.sql, /a\.nik LIKE/i);
+        assert.match(call.sql, /ot\.nama_lengkap LIKE/i);
+        assert.match(call.sql, /a\.jenis_kelamin = \?/i);
+        assert.deepEqual(call.params.slice(0, 4), [
+            "%3273!%!_!!%",
+            "%3273!%!_!!%",
+            "%3273!%!_!!%",
+            "P",
+        ]);
+    }
+});
+
+test("model orang tua mencari nomor telepon pada list dan count", async () => {
+    const OrangTuaModel = await import("../src/models/orangTuaModel.js");
+    const calls = [];
+    const database = {
+        query: async (sql, params) => {
+            calls.push({ sql, params });
+            if (/COUNT\(/i.test(sql)) return [[{ total: 1 }]];
+            return [[{ id: "orang-tua-hp", no_hp: "+628123456789" }]];
+        },
+    };
+
+    const result = await OrangTuaModel.buatFindAll(database)({
+        search: "+62812",
+    });
+
+    assert.equal(result.total, 1);
+    assert.equal(calls.length, 2);
+    for (const call of calls) {
+        assert.match(call.sql, /ot\.no_hp LIKE/i);
+        assert.deepEqual(call.params.slice(0, 5), Array(5).fill("%+62812%"));
     }
 });
 

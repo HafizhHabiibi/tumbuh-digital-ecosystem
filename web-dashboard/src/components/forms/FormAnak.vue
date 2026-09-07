@@ -254,8 +254,8 @@
             </button>
             <button
                 type="submit"
-                :disabled="loading || !isValid"
-                class="btn-primary flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                :aria-busy="loading"
+                class="btn-primary flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm hover:shadow-md"
             >
                 <i
                     v-if="loading"
@@ -346,10 +346,14 @@ const fieldError = computed(() => {
         e.orang_tua_id = "Pilih orang tua terlebih dahulu";
     if (form.nama && form.nama.trim().length < 2)
         e.nama = "Nama minimal 2 karakter";
+    if (submitted.value && !form.nama.trim())
+        e.nama = "Nama anak wajib diisi";
     if (submitted.value && !form.jenis_kelamin)
         e.jenis_kelamin = "Pilih jenis kelamin";
     if (form.tanggal_lahir && form.tanggal_lahir > new Date())
         e.tanggal_lahir = "Tanggal lahir tidak boleh di masa depan";
+    if (submitted.value && !form.tanggal_lahir)
+        e.tanggal_lahir = "Tanggal lahir wajib diisi";
     if (form.nik && !/^\d{16}$/.test(form.nik))
         e.nik = "NIK harus tepat 16 digit angka";
     if (!isEdit.value && submitted.value && !form.nik)

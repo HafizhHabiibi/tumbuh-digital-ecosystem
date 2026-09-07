@@ -139,6 +139,10 @@ export const useAuthStore = defineStore("auth", () => {
         error.value.changePassword = null;
         try {
             await authService.changePassword(password_lama, password_baru);
+            // Backend membatalkan access token lama melalui perubahan
+            // users.updated_at. Akhiri sesi di client saat itu juga agar UI
+            // tidak terlihat masih login dengan token yang sudah invalid.
+            clearAuth();
             return true;
         } catch (err) {
             error.value.changePassword =

@@ -21,10 +21,10 @@
                 <div class="mb-6">
                     <RouterLink
                         :to="{ name: 'Login' }"
-                        class="inline-flex items-center gap-2 text-xs font-semibold text-emerald-700 hover:text-emerald-800 transition-colors group"
+                        class="inline-flex items-center gap-2 text-xs font-semibold text-black hover:text-slate-700 transition-colors"
                     >
                         <span
-                            class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-100 transition-colors"
+                            class="w-7 h-7 text-black flex items-center justify-center"
                         >
                             <i class="pi pi-arrow-left text-xs" aria-hidden="true" />
                         </span>

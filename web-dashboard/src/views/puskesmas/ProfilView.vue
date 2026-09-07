@@ -86,18 +86,6 @@
                         </h2>
                     </div>
 
-                    <!-- Notifikasi Sukses -->
-                    <Transition name="slide-down">
-                        <div
-                            v-if="successMsg"
-                            class="flex items-center gap-2 p-3.5 rounded-xl text-xs text-emerald-800 bg-emerald-50 border border-emerald-200"
-                            role="status"
-                        >
-                            <i class="pi pi-check-circle text-emerald-600 shrink-0" aria-hidden="true" />
-                            <span>{{ successMsg }}</span>
-                        </div>
-                    </Transition>
-
                     <!-- Notifikasi Error -->
                     <Transition name="slide-down">
                         <div
@@ -327,7 +315,6 @@ const authStore = useAuthStore();
 const router = useRouter();
 
 const todayDate = new Date();
-const successMsg = ref("");
 const attemptedSubmit = ref(false);
 const showLogoutModal = ref(false);
 
@@ -385,18 +372,15 @@ const handleSubmit = async () => {
     if (authStore.loading.changePassword) return;
     attemptedSubmit.value = true;
     if (!isValid.value) return;
-    successMsg.value = "";
-
     const ok = await authStore.changePassword(
         form.password_lama,
         form.password_baru,
     );
     if (ok) {
-        successMsg.value = "Password berhasil diubah!";
-        form.password_lama = "";
-        form.password_baru = "";
-        form.konfirmasi = "";
-        attemptedSubmit.value = false;
+        await router.replace({
+            name: "Login",
+            query: { passwordChanged: "1" },
+        });
     }
 };
 

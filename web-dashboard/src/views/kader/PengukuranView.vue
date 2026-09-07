@@ -39,83 +39,22 @@
                 >
                     <!-- Pilih Anak -->
                     <div class="space-y-2">
-                        <div class="flex items-center justify-between">
-                            <label for="anak_id" class="field-label">
-                                Pilih Anak
-                            </label>
-                            <span v-if="kaderStore.anakOptions.length > 0" class="text-[11px] text-slate-400">
-                                {{ kaderStore.anakOptions.length }} anak terdaftar
-                            </span>
-                        </div>
-
-                        <!-- Pencarian Cepat Anak -->
-                        <div v-if="!anakTerpilih" class="relative">
-                            <i class="pi pi-search input-icon" aria-hidden="true" />
-                            <input
-                                v-model="searchAnak"
-                                type="text"
-                                placeholder="Cari nama anak, orang tua, atau NIK..."
-                                class="input-field w-full pl-9 pr-8 py-2 text-xs rounded-xl"
-                                :disabled="pengukuranStore.loading.create || kaderStore.loading.anakOptions"
-                            />
-                            <button
-                                v-if="searchAnak"
-                                type="button"
-                                class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
-                                @click="searchAnak = ''"
-                            >
-                                <i class="pi pi-times text-xs" />
-                            </button>
-                        </div>
-
-                        <!-- Dropdown Select Anak -->
-                        <div v-if="!anakTerpilih" class="relative">
-                            <i class="pi pi-user input-icon" aria-hidden="true" />
-                            <select
-                                id="anak_id"
-                                v-model="form.anak_id"
-                                :disabled="pengukuranStore.loading.create || kaderStore.loading.anakOptions"
-                                class="input-field w-full pl-9 pr-8 py-2.5 rounded-xl text-sm appearance-none"
-                                aria-required="true"
-                                :aria-invalid="!!fieldError.anak_id"
-                                aria-describedby="anak_id_error"
-                            >
-                                <option value="" disabled>
-                                    {{ kaderStore.loading.anakOptions ? "Memuat data anak..." : (filteredAnakOptions.length === 0 ? "Tidak ditemukan anak yang sesuai pencarian" : "Pilih nama anak") }}
-                                </option>
-                                <option
-                                    v-for="anak in filteredAnakOptions"
-                                    :key="anak.id"
-                                    :value="anak.id"
-                                >
-                                    {{ anak.nama }} ({{ anak.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan' }}) — Ortu: {{ anak.nama_orang_tua || '—' }}
-                                </option>
-                            </select>
-                            <i
-                                class="pi pi-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none text-slate-400"
-                                aria-hidden="true"
-                            />
-                        </div>
+                        <AnakSearchSelect
+                            v-if="!anakTerpilih"
+                            v-model="form.anak_id"
+                            input-id="anak_id"
+                            :options="kaderStore.anakOptions"
+                            :loading="kaderStore.loading.anakOptions"
+                            :error="kaderStore.error.anakOptions"
+                            :disabled="pengukuranStore.loading.create"
+                            :invalid="!!fieldError.anak_id"
+                            described-by="anak_id_error"
+                            @retry="kaderStore.fetchAnakOptions()"
+                        />
 
                         <p id="anak_id_error" v-if="fieldError.anak_id" class="error-hint">
                             {{ fieldError.anak_id }}
                         </p>
-
-                        <!-- Error fetching anakOptions -->
-                        <div
-                            v-if="kaderStore.error.anakOptions"
-                            class="flex items-center justify-between gap-3 text-xs text-red-700 bg-red-50 p-2.5 rounded-xl border border-red-200"
-                            role="alert"
-                        >
-                            <span>{{ kaderStore.error.anakOptions }}</span>
-                            <button
-                                type="button"
-                                class="font-semibold underline cursor-pointer"
-                                @click="kaderStore.fetchAnakOptions()"
-                            >
-                                Coba lagi
-                            </button>
-                        </div>
 
                         <!-- Kartu Profil Anak Terpilih -->
                         <div
@@ -663,6 +602,7 @@ import { useRoute } from "vue-router";
 import { DatePicker, Dialog } from "primevue";
 import { usePengukuranStore } from "@/stores/pengukuranStore";
 import { useKaderStore } from "@/stores/kaderStore";
+import AnakSearchSelect from "@/components/forms/AnakSearchSelect.vue";
 import PengukuranResultCard from "@/components/cards/PengukuranResultCard.vue";
 import { formatTanggal, hitungUsia, toLocalDateStr } from "@/utils/format.js";
 import { validateMeasurement } from "@/utils/measurementValidation.js";
@@ -680,7 +620,6 @@ const todayDate = new Date();
 const showConfirmation = ref(false);
 const attemptedSubmit = ref(false);
 const resultSection = ref(null);
-const searchAnak = ref("");
 
 const form = reactive({
     anak_id: "",
@@ -705,20 +644,8 @@ const anakTerpilih = computed(
     () => kaderStore.anakOptions.find((a) => a.id === form.anak_id) || null,
 );
 
-const filteredAnakOptions = computed(() => {
-    if (!searchAnak.value.trim()) return kaderStore.anakOptions;
-    const q = searchAnak.value.toLowerCase().trim();
-    return kaderStore.anakOptions.filter(
-        (a) =>
-            a.nama?.toLowerCase().includes(q) ||
-            a.nama_orang_tua?.toLowerCase().includes(q) ||
-            a.nik?.includes(q),
-    );
-});
-
 const handleGantiAnak = () => {
     form.anak_id = "";
-    searchAnak.value = "";
     if (pengukuranStore.createResult) {
         pengukuranStore.resetCreateState();
     }

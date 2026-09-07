@@ -203,8 +203,8 @@
             </button>
             <button
                 type="submit"
-                :disabled="loading || !isValid"
-                class="btn-primary flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                :aria-busy="loading"
+                class="btn-primary flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm hover:shadow-md"
             >
                 <i
                     v-if="loading"

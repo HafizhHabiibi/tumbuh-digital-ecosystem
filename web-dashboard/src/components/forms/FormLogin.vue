@@ -47,6 +47,21 @@
                     </div>
                 </Transition>
 
+                <Transition name="slide-down">
+                    <div
+                        v-if="successMessage"
+                        class="success-alert mb-5 flex items-start gap-3 rounded-xl px-4 py-3 text-sm"
+                        role="status"
+                        aria-live="polite"
+                    >
+                        <i
+                            class="pi pi-check-circle mt-0.5 flex-shrink-0"
+                            aria-hidden="true"
+                        />
+                        <span>{{ successMessage }}</span>
+                    </div>
+                </Transition>
+
                 <!-- Form -->
                 <form novalidate @submit.prevent="handleSubmit">
                     <div class="space-y-5">
@@ -207,6 +222,7 @@ const props = defineProps({
     isValid: { type: Boolean, default: false },
     loading: { type: Boolean, default: false },
     error: { type: String, default: null },
+    successMessage: { type: String, default: null },
 });
 
 const emit = defineEmits([
@@ -289,6 +305,12 @@ defineExpose({
     margin: 0.35rem 0 0 0.25rem;
     color: #dc2626;
     font-size: 0.72rem;
+}
+
+.success-alert {
+    color: #047857;
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
 }
 
 /* ─── Tombol Masuk (senada dengan tombol Simpan Password di Profil) ── */

@@ -17,6 +17,16 @@ const expectInteractive = (relativeUrl, label) => {
     expect(button).toContain('aria-busy');
 };
 
+const expectSubmitInteractive = (relativeUrl) => {
+    const source = fs.readFileSync(new URL(relativeUrl, import.meta.url), "utf8");
+    const button = [...source.matchAll(/<button\b[\s\S]*?<\/button>/g)]
+        .map((match) => match[0])
+        .find((item) => item.includes('type="submit"'));
+    expect(button, `Tombol submit pada ${relativeUrl} harus ditemukan`).toBeTruthy();
+    expect(button).not.toMatch(/(?:^|\s):?disabled(?:\s|=|>)/);
+    expect(button).toContain('aria-busy');
+};
+
 describe("tombol aksi utama tetap interaktif saat form belum lengkap", () => {
     it("laporan individual dan rekap tidak memakai disabled", () => {
         expectInteractive("../views/shared/LaporanView.vue", "Unduh Laporan Individual");
@@ -31,5 +41,11 @@ describe("tombol aksi utama tetap interaktif saat form belum lengkap", () => {
     it("login dan lupa password tidak memakai disabled", () => {
         expectInteractive("../components/forms/FormLogin.vue", "Masuk");
         expectInteractive("../components/forms/FormForgotPassword.vue", "Kirim Tautan Reset");
+    });
+
+    it("tambah anak, orang tua, dan jadwal tidak memakai disabled", () => {
+        expectSubmitInteractive("../components/forms/FormAnak.vue");
+        expectSubmitInteractive("../components/forms/FormOrangTua.vue");
+        expectSubmitInteractive("../components/forms/FormJadwal.vue");
     });
 });

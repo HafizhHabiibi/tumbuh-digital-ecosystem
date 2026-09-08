@@ -101,23 +101,25 @@ INSERT INTO orang_tua (id, user_id, dibuat_oleh_kader_id, nama_lengkap, no_hp, a
     ('01a053bb-fb3f-7b2a-ae2e-e4974bd52e24', '01a053bb-fb3f-7b2a-ae2e-e49602ad4be0', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'Sumiati Wahyu', '081111111110', 'Jl. Teratai No. 6 RT 04 RW 05', '3201011001870010');
 
 -- ==========================================================
--- TIER 2: Jadwal Posyandu (5 lampau + 3 mendatang)
+-- TIER 2: Jadwal Posyandu (Januari–Agustus 2026)
 -- ==========================================================
 
 INSERT INTO jadwal_posyandu (kader_id, tanggal, waktu_mulai, waktu_selesai, lokasi, keterangan) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e47b383706e6', '2026-01-03', '08:00', '11:00', 'Balai RW 05 Kelurahan Cempaka', 'Posyandu Rutin Januari 2026');
 INSERT INTO jadwal_posyandu (kader_id, tanggal, waktu_mulai, waktu_selesai, lokasi, keterangan) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e47b383706e6', '2026-02-03', '08:00', '11:00', 'Balai RW 05 Kelurahan Cempaka', 'Posyandu Rutin Februari 2026');
+    ('01a053bb-fb3f-7b2a-ae2e-e47b383706e6', '2026-02-03', '08:00', '12:00', 'Balai RW 05 Kelurahan Cempaka', 'Posyandu + Vitamin A Gelombang Pertama + Obat Cacing');
 INSERT INTO jadwal_posyandu (kader_id, tanggal, waktu_mulai, waktu_selesai, lokasi, keterangan) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e47d59244e78', '2026-03-03', '08:30', '11:30', 'Balai RW 05 Kelurahan Cempaka', 'Posyandu Rutin Maret 2026');
 INSERT INTO jadwal_posyandu (kader_id, tanggal, waktu_mulai, waktu_selesai, lokasi, keterangan) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e47d59244e78', '2026-04-03', '08:00', '12:00', 'Puskesmas Pembantu Cempaka', 'Posyandu + Pemberian Vitamin A Massal');
+    ('01a053bb-fb3f-7b2a-ae2e-e47d59244e78', '2026-04-03', '08:00', '11:00', 'Puskesmas Pembantu Cempaka', 'Posyandu Rutin April 2026');
 INSERT INTO jadwal_posyandu (kader_id, tanggal, waktu_mulai, waktu_selesai, lokasi, keterangan) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', '2026-05-03', '08:00', '11:00', 'Balai RW 05 Kelurahan Cempaka', 'Posyandu Rutin Mei 2026');
 INSERT INTO jadwal_posyandu (kader_id, tanggal, waktu_mulai, waktu_selesai, lokasi, keterangan) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e47b383706e6', '2026-06-03', '08:30', '12:00', 'Balai RW 05 Kelurahan Cempaka', 'Posyandu Rutin Juni 2026 - Pembagian PMT');
 INSERT INTO jadwal_posyandu (kader_id, tanggal, waktu_mulai, waktu_selesai, lokasi, keterangan) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e47d59244e78', '2026-07-03', '08:00', '11:00', 'Balai RW 05 Kelurahan Cempaka', 'Posyandu Rutin Juli 2026');
+INSERT INTO jadwal_posyandu (kader_id, tanggal, waktu_mulai, waktu_selesai, lokasi, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', '2026-08-03', '08:00', '12:00', 'Puskesmas Pembantu Cempaka', 'Bulan Penimbangan Balita + Vitamin A Gelombang Kedua + Obat Cacing');
 
 -- ==========================================================
 -- TIER 2: Pengaturan Jadwal (template default)
@@ -162,7 +164,7 @@ INSERT INTO anak (id, orang_tua_id, nama, jenis_kelamin, tanggal_lahir, nik) VAL
     ('01a053bb-fb3f-7b2a-ae2e-e4a666b50efe', '01a053bb-fb3f-7b2a-ae2e-e4974bd52e24', 'Bimo', 'L', '2025-09-21', '3201011234560015');
 
 -- ==========================================================
--- TIER 4: Pengukuran (6 titik historis per anak = 90 total)
+-- TIER 4: Pengukuran (8 titik historis per anak = 120 total)
 -- Z-score dihitung otomatis menggunakan WHO tables
 -- ==========================================================
 
@@ -376,127 +378,298 @@ INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_bad
 INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e4a666b50efe', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', '2026-06-03', 6.6, 67, 43.7, 13.8);
 
+-- Pengukuran lanjutan Juli–Agustus 2026 (ID 91–120)
+
+-- Anak: Rizki (normal)
+INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e498baf112dc', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', '2026-07-03', 10.4, 79, 44.9, 14.3);
+INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e498baf112dc', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', '2026-08-03', 10.7, 80.2, 45.2, 14.5);
+
+-- Anak: Rafi (normal)
+INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e49940494cf0', '01a053bb-fb3f-7b2a-ae2e-e47d59244e78', '2026-07-03', 15.4, 97.6, NULL, NULL);
+INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e49940494cf0', '01a053bb-fb3f-7b2a-ae2e-e47d59244e78', '2026-08-03', 15.6, 98.3, NULL, NULL);
+
+-- Anak: Nayla (normal)
+INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e49ac0638cec', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', '2026-07-03', 8.9, 73.8, 43.6, 13.8);
+INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e49ac0638cec', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', '2026-08-03', 9.2, 75.3, 43.9, 13.9);
+
+-- Anak: Hasan (kurang)
+INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e49bad1a0c9d', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', '2026-07-03', 10.1, 84.8, NULL, NULL);
+INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e49bad1a0c9d', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', '2026-08-03', 10.3, 85.5, NULL, NULL);
+
+-- Anak: Husein (normal)
+INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e49ce7a30816', '01a053bb-fb3f-7b2a-ae2e-e47d59244e78', '2026-07-03', 9.3, 73.2, 43.3, 13.6);
+INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e49ce7a30816', '01a053bb-fb3f-7b2a-ae2e-e47d59244e78', '2026-08-03', 9.7, 75.1, 43.6, 13.8);
+
+-- Anak: Zahra (kurang)
+INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e49d67bc88ec', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', '2026-07-03', 8.4, 77.6, 46.9, 15.2);
+INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e49d67bc88ec', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', '2026-08-03', 8.6, 78.7, 47.2, 15.3);
+
+-- Anak: Dani (buruk)
+INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e49e3ac549a0', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', '2026-07-03', 10.3, 87.8, NULL, NULL);
+INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e49e3ac549a0', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', '2026-08-03', 10.5, 88.6, NULL, NULL);
+
+-- Anak: Dina (normal)
+INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e49fdadd27e6', '01a053bb-fb3f-7b2a-ae2e-e47d59244e78', '2026-07-03', 10.7, 81.2, 45.9, 15);
+INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e49fdadd27e6', '01a053bb-fb3f-7b2a-ae2e-e47d59244e78', '2026-08-03', 10.9, 82.4, 46.2, 15.2);
+
+-- Anak: Bagas (kurang)
+INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a050ca6759', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', '2026-07-03', 9.6, 81.5, 47.9, 15.6);
+INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a050ca6759', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', '2026-08-03', 9.8, 82.4, 48.2, 15.7);
+
+-- Anak: Putri (normal)
+INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a1e3f0b3a9', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', '2026-07-03', 9.3, 75.5, 44.3, 14.1);
+INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a1e3f0b3a9', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', '2026-08-03', 9.5, 77, 44.6, 14.2);
+
+-- Anak: Adi (buruk)
+INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a2a5d247f5', '01a053bb-fb3f-7b2a-ae2e-e47d59244e78', '2026-07-03', 10.9, 89.3, NULL, NULL);
+INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a2a5d247f5', '01a053bb-fb3f-7b2a-ae2e-e47d59244e78', '2026-08-03', 11.1, 90.1, NULL, NULL);
+
+-- Anak: Ayu (kurang)
+INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a3a2f28add', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', '2026-07-03', 9.5, 83, 48.3, 15.7);
+INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a3a2f28add', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', '2026-08-03', 9.7, 84, NULL, NULL);
+
+-- Anak: Fauzi (normal)
+INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a49b7f45da', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', '2026-07-03', 11.2, 83.1, 45.6, 14.6);
+INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a49b7f45da', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', '2026-08-03', 11.4, 84.4, 45.9, 14.8);
+
+-- Anak: Bella (kurang)
+INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a53584fa05', '01a053bb-fb3f-7b2a-ae2e-e47d59244e78', '2026-07-03', 10.6, 86.6, NULL, NULL);
+INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a53584fa05', '01a053bb-fb3f-7b2a-ae2e-e47d59244e78', '2026-08-03', 10.8, 87.2, NULL, NULL);
+
+-- Anak: Bimo (buruk)
+INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a666b50efe', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', '2026-07-03', 6.8, 68.3, 44, 13.9);
+INSERT INTO pengukuran (anak_id, kader_id, tanggal_ukur, berat_badan, tinggi_badan, lingkar_kepala, lingkar_lengan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a666b50efe', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', '2026-08-03', 7, 69.6, 44.3, 14.1);
+
 -- ==========================================================
 -- TIER 4: Pemberian Vitamin A, Obat Cacing & PMT
 -- ==========================================================
 
--- Rizki (usia: 11 bulan)
+-- Rizki (usia Juni: 11 bulan, usia Agustus: 13 bulan)
 INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e498baf112dc', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'vitamin_a_biru', '1 Kapsul Biru', '2026-02-03', NULL);
+    ('01a053bb-fb3f-7b2a-ae2e-e498baf112dc', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'vitamin_a_biru', '1 Kapsul Biru (100.000 IU)', '2026-02-03', 'Suplementasi Vitamin A gelombang 1');
 INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e498baf112dc', '01a053bb-fb3f-7b2a-ae2e-e47d59244e78', 'pmt_biskuit', '1 Kotak', '2026-05-03', NULL);
 
--- Rafi (usia: 31 bulan)
+-- Rafi (usia Juni: 31 bulan, usia Agustus: 33 bulan)
 INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e49940494cf0', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'vitamin_a_merah', '1 Kapsul Merah', '2026-01-03', NULL);
+    ('01a053bb-fb3f-7b2a-ae2e-e49940494cf0', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'vitamin_a_merah', '1 Kapsul Merah (200.000 IU)', '2026-02-03', 'Suplementasi Vitamin A gelombang 1');
 INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e49940494cf0', '01a053bb-fb3f-7b2a-ae2e-e47d59244e78', 'obat_cacing', '1 Tablet', '2026-03-03', NULL);
+    ('01a053bb-fb3f-7b2a-ae2e-e49940494cf0', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'obat_cacing', '1 Tablet', '2026-02-03', 'Pemberian obat cacing berkala 6 bulanan');
 INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e49940494cf0', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'pmt_biskuit', '2 Kotak', '2026-05-03', NULL);
 
--- Nayla (usia: 7 bulan)
-INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e49ac0638cec', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'vitamin_a_biru', '1 Kapsul Biru', '2026-02-03', NULL);
+-- Nayla (usia Juni: 7 bulan, usia Agustus: 9 bulan)
 INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e49ac0638cec', '01a053bb-fb3f-7b2a-ae2e-e47d59244e78', 'pmt_biskuit', '1 Kotak', '2026-05-03', NULL);
 
--- Hasan (usia: 24 bulan)
+-- Hasan (usia Juni: 24 bulan, usia Agustus: 26 bulan)
 INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e49bad1a0c9d', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'vitamin_a_merah', '1 Kapsul Merah', '2026-01-03', NULL);
+    ('01a053bb-fb3f-7b2a-ae2e-e49bad1a0c9d', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'vitamin_a_merah', '1 Kapsul Merah (200.000 IU)', '2026-02-03', 'Suplementasi Vitamin A gelombang 1');
 INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e49bad1a0c9d', '01a053bb-fb3f-7b2a-ae2e-e47d59244e78', 'obat_cacing', '1 Tablet', '2026-03-03', NULL);
+    ('01a053bb-fb3f-7b2a-ae2e-e49bad1a0c9d', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'obat_cacing', '1 Tablet', '2026-02-03', 'Pemberian obat cacing berkala 6 bulanan');
 INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e49bad1a0c9d', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'pmt_biskuit', '2 Kotak', '2026-05-03', NULL);
 
--- Husein (usia: 6 bulan)
-INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e49ce7a30816', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'vitamin_a_biru', '1 Kapsul Biru', '2026-02-03', NULL);
+-- Husein (usia Juni: 6 bulan, usia Agustus: 8 bulan)
 INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e49ce7a30816', '01a053bb-fb3f-7b2a-ae2e-e47d59244e78', 'pmt_biskuit', '1 Kotak', '2026-05-03', NULL);
 
--- Zahra (usia: 17 bulan)
+-- Zahra (usia Juni: 17 bulan, usia Agustus: 19 bulan)
 INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e49d67bc88ec', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'vitamin_a_merah', '1 Kapsul Merah', '2026-02-03', NULL);
+    ('01a053bb-fb3f-7b2a-ae2e-e49d67bc88ec', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'vitamin_a_merah', '1 Kapsul Merah (200.000 IU)', '2026-02-03', 'Suplementasi Vitamin A gelombang 1');
 INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e49d67bc88ec', '01a053bb-fb3f-7b2a-ae2e-e47d59244e78', 'obat_cacing', '1 Tablet', '2026-03-03', NULL);
+    ('01a053bb-fb3f-7b2a-ae2e-e49d67bc88ec', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'obat_cacing', '1 Tablet', '2026-02-03', 'Pemberian obat cacing berkala 6 bulanan');
 INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e49d67bc88ec', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'pmt_biskuit', '1 Kotak', '2026-05-03', NULL);
 
--- Dani (usia: 29 bulan)
+-- Dani (usia Juni: 29 bulan, usia Agustus: 31 bulan)
 INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e49e3ac549a0', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'vitamin_a_merah', '1 Kapsul Merah', '2026-01-03', NULL);
+    ('01a053bb-fb3f-7b2a-ae2e-e49e3ac549a0', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'vitamin_a_merah', '1 Kapsul Merah (200.000 IU)', '2026-02-03', 'Suplementasi Vitamin A gelombang 1');
 INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e49e3ac549a0', '01a053bb-fb3f-7b2a-ae2e-e47d59244e78', 'obat_cacing', '1 Tablet', '2026-03-03', NULL);
+    ('01a053bb-fb3f-7b2a-ae2e-e49e3ac549a0', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'obat_cacing', '1 Tablet', '2026-02-03', 'Pemberian obat cacing berkala 6 bulanan');
 INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e49e3ac549a0', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'pmt_biskuit', '2 Kotak', '2026-05-03', NULL);
 
--- Dina (usia: 14 bulan)
+-- Dina (usia Juni: 14 bulan, usia Agustus: 16 bulan)
 INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e49fdadd27e6', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'vitamin_a_merah', '1 Kapsul Merah', '2026-02-03', NULL);
-INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e49fdadd27e6', '01a053bb-fb3f-7b2a-ae2e-e47d59244e78', 'obat_cacing', '1 Tablet', '2026-03-03', NULL);
+    ('01a053bb-fb3f-7b2a-ae2e-e49fdadd27e6', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'vitamin_a_biru', '1 Kapsul Biru (100.000 IU)', '2026-02-03', 'Suplementasi Vitamin A gelombang 1');
 INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e49fdadd27e6', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'pmt_biskuit', '1 Kotak', '2026-05-03', NULL);
 
--- Bagas (usia: 19 bulan)
+-- Bagas (usia Juni: 19 bulan, usia Agustus: 21 bulan)
 INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e4a050ca6759', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'vitamin_a_merah', '1 Kapsul Merah', '2026-02-03', NULL);
+    ('01a053bb-fb3f-7b2a-ae2e-e4a050ca6759', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'vitamin_a_merah', '1 Kapsul Merah (200.000 IU)', '2026-02-03', 'Suplementasi Vitamin A gelombang 1');
 INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e4a050ca6759', '01a053bb-fb3f-7b2a-ae2e-e47d59244e78', 'obat_cacing', '1 Tablet', '2026-03-03', NULL);
+    ('01a053bb-fb3f-7b2a-ae2e-e4a050ca6759', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'obat_cacing', '1 Tablet', '2026-02-03', 'Pemberian obat cacing berkala 6 bulanan');
 INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e4a050ca6759', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'pmt_biskuit', '1 Kotak', '2026-05-03', NULL);
 
--- Putri (usia: 9 bulan)
-INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e4a1e3f0b3a9', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'vitamin_a_biru', '1 Kapsul Biru', '2026-02-03', NULL);
+-- Putri (usia Juni: 9 bulan, usia Agustus: 11 bulan)
 INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e4a1e3f0b3a9', '01a053bb-fb3f-7b2a-ae2e-e47d59244e78', 'pmt_biskuit', '1 Kotak', '2026-05-03', NULL);
 
--- Adi (usia: 35 bulan)
+-- Adi (usia Juni: 35 bulan, usia Agustus: 37 bulan)
 INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e4a2a5d247f5', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'vitamin_a_merah', '1 Kapsul Merah', '2026-01-03', NULL);
+    ('01a053bb-fb3f-7b2a-ae2e-e4a2a5d247f5', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'vitamin_a_merah', '1 Kapsul Merah (200.000 IU)', '2026-02-03', 'Suplementasi Vitamin A gelombang 1');
 INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e4a2a5d247f5', '01a053bb-fb3f-7b2a-ae2e-e47d59244e78', 'obat_cacing', '1 Tablet', '2026-03-03', NULL);
+    ('01a053bb-fb3f-7b2a-ae2e-e4a2a5d247f5', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'obat_cacing', '1 Tablet', '2026-02-03', 'Pemberian obat cacing berkala 6 bulanan');
 INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e4a2a5d247f5', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'pmt_biskuit', '2 Kotak', '2026-05-03', NULL);
 
--- Ayu (usia: 21 bulan)
+-- Ayu (usia Juni: 21 bulan, usia Agustus: 23 bulan)
 INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e4a3a2f28add', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'vitamin_a_merah', '1 Kapsul Merah', '2026-02-03', NULL);
+    ('01a053bb-fb3f-7b2a-ae2e-e4a3a2f28add', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'vitamin_a_merah', '1 Kapsul Merah (200.000 IU)', '2026-02-03', 'Suplementasi Vitamin A gelombang 1');
 INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e4a3a2f28add', '01a053bb-fb3f-7b2a-ae2e-e47d59244e78', 'obat_cacing', '1 Tablet', '2026-03-03', NULL);
+    ('01a053bb-fb3f-7b2a-ae2e-e4a3a2f28add', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'obat_cacing', '1 Tablet', '2026-02-03', 'Pemberian obat cacing berkala 6 bulanan');
 INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e4a3a2f28add', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'pmt_biskuit', '1 Kotak', '2026-05-03', NULL);
 
--- Fauzi (usia: 13 bulan)
+-- Fauzi (usia Juni: 13 bulan, usia Agustus: 15 bulan)
 INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e4a49b7f45da', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'vitamin_a_merah', '1 Kapsul Merah', '2026-02-03', NULL);
-INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e4a49b7f45da', '01a053bb-fb3f-7b2a-ae2e-e47d59244e78', 'obat_cacing', '1 Tablet', '2026-03-03', NULL);
+    ('01a053bb-fb3f-7b2a-ae2e-e4a49b7f45da', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'vitamin_a_biru', '1 Kapsul Biru (100.000 IU)', '2026-02-03', 'Suplementasi Vitamin A gelombang 1');
 INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e4a49b7f45da', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'pmt_biskuit', '1 Kotak', '2026-05-03', NULL);
 
--- Bella (usia: 27 bulan)
+-- Bella (usia Juni: 27 bulan, usia Agustus: 29 bulan)
 INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e4a53584fa05', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'vitamin_a_merah', '1 Kapsul Merah', '2026-01-03', NULL);
+    ('01a053bb-fb3f-7b2a-ae2e-e4a53584fa05', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'vitamin_a_merah', '1 Kapsul Merah (200.000 IU)', '2026-02-03', 'Suplementasi Vitamin A gelombang 1');
 INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e4a53584fa05', '01a053bb-fb3f-7b2a-ae2e-e47d59244e78', 'obat_cacing', '1 Tablet', '2026-03-03', NULL);
+    ('01a053bb-fb3f-7b2a-ae2e-e4a53584fa05', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'obat_cacing', '1 Tablet', '2026-02-03', 'Pemberian obat cacing berkala 6 bulanan');
 INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e4a53584fa05', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'pmt_biskuit', '2 Kotak', '2026-05-03', NULL);
 
--- Bimo (usia: 8 bulan)
-INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e4a666b50efe', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'vitamin_a_biru', '1 Kapsul Biru', '2026-02-03', NULL);
+-- Bimo (usia Juni: 8 bulan, usia Agustus: 10 bulan)
 INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e4a666b50efe', '01a053bb-fb3f-7b2a-ae2e-e47d59244e78', 'pmt_biskuit', '1 Kotak', '2026-05-03', NULL);
+
+-- PMT lanjutan untuk anak kategori kurang/buruk — Juli 2026
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e49bad1a0c9d', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'pmt_biskuit', '2 Kotak', '2026-07-03', 'PMT lanjutan bulan Juli');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e49d67bc88ec', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'pmt_biskuit', '1 Kotak', '2026-07-03', 'PMT lanjutan bulan Juli');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e49e3ac549a0', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'pmt_biskuit', '2 Kotak', '2026-07-03', 'PMT lanjutan bulan Juli');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a050ca6759', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'pmt_biskuit', '1 Kotak', '2026-07-03', 'PMT lanjutan bulan Juli');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a2a5d247f5', '01a053bb-fb3f-7b2a-ae2e-e47d59244e78', 'pmt_biskuit', '2 Kotak', '2026-07-03', 'PMT lanjutan bulan Juli');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a3a2f28add', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'pmt_biskuit', '1 Kotak', '2026-07-03', 'PMT lanjutan bulan Juli');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a53584fa05', '01a053bb-fb3f-7b2a-ae2e-e47d59244e78', 'pmt_biskuit', '2 Kotak', '2026-07-03', 'PMT lanjutan bulan Juli');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a666b50efe', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'pmt_biskuit', '2 Kotak', '2026-07-03', 'PMT lanjutan bulan Juli');
+
+-- Vitamin A gelombang kedua, obat cacing, dan PMT — Agustus 2026
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e498baf112dc', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'vitamin_a_merah', '1 Kapsul Merah (200.000 IU)', '2026-08-03', 'Suplementasi Vitamin A gelombang 2');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e49940494cf0', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'vitamin_a_merah', '1 Kapsul Merah (200.000 IU)', '2026-08-03', 'Suplementasi Vitamin A gelombang 2');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e49ac0638cec', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'vitamin_a_biru', '1 Kapsul Biru (100.000 IU)', '2026-08-03', 'Suplementasi Vitamin A gelombang 2');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e49bad1a0c9d', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'vitamin_a_merah', '1 Kapsul Merah (200.000 IU)', '2026-08-03', 'Suplementasi Vitamin A gelombang 2');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e49ce7a30816', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'vitamin_a_biru', '1 Kapsul Biru (100.000 IU)', '2026-08-03', 'Suplementasi Vitamin A gelombang 2');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e49d67bc88ec', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'vitamin_a_merah', '1 Kapsul Merah (200.000 IU)', '2026-08-03', 'Suplementasi Vitamin A gelombang 2');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e49e3ac549a0', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'vitamin_a_merah', '1 Kapsul Merah (200.000 IU)', '2026-08-03', 'Suplementasi Vitamin A gelombang 2');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e49fdadd27e6', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'vitamin_a_merah', '1 Kapsul Merah (200.000 IU)', '2026-08-03', 'Suplementasi Vitamin A gelombang 2');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a050ca6759', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'vitamin_a_merah', '1 Kapsul Merah (200.000 IU)', '2026-08-03', 'Suplementasi Vitamin A gelombang 2');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a1e3f0b3a9', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'vitamin_a_biru', '1 Kapsul Biru (100.000 IU)', '2026-08-03', 'Suplementasi Vitamin A gelombang 2');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a2a5d247f5', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'vitamin_a_merah', '1 Kapsul Merah (200.000 IU)', '2026-08-03', 'Suplementasi Vitamin A gelombang 2');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a3a2f28add', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'vitamin_a_merah', '1 Kapsul Merah (200.000 IU)', '2026-08-03', 'Suplementasi Vitamin A gelombang 2');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a49b7f45da', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'vitamin_a_merah', '1 Kapsul Merah (200.000 IU)', '2026-08-03', 'Suplementasi Vitamin A gelombang 2');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a53584fa05', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'vitamin_a_merah', '1 Kapsul Merah (200.000 IU)', '2026-08-03', 'Suplementasi Vitamin A gelombang 2');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a666b50efe', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'vitamin_a_biru', '1 Kapsul Biru (100.000 IU)', '2026-08-03', 'Suplementasi Vitamin A gelombang 2');
+
+-- Obat cacing Agustus untuk anak yang sudah berusia 12 bulan
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e498baf112dc', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'obat_cacing', '1 Tablet', '2026-08-03', 'Pemberian obat cacing berkala 6 bulanan');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e49940494cf0', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'obat_cacing', '1 Tablet', '2026-08-03', 'Pemberian obat cacing berkala 6 bulanan');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e49bad1a0c9d', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'obat_cacing', '1 Tablet', '2026-08-03', 'Pemberian obat cacing berkala 6 bulanan');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e49d67bc88ec', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'obat_cacing', '1 Tablet', '2026-08-03', 'Pemberian obat cacing berkala 6 bulanan');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e49e3ac549a0', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'obat_cacing', '1 Tablet', '2026-08-03', 'Pemberian obat cacing berkala 6 bulanan');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e49fdadd27e6', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'obat_cacing', '1 Tablet', '2026-08-03', 'Pemberian obat cacing berkala 6 bulanan');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a050ca6759', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'obat_cacing', '1 Tablet', '2026-08-03', 'Pemberian obat cacing berkala 6 bulanan');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a2a5d247f5', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'obat_cacing', '1 Tablet', '2026-08-03', 'Pemberian obat cacing berkala 6 bulanan');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a3a2f28add', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'obat_cacing', '1 Tablet', '2026-08-03', 'Pemberian obat cacing berkala 6 bulanan');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a49b7f45da', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'obat_cacing', '1 Tablet', '2026-08-03', 'Pemberian obat cacing berkala 6 bulanan');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a53584fa05', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'obat_cacing', '1 Tablet', '2026-08-03', 'Pemberian obat cacing berkala 6 bulanan');
+
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e49bad1a0c9d', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'pmt_biskuit', '2 Kotak', '2026-08-03', 'PMT lanjutan bulan Agustus');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e49d67bc88ec', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'pmt_biskuit', '1 Kotak', '2026-08-03', 'PMT lanjutan bulan Agustus');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e49e3ac549a0', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'pmt_biskuit', '2 Kotak', '2026-08-03', 'PMT lanjutan bulan Agustus');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a050ca6759', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'pmt_biskuit', '1 Kotak', '2026-08-03', 'PMT lanjutan bulan Agustus');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a2a5d247f5', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'pmt_biskuit', '2 Kotak', '2026-08-03', 'PMT lanjutan bulan Agustus');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a3a2f28add', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'pmt_biskuit', '1 Kotak', '2026-08-03', 'PMT lanjutan bulan Agustus');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a53584fa05', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'pmt_biskuit', '2 Kotak', '2026-08-03', 'PMT lanjutan bulan Agustus');
+INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES
+    ('01a053bb-fb3f-7b2a-ae2e-e4a666b50efe', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'pmt_biskuit', '2 Kotak', '2026-08-03', 'PMT lanjutan bulan Agustus');
 
 -- ==========================================================
 -- TIER 6: Rujukan (anak kategori risiko tinggi)
 -- ==========================================================
 
--- Rujukan untuk: Bimo | Status: selesai
+-- Rujukan untuk: Bimo | Status: selesai (berdasarkan pengukuran Agustus)
 INSERT INTO rujukan (kader_id, puskesmas_id, pengukuran_id, status, catatan_kader, catatan_puskesmas, validated_at, completed_at) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', '01a053bb-fb3f-7b2a-ae2e-e48116394f55', 90, 'selesai', 'Anak memerlukan penanganan lebih lanjut. Hasil penilaian SAW menunjukkan kategori risiko tinggi dengan skor 0.696.', 'Pasien telah diperiksa. Diberikan edukasi gizi intensif dan program PMT selama 3 bulan ke depan.', '2026-05-15', '2026-05-18');
+    ('01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', '01a053bb-fb3f-7b2a-ae2e-e48116394f55', 120, 'selesai', 'Anak memerlukan penanganan lebih lanjut. Hasil penilaian SAW menunjukkan kategori risiko tinggi dengan skor 0.696.', 'Pasien telah diperiksa. Diberikan edukasi gizi intensif dan program PMT selama 3 bulan ke depan.', '2026-08-15', '2026-08-18');
 
 -- ==========================================================
 -- TIER 6: AI Insight — pengukuran terakhir setiap anak
@@ -512,7 +685,7 @@ Kabar baik! Tumbuh kembang si kecil saat ini berjalan dengan sangat baik. Berat 
 3. Tetap rutin bawa ke posyandu setiap bulan agar tumbuh kembang terus terpantau dengan baik dan intervensi dapat dilakukan sedini mungkin jika diperlukan.
 
 **Kapan Perlu ke Dokter**
-Segera konsultasikan ke tenaga kesehatan jika berat badan tidak naik sama sekali dalam 2 bulan berturut-turut, atau jika si kecil tampak lesu, tidak aktif seperti biasanya, atau nafsu makan menurun drastis dan tidak membaik dalam beberapa hari.' WHERE id = 6;
+Segera konsultasikan ke tenaga kesehatan jika berat badan tidak naik sama sekali dalam 2 bulan berturut-turut, atau jika si kecil tampak lesu, tidak aktif seperti biasanya, atau nafsu makan menurun drastis dan tidak membaik dalam beberapa hari.' WHERE id = 92;
 
 -- Rafi (normal)
 UPDATE pengukuran SET insight_teks = '**Kondisi Saat Ini**
@@ -524,7 +697,7 @@ Kabar baik! Tumbuh kembang si kecil saat ini berjalan dengan sangat baik. Berat 
 3. Tetap rutin bawa ke posyandu setiap bulan agar tumbuh kembang terus terpantau dengan baik dan intervensi dapat dilakukan sedini mungkin jika diperlukan.
 
 **Kapan Perlu ke Dokter**
-Segera konsultasikan ke tenaga kesehatan jika berat badan tidak naik sama sekali dalam 2 bulan berturut-turut, atau jika si kecil tampak lesu, tidak aktif seperti biasanya, atau nafsu makan menurun drastis dan tidak membaik dalam beberapa hari.' WHERE id = 12;
+Segera konsultasikan ke tenaga kesehatan jika berat badan tidak naik sama sekali dalam 2 bulan berturut-turut, atau jika si kecil tampak lesu, tidak aktif seperti biasanya, atau nafsu makan menurun drastis dan tidak membaik dalam beberapa hari.' WHERE id = 94;
 
 -- Nayla (normal)
 UPDATE pengukuran SET insight_teks = '**Kondisi Saat Ini**
@@ -536,7 +709,7 @@ Kabar baik! Tumbuh kembang si kecil saat ini berjalan dengan sangat baik. Berat 
 3. Tetap rutin bawa ke posyandu setiap bulan agar tumbuh kembang terus terpantau dengan baik dan intervensi dapat dilakukan sedini mungkin jika diperlukan.
 
 **Kapan Perlu ke Dokter**
-Segera konsultasikan ke tenaga kesehatan jika berat badan tidak naik sama sekali dalam 2 bulan berturut-turut, atau jika si kecil tampak lesu, tidak aktif seperti biasanya, atau nafsu makan menurun drastis dan tidak membaik dalam beberapa hari.' WHERE id = 18;
+Segera konsultasikan ke tenaga kesehatan jika berat badan tidak naik sama sekali dalam 2 bulan berturut-turut, atau jika si kecil tampak lesu, tidak aktif seperti biasanya, atau nafsu makan menurun drastis dan tidak membaik dalam beberapa hari.' WHERE id = 96;
 
 -- Hasan (kurang)
 UPDATE pengukuran SET insight_teks = '**Kondisi Saat Ini**
@@ -548,7 +721,7 @@ Berat badan dan tinggi badan si kecil saat ini sedikit di bawah rata-rata anak s
 3. Jika si kecil sulit makan, coba variasikan tampilan, tekstur, dan rasa makanan agar lebih menarik dan nafsu makan meningkat secara perlahan.
 
 **Kapan Perlu ke Dokter**
-Segera bawa ke puskesmas jika berat badan tidak bertambah dalam sebulan penuh, atau jika si kecil sering sakit berulang, rewel terus-menerus, tampak sangat lemas, atau ada tanda-tanda anemia seperti wajah pucat dan mudah lelah.' WHERE id = 24;
+Segera bawa ke puskesmas jika berat badan tidak bertambah dalam sebulan penuh, atau jika si kecil sering sakit berulang, rewel terus-menerus, tampak sangat lemas, atau ada tanda-tanda anemia seperti wajah pucat dan mudah lelah.' WHERE id = 98;
 
 -- Husein (normal)
 UPDATE pengukuran SET insight_teks = '**Kondisi Saat Ini**
@@ -560,7 +733,7 @@ Kabar baik! Tumbuh kembang si kecil saat ini berjalan dengan sangat baik. Berat 
 3. Tetap rutin bawa ke posyandu setiap bulan agar tumbuh kembang terus terpantau dengan baik dan intervensi dapat dilakukan sedini mungkin jika diperlukan.
 
 **Kapan Perlu ke Dokter**
-Segera konsultasikan ke tenaga kesehatan jika berat badan tidak naik sama sekali dalam 2 bulan berturut-turut, atau jika si kecil tampak lesu, tidak aktif seperti biasanya, atau nafsu makan menurun drastis dan tidak membaik dalam beberapa hari.' WHERE id = 30;
+Segera konsultasikan ke tenaga kesehatan jika berat badan tidak naik sama sekali dalam 2 bulan berturut-turut, atau jika si kecil tampak lesu, tidak aktif seperti biasanya, atau nafsu makan menurun drastis dan tidak membaik dalam beberapa hari.' WHERE id = 100;
 
 -- Zahra (kurang)
 UPDATE pengukuran SET insight_teks = '**Kondisi Saat Ini**
@@ -572,7 +745,7 @@ Berat badan dan tinggi badan si kecil saat ini sedikit di bawah rata-rata anak s
 3. Jika si kecil sulit makan, coba variasikan tampilan, tekstur, dan rasa makanan agar lebih menarik dan nafsu makan meningkat secara perlahan.
 
 **Kapan Perlu ke Dokter**
-Segera bawa ke puskesmas jika berat badan tidak bertambah dalam sebulan penuh, atau jika si kecil sering sakit berulang, rewel terus-menerus, tampak sangat lemas, atau ada tanda-tanda anemia seperti wajah pucat dan mudah lelah.' WHERE id = 36;
+Segera bawa ke puskesmas jika berat badan tidak bertambah dalam sebulan penuh, atau jika si kecil sering sakit berulang, rewel terus-menerus, tampak sangat lemas, atau ada tanda-tanda anemia seperti wajah pucat dan mudah lelah.' WHERE id = 102;
 
 -- Dani (buruk)
 UPDATE pengukuran SET insight_teks = '**Kondisi Saat Ini**
@@ -584,7 +757,7 @@ Berdasarkan hasil pengukuran terbaru, berat badan dan tinggi badan si kecil bera
 3. Pastikan si kecil tidak melewatkan satu pun waktu makan dan selalu tawarkan makanan tambahan di antara waktu makan utama untuk mendukung proses kejar tumbuh.
 
 **Kapan Perlu ke Dokter**
-Si kecil sangat disarankan untuk segera dirujuk ke dokter spesialis anak. Jangan tunda kunjungan jika si kecil mengalami penurunan berat badan, menolak makan sama sekali selama lebih dari 2 hari, tampak sangat lemas dan tidak responsif, atau terdapat pembengkakan pada kaki dan tangan yang bisa menjadi tanda kekurangan protein berat.' WHERE id = 42;
+Si kecil sangat disarankan untuk segera dirujuk ke dokter spesialis anak. Jangan tunda kunjungan jika si kecil mengalami penurunan berat badan, menolak makan sama sekali selama lebih dari 2 hari, tampak sangat lemas dan tidak responsif, atau terdapat pembengkakan pada kaki dan tangan yang bisa menjadi tanda kekurangan protein berat.' WHERE id = 104;
 
 -- Dina (normal)
 UPDATE pengukuran SET insight_teks = '**Kondisi Saat Ini**
@@ -596,7 +769,7 @@ Kabar baik! Tumbuh kembang si kecil saat ini berjalan dengan sangat baik. Berat 
 3. Tetap rutin bawa ke posyandu setiap bulan agar tumbuh kembang terus terpantau dengan baik dan intervensi dapat dilakukan sedini mungkin jika diperlukan.
 
 **Kapan Perlu ke Dokter**
-Segera konsultasikan ke tenaga kesehatan jika berat badan tidak naik sama sekali dalam 2 bulan berturut-turut, atau jika si kecil tampak lesu, tidak aktif seperti biasanya, atau nafsu makan menurun drastis dan tidak membaik dalam beberapa hari.' WHERE id = 48;
+Segera konsultasikan ke tenaga kesehatan jika berat badan tidak naik sama sekali dalam 2 bulan berturut-turut, atau jika si kecil tampak lesu, tidak aktif seperti biasanya, atau nafsu makan menurun drastis dan tidak membaik dalam beberapa hari.' WHERE id = 106;
 
 -- Bagas (kurang)
 UPDATE pengukuran SET insight_teks = '**Kondisi Saat Ini**
@@ -608,7 +781,7 @@ Berat badan dan tinggi badan si kecil saat ini sedikit di bawah rata-rata anak s
 3. Jika si kecil sulit makan, coba variasikan tampilan, tekstur, dan rasa makanan agar lebih menarik dan nafsu makan meningkat secara perlahan.
 
 **Kapan Perlu ke Dokter**
-Segera bawa ke puskesmas jika berat badan tidak bertambah dalam sebulan penuh, atau jika si kecil sering sakit berulang, rewel terus-menerus, tampak sangat lemas, atau ada tanda-tanda anemia seperti wajah pucat dan mudah lelah.' WHERE id = 54;
+Segera bawa ke puskesmas jika berat badan tidak bertambah dalam sebulan penuh, atau jika si kecil sering sakit berulang, rewel terus-menerus, tampak sangat lemas, atau ada tanda-tanda anemia seperti wajah pucat dan mudah lelah.' WHERE id = 108;
 
 -- Putri (normal)
 UPDATE pengukuran SET insight_teks = '**Kondisi Saat Ini**
@@ -620,7 +793,7 @@ Kabar baik! Tumbuh kembang si kecil saat ini berjalan dengan sangat baik. Berat 
 3. Tetap rutin bawa ke posyandu setiap bulan agar tumbuh kembang terus terpantau dengan baik dan intervensi dapat dilakukan sedini mungkin jika diperlukan.
 
 **Kapan Perlu ke Dokter**
-Segera konsultasikan ke tenaga kesehatan jika berat badan tidak naik sama sekali dalam 2 bulan berturut-turut, atau jika si kecil tampak lesu, tidak aktif seperti biasanya, atau nafsu makan menurun drastis dan tidak membaik dalam beberapa hari.' WHERE id = 60;
+Segera konsultasikan ke tenaga kesehatan jika berat badan tidak naik sama sekali dalam 2 bulan berturut-turut, atau jika si kecil tampak lesu, tidak aktif seperti biasanya, atau nafsu makan menurun drastis dan tidak membaik dalam beberapa hari.' WHERE id = 110;
 
 -- Adi (buruk)
 UPDATE pengukuran SET insight_teks = '**Kondisi Saat Ini**
@@ -632,7 +805,7 @@ Berdasarkan hasil pengukuran terbaru, berat badan dan tinggi badan si kecil bera
 3. Pastikan si kecil tidak melewatkan satu pun waktu makan dan selalu tawarkan makanan tambahan di antara waktu makan utama untuk mendukung proses kejar tumbuh.
 
 **Kapan Perlu ke Dokter**
-Si kecil sangat disarankan untuk segera dirujuk ke dokter spesialis anak. Jangan tunda kunjungan jika si kecil mengalami penurunan berat badan, menolak makan sama sekali selama lebih dari 2 hari, tampak sangat lemas dan tidak responsif, atau terdapat pembengkakan pada kaki dan tangan yang bisa menjadi tanda kekurangan protein berat.' WHERE id = 66;
+Si kecil sangat disarankan untuk segera dirujuk ke dokter spesialis anak. Jangan tunda kunjungan jika si kecil mengalami penurunan berat badan, menolak makan sama sekali selama lebih dari 2 hari, tampak sangat lemas dan tidak responsif, atau terdapat pembengkakan pada kaki dan tangan yang bisa menjadi tanda kekurangan protein berat.' WHERE id = 112;
 
 -- Ayu (kurang)
 UPDATE pengukuran SET insight_teks = '**Kondisi Saat Ini**
@@ -644,7 +817,7 @@ Berat badan dan tinggi badan si kecil saat ini sedikit di bawah rata-rata anak s
 3. Jika si kecil sulit makan, coba variasikan tampilan, tekstur, dan rasa makanan agar lebih menarik dan nafsu makan meningkat secara perlahan.
 
 **Kapan Perlu ke Dokter**
-Segera bawa ke puskesmas jika berat badan tidak bertambah dalam sebulan penuh, atau jika si kecil sering sakit berulang, rewel terus-menerus, tampak sangat lemas, atau ada tanda-tanda anemia seperti wajah pucat dan mudah lelah.' WHERE id = 72;
+Segera bawa ke puskesmas jika berat badan tidak bertambah dalam sebulan penuh, atau jika si kecil sering sakit berulang, rewel terus-menerus, tampak sangat lemas, atau ada tanda-tanda anemia seperti wajah pucat dan mudah lelah.' WHERE id = 114;
 
 -- Fauzi (normal)
 UPDATE pengukuran SET insight_teks = '**Kondisi Saat Ini**
@@ -656,7 +829,7 @@ Kabar baik! Tumbuh kembang si kecil saat ini berjalan dengan sangat baik. Berat 
 3. Tetap rutin bawa ke posyandu setiap bulan agar tumbuh kembang terus terpantau dengan baik dan intervensi dapat dilakukan sedini mungkin jika diperlukan.
 
 **Kapan Perlu ke Dokter**
-Segera konsultasikan ke tenaga kesehatan jika berat badan tidak naik sama sekali dalam 2 bulan berturut-turut, atau jika si kecil tampak lesu, tidak aktif seperti biasanya, atau nafsu makan menurun drastis dan tidak membaik dalam beberapa hari.' WHERE id = 78;
+Segera konsultasikan ke tenaga kesehatan jika berat badan tidak naik sama sekali dalam 2 bulan berturut-turut, atau jika si kecil tampak lesu, tidak aktif seperti biasanya, atau nafsu makan menurun drastis dan tidak membaik dalam beberapa hari.' WHERE id = 116;
 
 -- Bella (kurang)
 UPDATE pengukuran SET insight_teks = '**Kondisi Saat Ini**
@@ -668,7 +841,7 @@ Berat badan dan tinggi badan si kecil saat ini sedikit di bawah rata-rata anak s
 3. Jika si kecil sulit makan, coba variasikan tampilan, tekstur, dan rasa makanan agar lebih menarik dan nafsu makan meningkat secara perlahan.
 
 **Kapan Perlu ke Dokter**
-Segera bawa ke puskesmas jika berat badan tidak bertambah dalam sebulan penuh, atau jika si kecil sering sakit berulang, rewel terus-menerus, tampak sangat lemas, atau ada tanda-tanda anemia seperti wajah pucat dan mudah lelah.' WHERE id = 84;
+Segera bawa ke puskesmas jika berat badan tidak bertambah dalam sebulan penuh, atau jika si kecil sering sakit berulang, rewel terus-menerus, tampak sangat lemas, atau ada tanda-tanda anemia seperti wajah pucat dan mudah lelah.' WHERE id = 118;
 
 -- Bimo (buruk)
 UPDATE pengukuran SET insight_teks = '**Kondisi Saat Ini**
@@ -680,17 +853,17 @@ Berdasarkan hasil pengukuran terbaru, berat badan dan tinggi badan si kecil bera
 3. Pastikan si kecil tidak melewatkan satu pun waktu makan dan selalu tawarkan makanan tambahan di antara waktu makan utama untuk mendukung proses kejar tumbuh.
 
 **Kapan Perlu ke Dokter**
-Si kecil sangat disarankan untuk segera dirujuk ke dokter spesialis anak. Jangan tunda kunjungan jika si kecil mengalami penurunan berat badan, menolak makan sama sekali selama lebih dari 2 hari, tampak sangat lemas dan tidak responsif, atau terdapat pembengkakan pada kaki dan tangan yang bisa menjadi tanda kekurangan protein berat.' WHERE id = 90;
+Si kecil sangat disarankan untuk segera dirujuk ke dokter spesialis anak. Jangan tunda kunjungan jika si kecil mengalami penurunan berat badan, menolak makan sama sekali selama lebih dari 2 hari, tampak sangat lemas dan tidak responsif, atau terdapat pembengkakan pada kaki dan tangan yang bisa menjadi tanda kekurangan protein berat.' WHERE id = 120;
 
 -- Tandai seluruh insight statis sebagai hasil demo yang sudah selesai
 UPDATE pengukuran SET insight_status = 'completed', insight_attempts = 1, insight_available_at = NULL, insight_generated_at = created_at, insight_model = 'demo-seeder' WHERE insight_teks IS NOT NULL;
 
 -- Pengukuran historis tanpa insight tidak masuk antrean AI
-UPDATE pengukuran p JOIN pengukuran terbaru ON terbaru.anak_id = p.anak_id AND (terbaru.tanggal_ukur > p.tanggal_ukur OR (terbaru.tanggal_ukur = p.tanggal_ukur AND terbaru.id > p.id)) SET p.insight_status = 'superseded', insight_available_at = NULL, insight_last_error = NULL WHERE p.insight_teks IS NULL AND p.insight_status IN ('pending', 'processing');
+UPDATE pengukuran p JOIN pengukuran terbaru ON terbaru.anak_id = p.anak_id AND (terbaru.tanggal_ukur > p.tanggal_ukur OR (terbaru.tanggal_ukur = p.tanggal_ukur AND terbaru.id > p.id)) SET p.insight_status = 'superseded', p.insight_available_at = NULL, p.insight_last_error = NULL WHERE p.insight_teks IS NULL AND p.insight_status IN ('pending', 'processing');
 
 -- ==========================================================
 -- TIER 7: Notifikasi
--- Jadwal ID 7 = Posyandu Juli 2026 (jadwal mendatang = hari demo)
+-- Jadwal ID 7 = Juli 2026, ID 8 = Agustus 2026
 -- ==========================================================
 
 -- Notifikasi jadwal posyandu Juli 2026
@@ -715,6 +888,11 @@ INSERT INTO notifikasi (orang_tua_id, judul, pesan, tipe, sudah_dibaca, sent_at,
 INSERT INTO notifikasi (orang_tua_id, judul, pesan, tipe, sudah_dibaca, sent_at, jadwal_id, rujukan_id) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e4974bd52e24', 'Jadwal Posyandu Juli 2026', 'Posyandu rutin Juli 2026 akan dilaksanakan pada 3 Juli 2026 pukul 08.00 di Balai RW 05 Kelurahan Cempaka. Harap hadir tepat waktu dan membawa buku KMS.', 'jadwal', FALSE, '2026-06-29 08:00:00', 7, NULL);
 
+-- Notifikasi jadwal Posyandu Agustus 2026 untuk seluruh orang tua
+INSERT INTO notifikasi (orang_tua_id, judul, pesan, tipe, sudah_dibaca, sent_at, jadwal_id, rujukan_id)
+SELECT id, 'Bulan Penimbangan Balita Agustus 2026', 'Penimbangan balita, Vitamin A gelombang kedua, dan obat cacing akan dilaksanakan pada 3 Agustus 2026 pukul 08.00 di Puskesmas Pembantu Cempaka. Harap hadir tepat waktu dan membawa buku KMS.', 'jadwal', FALSE, '2026-07-29 08:00:00', 8, NULL
+FROM orang_tua;
+
 -- Notifikasi status rujukan
 INSERT INTO notifikasi (orang_tua_id, judul, pesan, tipe, sudah_dibaca, sent_at, jadwal_id, rujukan_id) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e4974bd52e24', 'Rujukan Selesai Ditangani', 'Proses rujukan anak Anda telah selesai ditangani. Terus pantau tumbuh kembang si kecil dan rutin bawa ke posyandu setiap bulan agar kondisi tetap terpantau.', 'rujukan', TRUE, '2026-06-01 10:00:00', NULL, 1);
+    ('01a053bb-fb3f-7b2a-ae2e-e4974bd52e24', 'Rujukan Selesai Ditangani', 'Proses rujukan anak Anda telah selesai ditangani. Terus pantau tumbuh kembang si kecil dan rutin bawa ke posyandu setiap bulan agar kondisi tetap terpantau.', 'rujukan', TRUE, '2026-08-18 10:00:00', NULL, 1);

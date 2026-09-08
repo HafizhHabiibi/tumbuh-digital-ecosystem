@@ -44,28 +44,73 @@ const sq = (val) =>
         ? "NULL"
         : `'${String(val).replace(/'/g, "''")}'`;
 
-/** Riwayat pemberian berdasarkan usia anak saat ini */
-const getRiwayatItems = (usiaSaatIni) => {
-    if (usiaSaatIni < 6) {
-        return [];
-    } else if (usiaSaatIni < 12) {
-        return [
-            { jenis: "vitamin_a_biru", dosis: "1 Kapsul Biru", tgl: "2026-02-03", kaderIdx: 0 },
-            { jenis: "pmt_biskuit", dosis: "1 Kotak", tgl: "2026-05-03", kaderIdx: 1 },
-        ];
-    } else if (usiaSaatIni < 24) {
-        return [
-            { jenis: "vitamin_a_merah", dosis: "1 Kapsul Merah", tgl: "2026-02-03", kaderIdx: 0 },
-            { jenis: "obat_cacing", dosis: "1 Tablet", tgl: "2026-03-03", kaderIdx: 1 },
-            { jenis: "pmt_biskuit", dosis: "1 Kotak", tgl: "2026-05-03", kaderIdx: 2 },
-        ];
-    } else {
-        return [
-            { jenis: "vitamin_a_merah", dosis: "1 Kapsul Merah", tgl: "2026-01-03", kaderIdx: 0 },
-            { jenis: "obat_cacing", dosis: "1 Tablet", tgl: "2026-03-03", kaderIdx: 1 },
-            { jenis: "pmt_biskuit", dosis: "2 Kotak", tgl: "2026-05-03", kaderIdx: 2 },
-        ];
+/** Riwayat Vitamin A, obat cacing, dan PMT sampai Agustus 2026. */
+const getRiwayatItems = (tglLahir, scenario) => {
+    const items = [];
+    const usiaFebruari = hitungUsiaBulanService(tglLahir, "2026-02-03");
+    const usiaJuni = hitungUsiaBulanService(tglLahir, "2026-06-03");
+    const usiaAgustus = hitungUsiaBulanService(tglLahir, "2026-08-03");
+
+    // Vitamin A: Februari dan Agustus. Biru 100.000 IU untuk 6–11 bulan,
+    // merah 200.000 IU untuk 12–59 bulan.
+    const tambahVitaminA = (usiaBulan, tgl, gelombang) => {
+        if (usiaBulan >= 6 && usiaBulan <= 11) {
+            items.push({
+                jenis: "vitamin_a_biru",
+                dosis: "1 Kapsul Biru (100.000 IU)",
+                tgl,
+                kaderIdx: gelombang === 1 ? 0 : 2,
+                ket: `Suplementasi Vitamin A gelombang ${gelombang}`,
+            });
+        } else if (usiaBulan >= 12 && usiaBulan <= 59) {
+            items.push({
+                jenis: "vitamin_a_merah",
+                dosis: "1 Kapsul Merah (200.000 IU)",
+                tgl,
+                kaderIdx: gelombang === 1 ? 0 : 2,
+                ket: `Suplementasi Vitamin A gelombang ${gelombang}`,
+            });
+        }
+    };
+
+    // Obat cacing: setiap 6 bulan pada Februari dan Agustus untuk usia 1–12 tahun.
+    const tambahObatCacing = (usiaBulan, tgl) => {
+        if (usiaBulan >= 12 && usiaBulan <= 144) {
+            items.push({
+                jenis: "obat_cacing",
+                dosis: "1 Tablet",
+                tgl,
+                kaderIdx: tgl === "2026-02-03" ? 0 : 2,
+                ket: "Pemberian obat cacing berkala 6 bulanan",
+            });
+        }
+    };
+
+    tambahVitaminA(usiaFebruari, "2026-02-03", 1);
+    tambahObatCacing(usiaFebruari, "2026-02-03");
+
+    // Riwayat PMT lama tetap dipertahankan.
+    if (usiaJuni >= 6) {
+        items.push({
+            jenis: "pmt_biskuit",
+            dosis: usiaJuni >= 24 ? "2 Kotak" : "1 Kotak",
+            tgl: "2026-05-03",
+            kaderIdx: usiaJuni < 12 ? 1 : 2,
+        });
     }
+
+    if (scenario !== "normal") {
+        const dosisPmt = scenario === "buruk" || usiaAgustus >= 24 ? "2 Kotak" : "1 Kotak";
+        items.push(
+            { jenis: "pmt_biskuit", dosis: dosisPmt, tgl: "2026-07-03", kaderIdx: 1, ket: "PMT lanjutan bulan Juli" },
+            { jenis: "pmt_biskuit", dosis: dosisPmt, tgl: "2026-08-03", kaderIdx: 2, ket: "PMT lanjutan bulan Agustus" },
+        );
+    }
+
+    tambahVitaminA(usiaAgustus, "2026-08-03", 2);
+    tambahObatCacing(usiaAgustus, "2026-08-03");
+
+    return items;
 };
 
 // =============================================================================
@@ -99,7 +144,7 @@ INSIGHT.buruk = INSIGHT.buruk.replace(
 // SEED DATA DEFINITIONS
 // =============================================================================
 
-/** Tanggal pengukuran — 6 bulan ke belakang, interval bulanan, tepat tanggal 3 */
+/** Tanggal pengukuran — Januari sampai Agustus 2026, tepat tanggal 3 */
 const MEASUREMENT_DATES = [
     "2026-01-03",
     "2026-02-03",
@@ -107,6 +152,8 @@ const MEASUREMENT_DATES = [
     "2026-04-03",
     "2026-05-03",
     "2026-06-03",
+    "2026-07-03",
+    "2026-08-03",
 ];
 
 const KADER_LIST = [
@@ -140,45 +187,46 @@ const OT_LIST = [
  *  - buruk  : z-score < -2.5 (risiko stunting tinggi)
  *
  * baseWeight / baseHeight = nilai pada pengukuran pertama (2026-01-03)
- * wInc / hInc = kenaikan per bulan (6 titik total)
+ * wInc / hInc = kenaikan per bulan (8 titik total)
  */
 const ANAK_LIST = [
     // ── OT 0: Aminah Kusuma (2 anak) ──────────────────────────────
-    { nama: "Rizki",  gender: "L", tglLahir: "2025-06-17", noKk: "3201011234560001", otIdx: 0, baseWeight: 8.8,  baseHeight: 71.5, wInc: 0.28, hInc: 1.25, scenario: "normal" }, // ~6-11 bln
-    { nama: "Rafi",   gender: "L", tglLahir: "2023-10-15", noKk: "3201011234560002", otIdx: 0, baseWeight: 14.2, baseHeight: 93.5, wInc: 0.20, hInc: 0.68, scenario: "normal" }, // ~26-31 bln
+    { nama: "Rizki",  gender: "L", tglLahir: "2025-06-17", noKk: "3201011234560001", otIdx: 0, baseWeight: 8.8,  baseHeight: 71.5, wInc: 0.28, hInc: 1.25, scenario: "normal" }, // ~6-13 bln
+    { nama: "Rafi",   gender: "L", tglLahir: "2023-10-15", noKk: "3201011234560002", otIdx: 0, baseWeight: 14.2, baseHeight: 93.5, wInc: 0.20, hInc: 0.68, scenario: "normal" }, // ~26-33 bln
     // ── OT 1: Dewi Susanti (1 anak) ──────────────────────────────
-    { nama: "Nayla",  gender: "P", tglLahir: "2025-10-22", noKk: "3201011234560003", otIdx: 1, baseWeight: 6.6,  baseHeight: 62.5, wInc: 0.40, hInc: 1.90, scenario: "normal" }, // ~2-7 bln
+    { nama: "Nayla",  gender: "P", tglLahir: "2025-10-22", noKk: "3201011234560003", otIdx: 1, baseWeight: 6.6,  baseHeight: 62.5, wInc: 0.40, hInc: 1.90, scenario: "normal" }, // ~2-9 bln
     // ── OT 2: Fatimah Rahman (2 anak) ────────────────────────────
-    { nama: "Hasan",  gender: "L", tglLahir: "2024-06-03", noKk: "3201011234560004", otIdx: 2, baseWeight: 8.8,  baseHeight: 80.5, wInc: 0.22, hInc: 0.72, scenario: "kurang" }, // 19-24 bln (tglLahir ≤ tgl ukur agar bracket tepat)
-    { nama: "Husein", gender: "L", tglLahir: "2025-12-03", noKk: "3201011234560005", otIdx: 2, baseWeight: 5.2,  baseHeight: 57.5, wInc: 0.72, hInc: 2.70, scenario: "normal" }, // 1-6 bln (tglLahir ≤ tgl ukur agar bracket tepat)
+    { nama: "Hasan",  gender: "L", tglLahir: "2024-06-03", noKk: "3201011234560004", otIdx: 2, baseWeight: 8.8,  baseHeight: 80.5, wInc: 0.22, hInc: 0.72, scenario: "kurang" }, // 19-26 bln (tglLahir ≤ tgl ukur agar bracket tepat)
+    { nama: "Husein", gender: "L", tglLahir: "2025-12-03", noKk: "3201011234560005", otIdx: 2, baseWeight: 5.2,  baseHeight: 57.5, wInc: 0.72, hInc: 2.70, scenario: "normal" }, // 1-8 bln (tglLahir ≤ tgl ukur agar bracket tepat)
     // ── OT 3: Siti Rahayu (1 anak) ───────────────────────────────
-    { nama: "Zahra",  gender: "P", tglLahir: "2024-12-08", noKk: "3201011234560006", otIdx: 3, baseWeight: 7.3,  baseHeight: 71.0, wInc: 0.18, hInc: 1.10, scenario: "kurang" }, // ~12-17 bln
+    { nama: "Zahra",  gender: "P", tglLahir: "2024-12-08", noKk: "3201011234560006", otIdx: 3, baseWeight: 7.3,  baseHeight: 71.0, wInc: 0.18, hInc: 1.10, scenario: "kurang" }, // ~12-19 bln
     // ── OT 4: Kartini Wulandari (2 anak) ─────────────────────────
-    { nama: "Dani",   gender: "L", tglLahir: "2023-12-19", noKk: "3201011234560007", otIdx: 4, baseWeight: 9.3,  baseHeight: 82.5, wInc: 0.18, hInc: 0.90, scenario: "buruk"  }, // ~24-29 bln
-    { nama: "Dina",   gender: "P", tglLahir: "2025-03-14", noKk: "3201011234560008", otIdx: 4, baseWeight: 9.3,  baseHeight: 74.0, wInc: 0.24, hInc: 1.20, scenario: "normal" }, // ~9-14 bln
+    { nama: "Dani",   gender: "L", tglLahir: "2023-12-19", noKk: "3201011234560007", otIdx: 4, baseWeight: 9.3,  baseHeight: 82.5, wInc: 0.18, hInc: 0.90, scenario: "buruk"  }, // ~24-31 bln
+    { nama: "Dina",   gender: "P", tglLahir: "2025-03-14", noKk: "3201011234560008", otIdx: 4, baseWeight: 9.3,  baseHeight: 74.0, wInc: 0.24, hInc: 1.20, scenario: "normal" }, // ~9-16 bln
     // ── OT 5: Rahayu Lestari (1 anak) ────────────────────────────
-    { nama: "Bagas",  gender: "L", tglLahir: "2024-10-25", noKk: "3201011234560009", otIdx: 5, baseWeight: 8.5,  baseHeight: 76.0, wInc: 0.19, hInc: 0.82, scenario: "kurang" }, // ~14-19 bln
+    { nama: "Bagas",  gender: "L", tglLahir: "2024-10-25", noKk: "3201011234560009", otIdx: 5, baseWeight: 8.5,  baseHeight: 76.0, wInc: 0.19, hInc: 0.82, scenario: "kurang" }, // ~14-21 bln
     // ── OT 6: Wulan Sari (1 anak) ────────────────────────────────
-    { nama: "Putri",  gender: "P", tglLahir: "2025-08-07", noKk: "3201011234560010", otIdx: 6, baseWeight: 7.6,  baseHeight: 66.5, wInc: 0.28, hInc: 1.50, scenario: "normal" }, // ~4-9 bln
+    { nama: "Putri",  gender: "P", tglLahir: "2025-08-07", noKk: "3201011234560010", otIdx: 6, baseWeight: 7.6,  baseHeight: 66.5, wInc: 0.28, hInc: 1.50, scenario: "normal" }, // ~4-11 bln
     // ── OT 7: Lestari Handayani (2 anak) ─────────────────────────
-    { nama: "Adi",    gender: "L", tglLahir: "2023-06-20", noKk: "3201011234560011", otIdx: 7, baseWeight: 10.0, baseHeight: 84.5, wInc: 0.15, hInc: 0.80, scenario: "buruk"  }, // ~30-35 bln
-    { nama: "Ayu",    gender: "P", tglLahir: "2024-08-16", noKk: "3201011234560012", otIdx: 7, baseWeight: 8.4,  baseHeight: 77.0, wInc: 0.19, hInc: 1.00, scenario: "kurang" }, // ~16-21 bln
+    { nama: "Adi",    gender: "L", tglLahir: "2023-06-20", noKk: "3201011234560011", otIdx: 7, baseWeight: 10.0, baseHeight: 84.5, wInc: 0.15, hInc: 0.80, scenario: "buruk"  }, // ~30-37 bln
+    { nama: "Ayu",    gender: "P", tglLahir: "2024-08-16", noKk: "3201011234560012", otIdx: 7, baseWeight: 8.4,  baseHeight: 77.0, wInc: 0.19, hInc: 1.00, scenario: "kurang" }, // ~16-23 bln
     // ── OT 8: Nuraini Putri (1 anak) ─────────────────────────────
-    { nama: "Fauzi",  gender: "L", tglLahir: "2025-04-09", noKk: "3201011234560013", otIdx: 8, baseWeight: 9.8,  baseHeight: 75.0, wInc: 0.22, hInc: 1.35, scenario: "normal" }, // ~8-13 bln
+    { nama: "Fauzi",  gender: "L", tglLahir: "2025-04-09", noKk: "3201011234560013", otIdx: 8, baseWeight: 9.8,  baseHeight: 75.0, wInc: 0.22, hInc: 1.35, scenario: "normal" }, // ~8-15 bln
     // ── OT 9: Sumiati Wahyu (2 anak) ─────────────────────────────
-    { nama: "Bella",  gender: "P", tglLahir: "2024-02-13", noKk: "3201011234560014", otIdx: 9, baseWeight: 9.5,  baseHeight: 83.0, wInc: 0.19, hInc: 0.60, scenario: "kurang" }, // ~22-27 bln
-    { nama: "Bimo",   gender: "L", tglLahir: "2025-09-21", noKk: "3201011234560015", otIdx: 9, baseWeight: 5.5,  baseHeight: 60.5, wInc: 0.22, hInc: 1.30, scenario: "buruk"  }, // ~3-8 bln
+    { nama: "Bella",  gender: "P", tglLahir: "2024-02-13", noKk: "3201011234560014", otIdx: 9, baseWeight: 9.5,  baseHeight: 83.0, wInc: 0.19, hInc: 0.60, scenario: "kurang" }, // ~22-29 bln
+    { nama: "Bimo",   gender: "L", tglLahir: "2025-09-21", noKk: "3201011234560015", otIdx: 9, baseWeight: 5.5,  baseHeight: 60.5, wInc: 0.22, hInc: 1.30, scenario: "buruk"  }, // ~3-10 bln
 ];
 
-/** 7 jadwal posyandu: 6 lampau + 1 mendatang (hari demo) */
+/** 8 jadwal posyandu: Januari sampai Agustus 2026 */
 const JADWAL_LIST = [
     { tanggal: "2026-01-03", mulai: "08:00", selesai: "11:00", lokasi: "Balai RW 05 Kelurahan Cempaka", ket: "Posyandu Rutin Januari 2026", kaderIdx: 0 },
-    { tanggal: "2026-02-03", mulai: "08:00", selesai: "11:00", lokasi: "Balai RW 05 Kelurahan Cempaka", ket: "Posyandu Rutin Februari 2026", kaderIdx: 0 },
+    { tanggal: "2026-02-03", mulai: "08:00", selesai: "12:00", lokasi: "Balai RW 05 Kelurahan Cempaka", ket: "Posyandu + Vitamin A Gelombang Pertama + Obat Cacing", kaderIdx: 0 },
     { tanggal: "2026-03-03", mulai: "08:30", selesai: "11:30", lokasi: "Balai RW 05 Kelurahan Cempaka", ket: "Posyandu Rutin Maret 2026", kaderIdx: 1 },
-    { tanggal: "2026-04-03", mulai: "08:00", selesai: "12:00", lokasi: "Puskesmas Pembantu Cempaka", ket: "Posyandu + Pemberian Vitamin A Massal", kaderIdx: 1 },
+    { tanggal: "2026-04-03", mulai: "08:00", selesai: "11:00", lokasi: "Puskesmas Pembantu Cempaka", ket: "Posyandu Rutin April 2026", kaderIdx: 1 },
     { tanggal: "2026-05-03", mulai: "08:00", selesai: "11:00", lokasi: "Balai RW 05 Kelurahan Cempaka", ket: "Posyandu Rutin Mei 2026", kaderIdx: 2 },
     { tanggal: "2026-06-03", mulai: "08:30", selesai: "12:00", lokasi: "Balai RW 05 Kelurahan Cempaka", ket: "Posyandu Rutin Juni 2026 - Pembagian PMT", kaderIdx: 0 },
     { tanggal: "2026-07-03", mulai: "08:00", selesai: "11:00", lokasi: "Balai RW 05 Kelurahan Cempaka", ket: "Posyandu Rutin Juli 2026", kaderIdx: 1 },
+    { tanggal: "2026-08-03", mulai: "08:00", selesai: "12:00", lokasi: "Puskesmas Pembantu Cempaka", ket: "Bulan Penimbangan Balita + Vitamin A Gelombang Kedua + Obat Cacing", kaderIdx: 2 },
 ];
 
 // =============================================================================
@@ -279,7 +327,7 @@ async function generateSeeder() {
     // TIER 2 — jadwal_posyandu
     // ══════════════════════════════════════════════════════════════════════════════
     lines.push("-- ==========================================================");
-    lines.push("-- TIER 2: Jadwal Posyandu (5 lampau + 3 mendatang)");
+    lines.push("-- TIER 2: Jadwal Posyandu (Januari–Agustus 2026)");
     lines.push("-- ==========================================================");
     lines.push("");
 
@@ -317,10 +365,10 @@ async function generateSeeder() {
     lines.push("");
 
     // ══════════════════════════════════════════════════════════════════════════════
-    // TIER 4 — pengukuran (6 titik historis per anak)
+    // TIER 4 — pengukuran (8 titik historis per anak)
     // ══════════════════════════════════════════════════════════════════════════════
     lines.push("-- ==========================================================");
-    lines.push("-- TIER 4: Pengukuran (6 titik historis per anak = 90 total)");
+    lines.push(`-- TIER 4: Pengukuran (${MEASUREMENT_DATES.length} titik historis per anak = ${MEASUREMENT_DATES.length * ANAK_LIST.length} total)`);
     lines.push("-- Z-score dihitung otomatis menggunakan WHO tables");
     lines.push("-- ==========================================================");
     lines.push("");
@@ -385,13 +433,14 @@ async function generateSeeder() {
         const a = ANAK_LIST[aIdx];
         const anakId = anakIds[aIdx];
         const usiaSaatIni = hitungUsiaBulanService(a.tglLahir, "2026-06-03");
-        const items = getRiwayatItems(usiaSaatIni);
+        const usiaAgustus = hitungUsiaBulanService(a.tglLahir, "2026-08-03");
+        const items = getRiwayatItems(a.tglLahir, a.scenario);
 
-        lines.push(`-- ${a.nama} (usia: ${usiaSaatIni} bulan)`);
+        lines.push(`-- ${a.nama} (usia Juni: ${usiaSaatIni} bulan, usia Agustus: ${usiaAgustus} bulan)`);
         for (const item of items) {
             const kId = kaderIds[item.kaderIdx % KADER_LIST.length].kId;
             lines.push(`INSERT INTO pemberian (anak_id, kader_id, jenis, dosis, tanggal_pemberian, keterangan) VALUES`);
-            lines.push(`    (${sq(anakId)}, ${sq(kId)}, ${sq(item.jenis)}, ${sq(item.dosis)}, ${sq(item.tgl)}, NULL);`);
+            lines.push(`    (${sq(anakId)}, ${sq(kId)}, ${sq(item.jenis)}, ${sq(item.dosis)}, ${sq(item.tgl)}, ${sq(item.ket)});`);
             pemberianCount++;
         }
         lines.push("");
@@ -408,9 +457,9 @@ async function generateSeeder() {
     lines.push("-- ==========================================================");
     lines.push("");
 
-    // Ambil pengukuran terakhir (dIdx=5) dengan kategori 'tinggi', max 6 rujukan
+    // Ambil pengukuran Agustus dengan kategori 'tinggi', max 6 rujukan
     const candidatesForRujukan = pengMeta.filter(
-        (r) => r.dIdx === 5 && r.kategori === "tinggi",
+        (r) => r.dIdx === MEASUREMENT_DATES.length - 1 && r.kategori === "tinggi",
     );
     const rujukanTargets = candidatesForRujukan.slice(0, 6);
     const rujukanStatuses = ["selesai", "ditangani", "diajukan", "diajukan", "selesai", "diajukan"];
@@ -430,11 +479,11 @@ async function generateSeeder() {
                 : null;
         const validatedAt =
             status !== "diajukan"
-                ? sq(`2026-05-${String(15 + ri).padStart(2, "0")}`)
+                ? sq(`2026-08-${String(15 + ri).padStart(2, "0")}`)
                 : "NULL";
         const completedAt =
             status === "selesai"
-                ? sq(`2026-05-${String(18 + ri).padStart(2, "0")}`)
+                ? sq(`2026-08-${String(18 + ri).padStart(2, "0")}`)
                 : "NULL";
 
         rujukanCount++;
@@ -460,7 +509,9 @@ async function generateSeeder() {
 
     for (let aIdx = 0; aIdx < ANAK_LIST.length; aIdx++) {
         const a = ANAK_LIST[aIdx];
-        const lastPeng = pengMeta.find((m) => m.aIdx === aIdx && m.dIdx === 5);
+        const lastPeng = pengMeta.find(
+            (m) => m.aIdx === aIdx && m.dIdx === MEASUREMENT_DATES.length - 1,
+        );
         if (!lastPeng) continue;
 
         const teks = INSIGHT[a.scenario] || INSIGHT.normal;
@@ -486,7 +537,7 @@ async function generateSeeder() {
             "(terbaru.tanggal_ukur > p.tanggal_ukur OR " +
             "(terbaru.tanggal_ukur = p.tanggal_ukur AND terbaru.id > p.id)) " +
             "SET p.insight_status = 'superseded', " +
-            "insight_available_at = NULL, insight_last_error = NULL " +
+            "p.insight_available_at = NULL, p.insight_last_error = NULL " +
             "WHERE p.insight_teks IS NULL " +
             "AND p.insight_status IN ('pending', 'processing');",
     );
@@ -497,7 +548,7 @@ async function generateSeeder() {
     // ══════════════════════════════════════════════════════════════════════════════
     lines.push("-- ==========================================================");
     lines.push("-- TIER 7: Notifikasi");
-    lines.push("-- Jadwal ID 7 = Posyandu Juli 2026 (jadwal mendatang = hari demo)");
+    lines.push("-- Jadwal ID 7 = Juli 2026, ID 8 = Agustus 2026");
     lines.push("-- ==========================================================");
     lines.push("");
 
@@ -507,6 +558,14 @@ async function generateSeeder() {
         const oId = otIds[oi].oId;
         lines.push(`INSERT INTO notifikasi (orang_tua_id, judul, pesan, tipe, sudah_dibaca, sent_at, jadwal_id, rujukan_id) VALUES`);
         lines.push(`    (${sq(oId)}, 'Jadwal Posyandu Juli 2026', 'Posyandu rutin Juli 2026 akan dilaksanakan pada 3 Juli 2026 pukul 08.00 di Balai RW 05 Kelurahan Cempaka. Harap hadir tepat waktu dan membawa buku KMS.', 'jadwal', FALSE, '2026-06-29 08:00:00', 7, NULL);`);
+    }
+    lines.push("");
+
+    lines.push("-- Notifikasi jadwal Posyandu Agustus 2026 untuk seluruh orang tua");
+    for (let oi = 0; oi < OT_LIST.length; oi++) {
+        const oId = otIds[oi].oId;
+        lines.push(`INSERT INTO notifikasi (orang_tua_id, judul, pesan, tipe, sudah_dibaca, sent_at, jadwal_id, rujukan_id) VALUES`);
+        lines.push(`    (${sq(oId)}, 'Bulan Penimbangan Balita Agustus 2026', 'Penimbangan balita, Vitamin A gelombang kedua, dan obat cacing akan dilaksanakan pada 3 Agustus 2026 pukul 08.00 di Puskesmas Pembantu Cempaka. Harap hadir tepat waktu dan membawa buku KMS.', 'jadwal', FALSE, '2026-07-29 08:00:00', 8, NULL);`);
     }
     lines.push("");
 
@@ -534,7 +593,7 @@ async function generateSeeder() {
         }
         const sudahDibaca = r.status === "selesai" ? "TRUE" : "FALSE";
         lines.push(`INSERT INTO notifikasi (orang_tua_id, judul, pesan, tipe, sudah_dibaca, sent_at, jadwal_id, rujukan_id) VALUES`);
-        lines.push(`    (${sq(oId)}, ${sq(judul)}, ${sq(pesan)}, 'rujukan', ${sudahDibaca}, '2026-06-01 10:00:00', NULL, ${r.rujId});`);
+        lines.push(`    (${sq(oId)}, ${sq(judul)}, ${sq(pesan)}, 'rujukan', ${sudahDibaca}, '2026-08-18 10:00:00', NULL, ${r.rujId});`);
     }
     lines.push("");
 
@@ -545,18 +604,18 @@ async function generateSeeder() {
         "utf8",
     );
 
-    const totalNotif = OT_LIST.length + rujukanCount;
+    const totalNotif = OT_LIST.length * 2 + rujukanCount;
     console.log("\n✅ seeder.sql berhasil dibuat!");
     console.log("\n📊 Ringkasan data yang di-seed:");
     console.log(`   Kader             : ${KADER_LIST.length}`);
     console.log(`   Puskesmas         : ${PUSKE_LIST.length}`);
     console.log(`   Orang Tua         : ${OT_LIST.length}`);
     console.log(`   Anak              : ${ANAK_LIST.length}`);
-    console.log(`   Jadwal Posyandu   : ${JADWAL_LIST.length} (6 lampau, 1 mendatang = hari demo)`);    
-    console.log(`   Pengukuran        : ${pengCount} (6 titik/anak × ${ANAK_LIST.length} anak, raw data + insight)`);
+    console.log(`   Jadwal Posyandu   : ${JADWAL_LIST.length} (Januari–Agustus 2026)`);
+    console.log(`   Pengukuran        : ${pengCount} (${MEASUREMENT_DATES.length} titik/anak × ${ANAK_LIST.length} anak, raw data + insight)`);
     console.log(`   Riwayat Pemberian : ${pemberianCount}`);
     console.log(`   Rujukan           : ${rujukanCount}`);
-    console.log(`   Notifikasi        : ${totalNotif} (${OT_LIST.length} jadwal + ${rujukanCount} rujukan)`);
+    console.log(`   Notifikasi        : ${totalNotif} (${OT_LIST.length * 2} jadwal + ${rujukanCount} rujukan)`);
     console.log("\n🚀 Cara menjalankan seeder:");
     console.log("   npm run seed:run");
     console.log("   — atau buka seeder.sql di DataGrip dan jalankan secara manual.");

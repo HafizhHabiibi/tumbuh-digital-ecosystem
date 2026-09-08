@@ -55,6 +55,7 @@ dev_dependencies:
     flutter_test:
         sdk: flutter
     flutter_lints: ^4.0.0
+    flutter_launcher_icons: ^0.14.4
 
     # Code Generator
     build_runner: ^2.4.12
@@ -66,3 +67,9 @@ flutter:
     uses-material-design: true
     assets:
         - assets/icon/
+
+flutter_launcher_icons:
+    android: true
+    ios: true
+    image_path: assets/icon/app_icon.png
+    remove_alpha_ios: true

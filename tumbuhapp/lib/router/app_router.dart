@@ -83,7 +83,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.splash,
         builder: (context, state) => const Scaffold(
-          body: Center(child: CircularProgressIndicator()),
+          backgroundColor: Color(0xFF008F24),
+          body: Center(
+            child: Image(
+              image: AssetImage('assets/icon/tumbuh.png'),
+              width: 160,
+            ),
+          ),
         ),
       ),
       // ── Auth ──────────────────────────────

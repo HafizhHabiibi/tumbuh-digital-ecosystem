@@ -1,4 +1,9 @@
-import admin from "firebase-admin";
+import {
+    applicationDefault,
+    cert,
+    initializeApp,
+} from "firebase-admin/app";
+import { getMessaging } from "firebase-admin/messaging";
 import db from "../database/connection.js";
 
 let initialized = false;
@@ -20,14 +25,14 @@ const initFirebase = () => {
         }
 
         const credential = encodedCredential
-            ? admin.credential.cert(
+            ? cert(
                 JSON.parse(
                     Buffer.from(encodedCredential, "base64").toString("utf8"),
                 ),
             )
-            : admin.credential.applicationDefault();
+            : applicationDefault();
 
-        admin.initializeApp({
+        initializeApp({
             credential,
         });
         initialized = true;
@@ -106,7 +111,7 @@ const dispatchOutboxItem = async (outboxId) => {
     if (!item) return { success: false, reason: "not_found" };
 
     try {
-        await admin.messaging().send({
+        await getMessaging().send({
             token: item.fcm_token,
             notification: { title: item.judul, body: item.pesan },
             data: normalizeNotificationData(item.data_payload),

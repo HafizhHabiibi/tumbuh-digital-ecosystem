@@ -142,12 +142,20 @@ export const findByTanggal = async (tanggal) => {
     return rows[0] || null;
 };
 
-export const update = async (id, data) => {
-    await db.query(
+export const buatUpdateIfNoMeasurements = (database = db) => async (
+    id,
+    data,
+) => {
+    const [result] = await database.query(
         `UPDATE jadwal_posyandu
         SET tanggal = ?, waktu_mulai = ?, waktu_selesai = ?,
             lokasi = ?, keterangan = ?
-        WHERE id = ?`,
+        WHERE id = ?
+        AND NOT EXISTS (
+            SELECT 1
+            FROM pengukuran p
+            WHERE p.tanggal_ukur = jadwal_posyandu.tanggal
+        )`,
         [
             data.tanggal,
             data.waktu_mulai,
@@ -157,11 +165,27 @@ export const update = async (id, data) => {
             id,
         ],
     );
+    return result.affectedRows === 1;
 };
 
-export const deleteById = async (id) => {
-    await db.query("DELETE FROM jadwal_posyandu WHERE id = ?", [id]);
+export const updateIfNoMeasurements = buatUpdateIfNoMeasurements();
+
+export const buatDeleteIfNoMeasurements = (database = db) => async (id) => {
+    const [result] = await database.query(
+        `DELETE j
+        FROM jadwal_posyandu j
+        WHERE j.id = ?
+        AND NOT EXISTS (
+            SELECT 1
+            FROM pengukuran p
+            WHERE p.tanggal_ukur = j.tanggal
+        )`,
+        [id],
+    );
+    return result.affectedRows === 1;
 };
+
+export const deleteIfNoMeasurements = buatDeleteIfNoMeasurements();
 
 /**
  * Cek apakah tanggal sudah dipakai jadwal lain (exclude jadwal tertentu).

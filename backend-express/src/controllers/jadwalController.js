@@ -272,6 +272,31 @@ export const updateJadwal = async (req, res) => {
             return error(res, "Jadwal tidak ditemukan", 404);
         }
 
+        const waktuMulaiLama = jadwal.waktu_mulai?.slice(0, 5);
+        const waktuSelesaiLama = jadwal.waktu_selesai?.slice(0, 5);
+        const keteranganBaru = keterangan || null;
+        const adaPerubahan =
+            jadwal.tanggal !== tanggal ||
+            waktuMulaiLama !== waktu_mulai ||
+            waktuSelesaiLama !== waktu_selesai ||
+            jadwal.lokasi !== lokasi ||
+            (jadwal.keterangan || null) !== keteranganBaru;
+
+        if (!adaPerubahan) {
+            return success(
+                res,
+                {
+                    id: parseInt(id),
+                    tanggal,
+                    waktu_mulai,
+                    waktu_selesai,
+                    lokasi,
+                    keterangan: keteranganBaru,
+                },
+                "Jadwal tidak mengalami perubahan",
+            );
+        }
+
         // Cek duplikasi tanggal (exclude jadwal ini sendiri)
         const duplikat = await JadwalModel.findByTanggalExcluding(tanggal, id);
         if (duplikat) {
@@ -282,20 +307,28 @@ export const updateJadwal = async (req, res) => {
             );
         }
 
-        await JadwalModel.update(id, {
+        const updated = await JadwalModel.updateIfNoMeasurements(id, {
             tanggal,
             waktu_mulai,
             waktu_selesai,
             lokasi,
-            keterangan,
+            keterangan: keteranganBaru,
         });
+        if (!updated) {
+            return error(
+                res,
+                "Jadwal tidak dapat diubah karena pengukuran anak sudah tercatat pada tanggal tersebut",
+                409,
+                "JADWAL_MEMILIKI_PENGUKURAN",
+            );
+        }
 
         // Bangun pesan perubahan
         const perubahan = [];
         if (jadwal.tanggal !== tanggal) {
             perubahan.push(`tanggal: ${jadwal.tanggal} → ${tanggal}`);
         }
-        if (jadwal.waktu_mulai !== waktu_mulai || jadwal.waktu_selesai !== waktu_selesai) {
+        if (waktuMulaiLama !== waktu_mulai || waktuSelesaiLama !== waktu_selesai) {
             perubahan.push(`waktu: ${waktu_mulai} - ${waktu_selesai}`);
         }
         if (jadwal.lokasi !== lokasi) {
@@ -321,7 +354,14 @@ export const updateJadwal = async (req, res) => {
 
         return success(
             res,
-            { id: parseInt(id), tanggal, waktu_mulai, waktu_selesai, lokasi, keterangan },
+            {
+                id: parseInt(id),
+                tanggal,
+                waktu_mulai,
+                waktu_selesai,
+                lokasi,
+                keterangan: keteranganBaru,
+            },
             "Jadwal berhasil diperbarui",
         );
     } catch (err) {
@@ -350,7 +390,15 @@ export const deleteJadwal = async (req, res) => {
             );
         }
 
-        await JadwalModel.deleteById(id);
+        const deleted = await JadwalModel.deleteIfNoMeasurements(id);
+        if (!deleted) {
+            return error(
+                res,
+                "Jadwal tidak dapat dihapus karena pengukuran anak sudah tercatat pada tanggal tersebut",
+                409,
+                "JADWAL_MEMILIKI_PENGUKURAN",
+            );
+        }
 
         // Broadcast notifikasi pembatalan ke semua orang tua
         const semuaOrangTua = await JadwalModel.findAllOrangTua();

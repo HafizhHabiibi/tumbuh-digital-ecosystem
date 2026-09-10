@@ -24,17 +24,6 @@
             </div>
         </Transition>
 
-        <!-- ─── Alert Sukses Salin Pengumuman ─────────────────────── -->
-        <Transition name="slide-down">
-            <div
-                v-if="copySuccess"
-                class="flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-xs bg-emerald-500 text-white font-medium shadow-sm fixed bottom-6 right-6 z-50"
-                role="status"
-            >
-                <i class="pi pi-check-circle text-sm" aria-hidden="true" />
-                <span>Teks pengumuman berhasil disalin ke clipboard!</span>
-            </div>
-        </Transition>
 
         <!-- ─── Hero Card: Jadwal Terdekat ────────────────────────── -->
         <section
@@ -83,15 +72,6 @@
                 </div>
 
                 <div class="flex items-center gap-2.5 shrink-0">
-                    <button
-                        type="button"
-                        class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-white/15 hover:bg-white/25 text-white border border-white/20 backdrop-blur-xs transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-2xs"
-                        title="Salin pesan pengumuman jadwal untuk WhatsApp"
-                        @click="salinPengumuman(store.jadwalTerdekat)"
-                    >
-                        <i class="pi pi-share-alt text-[11px]" aria-hidden="true" />
-                        <span>Salin Pesan WA</span>
-                    </button>
                     <button
                         type="button"
                         class="px-4 py-2 rounded-xl text-xs font-semibold bg-white text-emerald-900 hover:bg-emerald-50 transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-xs"
@@ -449,7 +429,6 @@ const todayStr = toLocalDateStr(todayDate);
 
 const activeFilter = ref("mendatang");
 const showDetail = ref(false);
-const copySuccess = ref(false);
 
 const filterTabs = [
     { key: "mendatang", label: "Mendatang" },
@@ -500,20 +479,6 @@ const bulanSingkat = (tgl) =>
     new Date(tgl + "T00:00:00").toLocaleDateString("id-ID", { month: "short" });
 
 const formatWaktu = (waktu) => waktu?.slice(0, 5) ?? "—";
-
-const salinPengumuman = async (j) => {
-    if (!j) return;
-    const teks = `📢 *PENGUMUMAN JADWAL POSYANDU*\n\nBunda dan Ayah, berikut jadwal pelayanan Posyandu berikutnya:\n📅 *Hari / Tanggal:* ${formatTanggalPanjang(j.tanggal)}\n⏰ *Waktu:* ${formatWaktu(j.waktu_mulai)} – ${formatWaktu(j.waktu_selesai)} WIB\n📍 *Lokasi:* ${j.lokasi}\n${j.keterangan ? `📝 *Catatan:* ${j.keterangan}\n` : ''}\nYuk bawa si kecil ke posyandu untuk pemantauan tumbuh kembang optimal! 🌿`;
-    try {
-        await navigator.clipboard.writeText(teks);
-        copySuccess.value = true;
-        setTimeout(() => {
-            copySuccess.value = false;
-        }, 3000);
-    } catch {
-        // Fallback
-    }
-};
 
 const lihatDetail = async (id) => {
     showDetail.value = true;

@@ -36,7 +36,7 @@ export const buatFindAll = (database = db) => async ({
             a.orang_tua_id,
             a.nama,
             a.jenis_kelamin,
-            a.tanggal_lahir,
+            DATE_FORMAT(a.tanggal_lahir, '%Y-%m-%d') AS tanggal_lahir,
             a.nik,
             a.created_at,
             ot.nama_lengkap AS nama_orang_tua,
@@ -66,7 +66,7 @@ export const findById = async (id) => {
             a.id,
             a.nama,
             a.jenis_kelamin,
-            a.tanggal_lahir,
+            DATE_FORMAT(a.tanggal_lahir, '%Y-%m-%d') AS tanggal_lahir,
             a.nik,
             a.created_at,
             a.orang_tua_id,
@@ -87,7 +87,7 @@ export const findByOrangTua = async (orang_tua_id) => {
             a.id,
             a.nama,
             a.jenis_kelamin,
-            a.tanggal_lahir,
+            DATE_FORMAT(a.tanggal_lahir, '%Y-%m-%d') AS tanggal_lahir,
             a.nik,
             a.created_at
             FROM anak a

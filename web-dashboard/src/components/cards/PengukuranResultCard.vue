@@ -56,28 +56,28 @@
             <!-- Metrik Pengukuran -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                 <div class="stat-box rounded-xl p-3 text-center">
-                    <p class="text-xs text-slate-500 m-0">Berat Badan</p>
+                    <p class="text-xs font-semibold text-slate-700 m-0">Berat Badan</p>
                     <p class="text-lg font-bold text-slate-800 mt-1 mb-0">
                         {{ formatUkuran(result.berat_badan) }}
                         <span class="text-xs font-normal text-slate-500">kg</span>
                     </p>
                 </div>
                 <div class="stat-box rounded-xl p-3 text-center">
-                    <p class="text-xs text-slate-500 m-0">Panjang / TB</p>
+                    <p class="text-xs font-semibold text-slate-700 m-0">Panjang / TB</p>
                     <p class="text-lg font-bold text-slate-800 mt-1 mb-0">
                         {{ formatUkuran(result.tinggi_badan) }}
                         <span class="text-xs font-normal text-slate-500">cm</span>
                     </p>
                 </div>
                 <div class="stat-box rounded-xl p-3 text-center">
-                    <p class="text-xs text-slate-500 m-0">Lingkar Kepala</p>
+                    <p class="text-xs font-semibold text-slate-700 m-0">Lingkar Kepala</p>
                     <p class="text-lg font-bold text-slate-800 mt-1 mb-0">
                         {{ formatNullable(result.lingkar_kepala) }}
                         <span v-if="result.lingkar_kepala != null" class="text-xs font-normal text-slate-500">cm</span>
                     </p>
                 </div>
                 <div class="stat-box rounded-xl p-3 text-center">
-                    <p class="text-xs text-slate-500 m-0">LiLA</p>
+                    <p class="text-xs font-semibold text-slate-700 m-0">LiLA</p>
                     <p class="text-lg font-bold text-slate-800 mt-1 mb-0">
                         {{ formatNullable(result.lingkar_lengan) }}
                         <span v-if="result.lingkar_lengan != null" class="text-xs font-normal text-slate-500">cm</span>
@@ -89,7 +89,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                 <div class="rounded-xl p-3 bg-slate-50 border border-slate-200/80 flex items-center justify-between">
                     <div>
-                        <p class="text-[11px] text-slate-400 font-medium m-0">Indeks Massa Tubuh (IMT)</p>
+                        <p class="text-[11px] font-semibold text-slate-700 m-0">Indeks Massa Tubuh (IMT)</p>
                         <p class="text-base font-bold text-slate-800 mt-0.5 mb-0">
                             {{ formatNullable(result.nilai_imt, 1) }}
                             <span class="text-xs font-normal text-slate-500">kg/m²</span>
@@ -99,7 +99,7 @@
                 </div>
                 <div class="rounded-xl p-3 bg-slate-50 border border-slate-200/80 flex items-center justify-between">
                     <div>
-                        <p class="text-[11px] text-slate-400 font-medium m-0">Prioritas Pemantauan</p>
+                        <p class="text-[11px] font-semibold text-slate-700 m-0">Prioritas Pemantauan</p>
                         <div class="mt-1">
                             <StatusBadge type="prioritas" :value="result.prioritas_pemantauan?.kategori" />
                         </div>
@@ -116,9 +116,6 @@
                     <h3 class="text-sm font-bold text-slate-800 m-0">
                         Status Antropometri & Z-Score
                     </h3>
-                    <p class="text-xs text-slate-400 mt-0.5 mb-0">
-                        Berdasarkan standar WHO Child Growth Standards & Permenkes RI
-                    </p>
                 </div>
             </div>
 
@@ -131,7 +128,7 @@
                     <div class="min-w-0">
                         <div class="flex items-center gap-2">
                             <span class="text-xs font-bold text-slate-800">{{ item.shortLabel }}</span>
-                            <span class="text-[11px] text-slate-400 truncate">{{ item.label }}</span>
+                            <span class="text-[11px] font-medium text-slate-600 truncate">{{ item.label }}</span>
                         </div>
                     </div>
                     <div class="flex items-center gap-2.5 shrink-0 flex-wrap justify-end">
@@ -151,7 +148,7 @@
                     <h3 class="text-sm font-bold text-slate-800 m-0">
                         Analisis Risiko Kekurangan Gizi
                     </h3>
-                    <p class="text-[11px] text-slate-400 mt-0.5 mb-0">
+                    <p class="text-[11px] font-medium text-slate-600 mt-0.5 mb-0">
                         Metode Simple Additive Weighting (SAW)
                     </p>
                 </div>
@@ -159,7 +156,7 @@
                     <span class="text-base font-bold text-slate-800 font-mono">
                         {{ formatSkor(result.skor_saw) }}
                     </span>
-                    <p class="text-[10px] text-slate-400 m-0">Skor Akhir</p>
+                    <p class="text-[10px] font-medium text-slate-600 m-0">Skor Akhir</p>
                 </div>
             </div>
 
@@ -171,7 +168,7 @@
                         :style="`width: ${sawPercentage}%; background: ${sawColor}`"
                     />
                 </div>
-                <div class="flex justify-between text-[10px] text-slate-400">
+                <div class="flex justify-between text-[10px] font-semibold text-slate-600">
                     <span>Rendah (0.00)</span>
                     <span>Sedang (0.50)</span>
                     <span>Tinggi (1.00)</span>

@@ -37,6 +37,22 @@ describe("kelayakan tanggal pengukuran", () => {
         )).toEqual({ eligible: true, ageDays: 1 });
     });
 
+    it("menerima tanggal lahir ISO dari respons API tanpa menggeser hari", () => {
+        expect(validateMeasurementDate(
+            "2025-06-17T00:00:00.000Z",
+            new Date(2025, 5, 18),
+            new Date(2025, 5, 18),
+        )).toEqual({ eligible: true, ageDays: 1 });
+    });
+
+    it("tetap menolak string bertanggal dengan akhiran yang tidak valid", () => {
+        expect(validateMeasurementDate(
+            "2025-06-17-bukan-timestamp",
+            "2025-06-18",
+            today,
+        )).toMatchObject({ eligible: false });
+    });
+
     it("membatasi kalender ke hari ini atau hari ke-1856", () => {
         const anakLama = getMeasurementDateLimits("2021-08-03", today);
         const bayi = getMeasurementDateLimits("2026-09-01", today);

@@ -19,8 +19,13 @@ const parseCalendarParts = (value) => {
         };
     }
 
-    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value ?? ""));
-    if (!match) return null;
+    const rawValue = String(value ?? "");
+    let match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(rawValue);
+    if (!match) {
+        const isoMatch = /^(\d{4})-(\d{2})-(\d{2})T/.exec(rawValue);
+        if (!isoMatch || Number.isNaN(Date.parse(rawValue))) return null;
+        match = isoMatch;
+    }
 
     const parts = {
         year: Number(match[1]),

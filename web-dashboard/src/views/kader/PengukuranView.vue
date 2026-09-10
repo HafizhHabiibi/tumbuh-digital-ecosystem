@@ -444,8 +444,7 @@
                             class="p-4 rounded-xl border border-emerald-200 bg-emerald-50/60 space-y-2.5 transition-all"
                         >
                             <div class="flex items-center justify-between">
-                                <span class="text-xs font-bold text-emerald-900 flex items-center gap-1.5">
-                                    <i class="pi pi-chart-line text-emerald-600" />
+                                <span class="text-xs font-bold text-emerald-900">
                                     Perubahan Terhadap Bulan Lalu
                                 </span>
                                 <span class="text-[10px] text-emerald-700 font-semibold bg-emerald-100/70 px-2 py-0.5 rounded">

@@ -7,11 +7,13 @@
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 [![ExcelJS](https://img.shields.io/badge/ExcelJS-4.4-217346?style=for-the-badge&logo=microsoftexcel&logoColor=white)](https://www.npmjs.com/package/exceljs)
 [![WHO](https://img.shields.io/badge/WHO-Child%20Growth%20Standards-009CDE?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0xMiAyQzYuNDggMiAyIDYuNDggMiAxMnM0LjQ4IDEwIDEwIDEwIDEwLTQuNDggMTAtMTBTMTcuNTIgMiAxMiAyem0tMSAxNy45M2MtMy45NS0uNDktNy0zLjg1LTctNy45MyAwLS42Mi4wOC0xLjIxLjIxLTEuNzlMOSAxNXY1Ljkzek0xMyAxOS45M1YxNGg1bDMuMjQtMy4yNGMuMzQuNTguNTQgMS4yMy42MyAxLjkxIDAgMy4yLTIuMDYgNS45OC01LjA3IDcuMjZ6Ii8+PC9zdmc+)](https://www.who.int/tools/child-growth-standards/standards)
-[![License](https://img.shields.io/badge/License-Academic-F5A623?style=for-the-badge)](#lisensi)
+[![Usage](https://img.shields.io/badge/Usage-Academic-F5A623?style=for-the-badge)](#penggunaan-dan-hak-data)
 
 <br/>
 
 **Tool mandiri untuk mengonversi 10 tabel [WHO Child Growth Standards](https://www.who.int/tools/child-growth-standards/standards) dari format Excel (.xlsx) menjadi satu file JSON.**
+
+[Instalasi](#instalasi) · [Penggunaan](#penggunaan) · [Format output](#format-output) · [Struktur](#struktur-project)
 
 <br/>
 
@@ -27,6 +29,9 @@
 
 ---
 
+> [!NOTE]
+> Converter ini adalah utility data pendukung. Output `whoTables.json` digunakan backend sebagai referensi perhitungan antropometri; tool ini bukan service yang perlu dijalankan bersama aplikasi.
+
 ## Daftar Isi
 
 - [Prasyarat](#prasyarat)
@@ -39,7 +44,7 @@
 - [Rumus Z-Score](#rumus-z-score)
 - [Struktur Project](#struktur-project)
 - [Utility](#utility)
-- [Lisensi](#lisensi)
+- [Penggunaan dan Hak Data](#penggunaan-dan-hak-data)
 
 ---
 
@@ -51,7 +56,6 @@
 ## Instalasi
 
 ```bash
-git clone <repository-url>
 cd who-converter
 npm install
 ```
@@ -70,8 +74,10 @@ Verifikasi struktur dan integritas hasil konversi:
 npm test
 ```
 
-`who-converter` berdiri sendiri. Script di folder ini tidak membaca atau menulis
-file milik backend, web, maupun mobile. Output hanya dibuat di folder ini.
+`who-converter` adalah tool offline yang berdiri sendiri. Script di folder ini
+tidak membaca atau menulis file milik backend, web, maupun mobile. Output
+`whoTables.json` hanya dibuat di folder ini dan **tidak otomatis disalin ke
+backend**. Perubahan output harus direview dan diintegrasikan secara eksplisit.
 
 ---
 
@@ -237,6 +243,20 @@ node cekKolom.js
 
 ---
 
-## Lisensi
+## Penggunaan dan Hak Data
 
-Data standar pertumbuhan anak © [World Health Organization](https://www.who.int/). Digunakan untuk keperluan akademik dan pengembangan aplikasi kesehatan anak.
+Data standar pertumbuhan anak © [World Health Organization](https://www.who.int/). Data digunakan untuk keperluan akademik dan pengembangan aplikasi kesehatan anak.
+
+Tool ini merupakan bagian dari project akademik Tumbuh Posyandu untuk mata
+kuliah Proyek Utama Informatika, Proyek Profesional, dan Tugas Akhir. Penggunaan
+atau distribusi data hasil konversi tetap harus memperhatikan ketentuan sumber
+WHO dan persetujuan pengembang project.
+
+Status dependency dan residual risk converter dicatat dalam [WHO Converter Risk
+Acceptance](../docs/release/WHO_CONVERTER_RISK_ACCEPTANCE.md).
+
+---
+
+<div align="center">
+  <sub>Utility data untuk <a href="../README.md">Tumbuh Posyandu</a></sub>
+</div>

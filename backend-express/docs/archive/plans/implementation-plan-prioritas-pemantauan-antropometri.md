@@ -1,5 +1,7 @@
 # Implementation Plan Prioritas Pemantauan Antropometri
 
+> **Status dokumen: HISTORIS — implementasi telah selesai.** Rencana ini dipertahankan sebagai riwayat. Gunakan [kontrak prioritas aktif](../../PRIORITAS_PEMANTAUAN_ANTROPOMETRI_CONTRACT.md), [release checklist](../../PRIORITAS_PEMANTAUAN_RELEASE_CHECKLIST.md), dan [evidence terbaru](../../../../docs/release/evidence/DOCUMENTATION_FINAL_REVIEW.md).
+
 ## 1. Tujuan
 
 Menyempurnakan prioritas pemantauan agar kondisi gizi berlebih dan obesitas
@@ -140,7 +142,7 @@ sama seperti Z-score dan SAW sekarang.
 ambigu.
 
 **Status:** kontrak teknis dan matriks aturan telah dibekukan dalam
-[`PRIORITAS_PEMANTAUAN_ANTROPOMETRI_CONTRACT.md`](./PRIORITAS_PEMANTAUAN_ANTROPOMETRI_CONTRACT.md).
+[`PRIORITAS_PEMANTAUAN_ANTROPOMETRI_CONTRACT.md`](../../PRIORITAS_PEMANTAUAN_ANTROPOMETRI_CONTRACT.md).
 Validasi tenaga gizi/Puskesmas tetap menjadi gerbang wajib sebelum aturan
 diaktifkan pada rilis produksi.
 
@@ -329,7 +331,7 @@ antropometri baru.
 fixture antropometri, kontrak orang tua, perbandingan distribusi sebelum/sesudah,
 batas arsitektur tanpa pembuatan rujukan otomatis, laporan, AI, dan regresi SAW.
 Checklist staging serta rencana rollback tersedia dalam
-[`PRIORITAS_PEMANTAUAN_RELEASE_CHECKLIST.md`](./PRIORITAS_PEMANTAUAN_RELEASE_CHECKLIST.md).
+[`PRIORITAS_PEMANTAUAN_RELEASE_CHECKLIST.md`](../../PRIORITAS_PEMANTAUAN_RELEASE_CHECKLIST.md).
 Tahap 9 baru dinyatakan selesai sepenuhnya setelah checklist manual dan validasi
 tenaga gizi/Puskesmas ditandatangani.
 

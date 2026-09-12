@@ -1,5 +1,7 @@
 # Implementation Plan — Halaman Chat Khusus
 
+> **Status dokumen: HISTORIS — implementasi utama telah tersedia.** Checklist dan angka test di bawah adalah snapshot proses, bukan status project terkini. Gunakan [kontrak API](../../CONVERSATIONAL_AI_API.md), [policy AI](../../CONVERSATIONAL_AI_POLICY.md), dan [evidence terbaru](../../../../docs/release/evidence/DOCUMENTATION_FINAL_REVIEW.md).
+
 ## Gambaran Alur Utama
 
 ```text

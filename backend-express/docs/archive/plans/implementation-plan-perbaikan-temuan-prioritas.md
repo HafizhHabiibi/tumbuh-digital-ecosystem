@@ -1,7 +1,9 @@
 # Implementation Plan Perbaikan Temuan Prioritas Frontend × Backend
 
+> **Status dokumen: HISTORIS — perbaikan utama telah diterapkan.** Angka test dan status fase di bawah adalah snapshot proses, bukan status project terbaru. Gunakan [evidence terbaru](../../../../docs/release/evidence/DOCUMENTATION_FINAL_REVIEW.md) untuk quality gate terkini.
+
 **Tanggal:** 3 September 2026  
-**Sumber:** `verifikasi_temuan_prioritas.md`  
+**Sumber:** [verifikasi temuan prioritas](../reports/verifikasi-temuan-prioritas.md)  
 **Cakupan:** `web-dashboard` dan `backend-express`
 
 ## 1. Tujuan

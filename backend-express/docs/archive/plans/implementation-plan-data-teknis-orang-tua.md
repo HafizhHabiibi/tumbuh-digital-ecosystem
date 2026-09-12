@@ -1,5 +1,7 @@
 # Implementation Plan — Penyaringan Data Teknis Orang Tua
 
+> **Status dokumen: HISTORIS — implementasi telah selesai.** Angka test di bawah adalah snapshot proses, bukan status project terkini. Gunakan [kontrak pengukuran](../../ORANG_TUA_PENGUKURAN_CONTRACT.md), [kontrak rujukan](../../ORANG_TUA_RUJUKAN_CONTRACT.md), [policy data teknis](../../DATA_TEKNIS_UX_SECURITY_POLICY.md), dan [evidence terbaru](../../../../docs/release/evidence/DOCUMENTATION_FINAL_REVIEW.md).
+
 ## Tujuan
 
 - Orang tua hanya melihat hasil pertumbuhan dalam bahasa yang mudah dipahami.
@@ -11,7 +13,7 @@
 
 **Status: selesai.** Kontrak normatif beserta tipe, nullability, enum, contoh
 response, field terlarang, dan aturan rilis tersedia di
-[`ORANG_TUA_PENGUKURAN_CONTRACT.md`](./ORANG_TUA_PENGUKURAN_CONTRACT.md).
+[`ORANG_TUA_PENGUKURAN_CONTRACT.md`](../../ORANG_TUA_PENGUKURAN_CONTRACT.md).
 
 Buat kontrak respons khusus pengukuran orang tua menggunakan whitelist.
 
@@ -107,7 +109,7 @@ Endpoint kader dan Puskesmas tidak diubah.
 ## Tahap 3 — Lindungi kontrak rujukan orang tua
 
 **Status: selesai.** Kontrak normatif tersedia di
-[`ORANG_TUA_RUJUKAN_CONTRACT.md`](./ORANG_TUA_RUJUKAN_CONTRACT.md). Serializer
+[`ORANG_TUA_RUJUKAN_CONTRACT.md`](../../ORANG_TUA_RUJUKAN_CONTRACT.md). Serializer
 strict-whitelist `src/serializers/orangTuaRujukanSerializer.js` telah diterapkan
 khusus pada `GET /api/orang-tua/anak/:id/rujukan`. Endpoint teknis kader dan
 Puskesmas tidak diubah. UI mobile lama masih dapat menampilkan nilai default

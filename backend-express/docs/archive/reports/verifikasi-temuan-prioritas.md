@@ -1,5 +1,7 @@
 # Verifikasi Temuan Prioritas — Frontend × Backend
 
+> **Status dokumen: HISTORIS — temuan menjadi input perbaikan berikutnya.** Laporan ini merekam kondisi sebelum perbaikan. Gunakan [evidence terbaru](../../../../docs/release/evidence/DOCUMENTATION_FINAL_REVIEW.md) dan source saat ini untuk status implementasi terkini.
+
 **Tanggal verifikasi:** 3 September 2026  
 **Metode:** Inspeksi langsung pada source code
 
@@ -11,7 +13,7 @@
 
 ### Bukti
 
-**Backend — [`authController.js`](file:///e:/Programs/project-kuliah-pui/backend-express/src/controllers/authController.js#L27):**
+**Backend — [`authController.js`](../../../src/controllers/authController.js#L27):**
 ```javascript
 // line 27
 const isMobile = platform === "mobile";
@@ -23,7 +25,7 @@ if (isMobile && user.role !== "orang_tua") {
 ```
 Backend **tidak** memiliki pengecekan kebalikannya: `if (!isMobile && user.role === "orang_tua")`. Artinya request login dari web tanpa `platform: "mobile"` dari akun `orang_tua` **akan berhasil** dan mendapatkan token JWT yang valid.
 
-**Frontend — [`LoginView.vue`](file:///e:/Programs/project-kuliah-pui/web-dashboard/src/views/auth/LoginView.vue#L54-L57):**
+**Frontend — [`LoginView.vue`](../../../../web-dashboard/src/views/auth/LoginView.vue#L54-L57):**
 ```javascript
 // line 54-57
 if (success) {
@@ -34,7 +36,7 @@ if (success) {
 ```
 Logika ternary: `isKader` = `role === "kader"`. Jika role bukan `kader`, maka **selalu diarahkan ke `PuskesmasDashboard`** — termasuk role `orang_tua`.
 
-**Frontend — [`router/index.js`](file:///e:/Programs/project-kuliah-pui/web-dashboard/src/router/index.js#L165-L171):**
+**Frontend — [`router/index.js`](../../../../web-dashboard/src/router/index.js#L165-L171):**
 ```javascript
 // line 165-171
 if (to.meta.requiresGuest && auth.isLoggedIn) {
@@ -73,8 +75,8 @@ sequenceDiagram
 
 | Opsi | Lokasi | Perubahan |
 |---|---|---|
-| **A. Blok di backend** | [`authController.js:51`](file:///e:/Programs/project-kuliah-pui/backend-express/src/controllers/authController.js#L51) | Tambah: `if (!isMobile && user.role === "orang_tua") return error(...)` |
-| **B. Blok di frontend** | [`LoginView.vue:54`](file:///e:/Programs/project-kuliah-pui/web-dashboard/src/views/auth/LoginView.vue#L54) | Cek role setelah login, tampilkan pesan error jika `orang_tua` |
+| **A. Blok di backend** | [`authController.js:51`](../../../src/controllers/authController.js#L51) | Tambah: `if (!isMobile && user.role === "orang_tua") return error(...)` |
+| **B. Blok di frontend** | [`LoginView.vue:54`](../../../../web-dashboard/src/views/auth/LoginView.vue#L54) | Cek role setelah login, tampilkan pesan error jika `orang_tua` |
 | **C. Keduanya (recommended)** | Kedua file | Defense in depth — blok di BE + tampilkan pesan di FE |
 
 ---
@@ -85,7 +87,7 @@ sequenceDiagram
 
 ### Bukti Perbandingan
 
-| Field | HTML `min` attr | HTML `max` attr | JS validation (`fieldError`) | Backend schema ([`schemas.js:90-98`](file:///e:/Programs/project-kuliah-pui/backend-express/src/validation/schemas.js#L90-L98)) |
+| Field | HTML `min` attr | HTML `max` attr | JS validation (`fieldError`) | Backend schema ([`schemas.js:90-98`](../../../src/validation/schemas.js#L90-L98)) |
 |---|---|---|---|---|
 | `berat_badan` | `0.5` | `30` | `> 0 && <= 30` | `min: 0.01, max: 30` |
 | `tinggi_badan` | `10` | `120` | `> 0 && <= 120` | `min: 0.01, max: 120` |
@@ -94,13 +96,13 @@ sequenceDiagram
 
 **Detail kode:**
 
-Form tag menggunakan `novalidate` ([`PengukuranView.vue:59`](file:///e:/Programs/project-kuliah-pui/web-dashboard/src/views/kader/PengukuranView.vue#L59)):
+Form tag menggunakan `novalidate` ([`PengukuranView.vue:59`](../../../../web-dashboard/src/views/kader/PengukuranView.vue#L59)):
 ```html
 <form novalidate class="space-y-4" @submit.prevent="handleSubmit">
 ```
 Ini membuat atribut HTML `min`/`max`/`step` **tidak di-enforce** oleh browser.
 
-JS validation ([`PengukuranView.vue:328-341`](file:///e:/Programs/project-kuliah-pui/web-dashboard/src/views/kader/PengukuranView.vue#L328-L341)):
+JS validation ([`PengukuranView.vue:328-341`](../../../../web-dashboard/src/views/kader/PengukuranView.vue#L328-L341)):
 ```javascript
 const fieldError = computed(() => {
     const e = {};
@@ -147,7 +149,7 @@ flowchart LR
 
 **Bukti:**
 
-1. **Create endpoint** — [`pengukuranController.js:71-77`](file:///e:/Programs/project-kuliah-pui/backend-express/src/controllers/pengukuranController.js#L71-L77):
+1. **Create endpoint** — [`pengukuranController.js:71-77`](../../../src/controllers/pengukuranController.js#L71-L77):
    ```javascript
    // Z-score dihitung dari `berat` (nilai request asli, bukan dari DB)
    const zscores = zscoreService.hitungSemuaZScore({
@@ -157,7 +159,7 @@ flowchart LR
    });
    ```
 
-2. **Insert DB** — [`pengukuranController.js:89-97`](file:///e:/Programs/project-kuliah-pui/backend-express/src/controllers/pengukuranController.js#L89-L97):
+2. **Insert DB** — [`pengukuranController.js:89-97`](../../../src/controllers/pengukuranController.js#L89-L97):
    ```javascript
    await PengukuranModel.createPengukuran({
        berat_badan: berat,   // 10.123 → DECIMAL(5,2) → 10.12
@@ -166,13 +168,13 @@ flowchart LR
    });
    ```
 
-3. **Schema SQL** — [`schema.sql:86-87`](file:///e:/Programs/project-kuliah-pui/backend-express/src/database/schema.sql#L86-L87):
+3. **Schema SQL** — [`schema.sql:86-87`](../../../src/database/schema.sql#L86-L87):
    ```sql
    berat_badan DECIMAL(5,2) NOT NULL,  -- pembulatan otomatis
    tinggi_badan DECIMAL(5,2) NOT NULL,
    ```
 
-4. **Read endpoint** — [`pengukuranService.js:137-144`](file:///e:/Programs/project-kuliah-pui/backend-express/src/services/pengukuranService.js#L137-L144):
+4. **Read endpoint** — [`pengukuranService.js:137-144`](../../../src/services/pengukuranService.js#L137-L144):
    ```javascript
    export const enrichPengukuran = (raw, anak) => {
        const zscores = zscoreService.hitungSemuaZScore({
@@ -206,7 +208,7 @@ flowchart LR
 
 ### Bukti
 
-**[`AnakView.vue:386-398`](file:///e:/Programs/project-kuliah-pui/web-dashboard/src/views/kader/AnakView.vue#L386-L398):**
+**[`AnakView.vue:386-398`](../../../../web-dashboard/src/views/kader/AnakView.vue#L386-L398):**
 ```javascript
 const filteredList = computed(() => {
     let list = kaderStore.anakList;  // ← Data halaman aktif saja (1 page)
@@ -223,7 +225,7 @@ const filteredList = computed(() => {
 });
 ```
 
-**[`RankingView.vue:278-299`](file:///e:/Programs/project-kuliah-pui/web-dashboard/src/views/kader/RankingView.vue#L278-L299):**
+**[`RankingView.vue:278-299`](../../../../web-dashboard/src/views/kader/RankingView.vue#L278-L299):**
 ```javascript
 const filteredRanking = computed(() => {
     let list = pengukuranStore.rankingAnak || [];  // ← 1 page data
@@ -239,7 +241,7 @@ const filteredRanking = computed(() => {
 });
 ```
 
-**[`OrangTuaView.vue:332-341`](file:///e:/Programs/project-kuliah-pui/web-dashboard/src/views/kader/OrangTuaView.vue#L332-L341):**
+**[`OrangTuaView.vue:332-341`](../../../../web-dashboard/src/views/kader/OrangTuaView.vue#L332-L341):**
 ```javascript
 const filteredList = computed(() => {
     const q = search.value.toLowerCase().trim();
@@ -277,7 +279,7 @@ $ grep -r "LIKE" backend-express/src/models/
 
 ### Bukti
 
-**Registrasi anak — [`schemas.js:71-79`](file:///e:/Programs/project-kuliah-pui/backend-express/src/validation/schemas.js#L71-L79):**
+**Registrasi anak — [`schemas.js:71-79`](../../../src/validation/schemas.js#L71-L79):**
 ```javascript
 export const anakCreateSchema = {
     fields: {
@@ -289,7 +291,7 @@ export const anakCreateSchema = {
 ```
 Tidak ada validasi batas usia atas (misalnya ≤ 5 tahun).
 
-**Z-score calculation — [`zscoreService.js:243-248`](file:///e:/Programs/project-kuliah-pui/backend-express/src/services/zscoreService.js#L243-L248):**
+**Z-score calculation — [`zscoreService.js:243-248`](../../../src/services/zscoreService.js#L243-L248):**
 ```javascript
 const maxUsiaHari = WHO[`wfa_${gender}`]?.at(-1)?.day;  // 1856 hari ≈ 5 tahun 1 bulan
 if (!Number.isInteger(maxUsiaHari) || usia_hari > maxUsiaHari) {
@@ -299,7 +301,7 @@ if (!Number.isInteger(maxUsiaHari) || usia_hari > maxUsiaHari) {
 }
 ```
 
-**Dropdown anak di form pengukuran — [`PengukuranView.vue:83-89`](file:///e:/Programs/project-kuliah-pui/web-dashboard/src/views/kader/PengukuranView.vue#L83-L89):**
+**Dropdown anak di form pengukuran — [`PengukuranView.vue:83-89`](../../../../web-dashboard/src/views/kader/PengukuranView.vue#L83-L89):**
 ```html
 <option v-for="anak in kaderStore.anakOptions" :key="anak.id" :value="anak.id">
     {{ anak.nama }} — {{ anak.nama_orang_tua }}

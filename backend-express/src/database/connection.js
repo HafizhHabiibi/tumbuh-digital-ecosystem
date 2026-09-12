@@ -10,7 +10,9 @@ const db = mysql.createPool({
     waitForConnections: true,
     connectionLimit: 10,
     charset: "utf8mb4",
-    timezone: "Z",
+    // Kolom DATETIME MySQL memakai waktu operasional Posyandu (WIB).
+    // Membacanya sebagai UTC akan menambahkan offset +7 lagi di client.
+    timezone: "+07:00",
     enableKeepAlive: true,
     keepAliveInitialDelay: 0,
 });

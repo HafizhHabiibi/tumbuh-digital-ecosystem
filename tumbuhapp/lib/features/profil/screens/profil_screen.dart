@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -431,8 +433,11 @@ class _UbahPasswordSheetState extends ConsumerState<_UbahPasswordSheet> {
                   if (val == null || val.isEmpty) {
                     return 'Password baru wajib diisi';
                   }
-                  if (val.length < 6) {
-                    return 'Password minimal 6 karakter';
+                  if (val.length < 8) {
+                    return 'Password minimal 8 karakter';
+                  }
+                  if (utf8.encode(val).length > 72) {
+                    return 'Password maksimal 72 byte UTF-8';
                   }
                   return null;
                 },

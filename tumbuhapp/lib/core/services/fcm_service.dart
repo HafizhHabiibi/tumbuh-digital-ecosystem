@@ -170,7 +170,8 @@ class FcmService {
   // ── Handle Notification Tap ───────────────────
 
   static void _onNotificationTap(NotificationResponse response) {
-    debugPrint('[FCM] Notification tapped: ${response.payload}');
+    debugPrint(
+        '[FCM] Notification tapped; payload tersedia: ${response.payload != null}');
 
     if (response.payload == null || response.payload!.isEmpty) return;
 

@@ -36,7 +36,7 @@ export const createChatRateLimit = (options = {}) => {
         keyGenerator: (req) =>
             req.orangTua?.id
                 ? `orang-tua:${req.orangTua.id}`
-                : ipKeyGenerator(req),
+                : ipKeyGenerator(req.ip),
         handler: (req, res) => {
             observability.recordRateLimited({ requestId: req.id });
             return error(

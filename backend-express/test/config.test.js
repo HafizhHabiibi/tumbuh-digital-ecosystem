@@ -43,3 +43,68 @@ test("startup menolak batas numerik Gemini yang tidak valid", () => {
         /GEMINI_TIMEOUT_MS/,
     );
 });
+
+test("startup menormalisasi allowlist CORS dan hostname Turnstile", () => {
+    const result = validateEnvironment(validEnvironment({
+        CORS_ORIGIN: "http://localhost:5173,https://dashboard.example.test",
+        TURNSTILE_ALLOWED_HOSTNAMES: "LOCALHOST, dashboard.example.test",
+    }));
+
+    assert.deepEqual(result.corsOrigins, [
+        "http://localhost:5173",
+        "https://dashboard.example.test",
+    ]);
+    assert.deepEqual(result.turnstileAllowedHostnames, [
+        "localhost",
+        "dashboard.example.test",
+    ]);
+});
+
+test("startup menolak origin CORS yang bukan origin HTTP(S)", () => {
+    assert.throws(
+        () => validateEnvironment(validEnvironment({
+            CORS_ORIGIN: "http://localhost:5173/path",
+        })),
+        /CORS_ORIGIN/,
+    );
+});
+
+test("startup mewajibkan secret access dan refresh yang berbeda", () => {
+    assert.throws(
+        () => validateEnvironment(validEnvironment({
+            JWT_REFRESH_SECRET: "a".repeat(32),
+        })),
+        /harus berbeda/,
+    );
+});
+
+test("HSTS hanya dapat diaktifkan untuk production", () => {
+    assert.throws(
+        () => validateEnvironment(validEnvironment({
+            ENABLE_HSTS: "true",
+        })),
+        /NODE_ENV=production/,
+    );
+
+    const result = validateEnvironment(validEnvironment({
+        ENABLE_HSTS: "true",
+        NODE_ENV: "production",
+        TURNSTILE_SECRET_KEY: "turnstile-test-secret",
+        TURNSTILE_ALLOWED_HOSTNAMES: "dashboard.example.test",
+    }));
+    assert.equal(result.hstsEnabled, true);
+});
+
+test("production mewajibkan secret dan hostname Turnstile", () => {
+    assert.throws(
+        () => validateEnvironment(validEnvironment({ NODE_ENV: "production" })),
+        /TURNSTILE_SECRET_KEY/,
+    );
+    assert.throws(
+        () => validateEnvironment(validEnvironment({
+            NODE_ENV: "production",
+            TURNSTILE_SECRET_KEY: "turnstile-test-secret",
+        })),
+        /TURNSTILE_ALLOWED_HOSTNAMES/,
+    );
+});

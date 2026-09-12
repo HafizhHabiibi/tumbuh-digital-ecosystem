@@ -66,6 +66,37 @@ test("forgot password web production tetap memerlukan Turnstile", async () => {
     assert.equal(findUserCalled, false);
 });
 
+test("provider Turnstile unavailable menghasilkan 503 tanpa mencari user", async () => {
+    let findUserCalled = false;
+    const handler = buatForgotPassword({
+        findByEmail: async () => {
+            findUserCalled = true;
+            return null;
+        },
+        verifyTurnstileFn: async () => {
+            throw new Error("provider timeout");
+        },
+        getTurnstileHostnames: () => ["dashboard.example.test"],
+        getNodeEnv: () => "production",
+    });
+    const req = {
+        body: {
+            email: "parent@example.com",
+            platform: "web",
+            turnstileToken: "token-test",
+        },
+        ip: "127.0.0.1",
+    };
+    const res = createResponse();
+
+    await handler(req, res);
+
+    assert.equal(res.statusCode, 503);
+    assert.equal(findUserCalled, false);
+    assert.equal(res.body.message, "Terjadi kesalahan server");
+    assert.deepEqual(res.body.data, { code: "TURNSTILE_UNAVAILABLE" });
+});
+
 test("respons mobile tetap generik dan email dikirim untuk akun terdaftar", async () => {
     const sent = [];
     const handler = buatForgotPassword({

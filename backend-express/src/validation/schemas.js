@@ -6,7 +6,13 @@ const email = rules.string({
     lowercase: true,
     pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
 });
-const password = rules.string({ min: 6, max: 72 });
+const password = (value, field) => {
+    const normalized = rules.string({ min: 8, max: 72 })(value, field);
+    if (Buffer.byteLength(normalized, "utf8") > 72) {
+        throw new ValidationError(`${field} maksimal 72 byte UTF-8`);
+    }
+    return normalized;
+};
 const nik = rules.string({ min: 16, max: 16, pattern: /^\d{16}$/ });
 const nama = rules.string({ min: 2, max: 100 });
 const noHp = rules.string({ min: 8, max: 20, pattern: /^\+?\d+$/ });

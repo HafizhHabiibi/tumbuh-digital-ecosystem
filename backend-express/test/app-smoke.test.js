@@ -33,6 +33,54 @@ test("entry point Express memasang middleware dan route produksi", async (t) => 
                 data: null,
             });
             assert.ok(response.headers.get("x-request-id"));
+            assert.equal(response.headers.get("x-content-type-options"), "nosniff");
+            assert.equal(response.headers.get("x-frame-options"), "DENY");
+            assert.equal(response.headers.get("referrer-policy"), "no-referrer");
+            assert.match(
+                response.headers.get("content-security-policy"),
+                /frame-ancestors 'none'/,
+            );
+            assert.equal(response.headers.get("x-powered-by"), null);
+            assert.equal(response.headers.get("strict-transport-security"), null);
+        });
+
+        await t.test("CORS hanya mengizinkan origin yang dikonfigurasi", async () => {
+            const allowed = await fetch(`${baseUrl}/api/health/live`, {
+                headers: { origin: "http://localhost" },
+            });
+            assert.equal(allowed.status, 200);
+            assert.equal(
+                allowed.headers.get("access-control-allow-origin"),
+                "http://localhost",
+            );
+
+            const denied = await fetch(`${baseUrl}/api/health/live`, {
+                headers: { origin: "https://evil.example" },
+            });
+            assert.equal(denied.status, 403);
+            assert.equal((await denied.json()).message, "Origin tidak diizinkan");
+        });
+
+        await t.test("request ID hanya menerima karakter aman", async () => {
+            const accepted = await fetch(`${baseUrl}/api/health/live`, {
+                headers: { "x-request-id": "client-request_123" },
+            });
+            assert.equal(
+                accepted.headers.get("x-request-id"),
+                "client-request_123",
+            );
+
+            const replaced = await fetch(`${baseUrl}/api/health/live`, {
+                headers: { "x-request-id": "id dengan spasi" },
+            });
+            assert.notEqual(
+                replaced.headers.get("x-request-id"),
+                "id dengan spasi",
+            );
+            assert.match(
+                replaced.headers.get("x-request-id"),
+                /^[0-9a-f-]{36}$/,
+            );
         });
 
         await t.test("prefix route utama terpasang dan terlindungi", async () => {

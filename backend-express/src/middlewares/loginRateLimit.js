@@ -8,7 +8,7 @@ export const ipRateLimit = rateLimit({
     legacyHeaders: false,
     skipSuccessfulRequests: true,
     // Gunakan ipKeyGenerator untuk normalisasi IPv6 agar user tidak bisa bypass limit
-    keyGenerator: (req) => ipKeyGenerator(req),
+    keyGenerator: (req) => ipKeyGenerator(req.ip),
 
     handler: (req, res) => {
         const retryAfter = Math.ceil(
@@ -31,7 +31,7 @@ export const emailRateLimit = rateLimit({
     // Key berdasarkan email — fallback ke IP (dengan normalisasi IPv6) jika email tidak ada di body
     keyGenerator: (req) => {
         const email = req.body?.email?.toLowerCase()?.trim();
-        return email ? `email:${email}` : ipKeyGenerator(req);
+        return email ? `email:${email}` : ipKeyGenerator(req.ip);
     },
 
     handler: (req, res) => {
@@ -48,7 +48,7 @@ export const forgotPasswordIpRateLimit = rateLimit({
     max: 10,
     standardHeaders: true,
     legacyHeaders: false,
-    keyGenerator: (req) => ipKeyGenerator(req),
+    keyGenerator: (req) => ipKeyGenerator(req.ip),
     handler: (req, res) => {
         return error(
             res,
@@ -65,7 +65,7 @@ export const forgotPasswordEmailRateLimit = rateLimit({
     legacyHeaders: false,
     keyGenerator: (req) => {
         const email = req.body?.email?.toLowerCase()?.trim();
-        return email ? `forgot:${email}` : ipKeyGenerator(req);
+        return email ? `forgot:${email}` : ipKeyGenerator(req.ip);
     },
     handler: (req, res) => {
         return error(

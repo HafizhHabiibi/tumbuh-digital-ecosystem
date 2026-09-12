@@ -3,9 +3,15 @@ import cors from "cors";
 import { randomUUID } from "node:crypto";
 import { pathToFileURL } from "node:url";
 import { validateEnvironment } from "./src/config.js";
+import {
+    createCorsOptions,
+    normalizeRequestId,
+    securityHeaders,
+} from "./src/middlewares/httpSecurity.js";
 import db from "./src/database/connection.js";
 import { checkReadiness } from "./src/services/healthService.js";
 import { processPendingNotifications } from "./src/services/fcmService.js";
+import { deleteExpiredOrRevoked } from "./src/models/refreshTokenModel.js";
 import {
     INSIGHT_PROCESSING_CONFIG,
     processPendingInsights,
@@ -23,16 +29,21 @@ import dashboardRoutes from "./src/routes/dashboard.js";
 import laporanRoutes from "./src/routes/laporan.js";
 
 const app = express();
-const { port: PORT, trustProxyHops } = validateEnvironment();
+const {
+    port: PORT,
+    trustProxyHops,
+    requestTimeoutMs,
+    hstsEnabled,
+    corsOrigins,
+} = validateEnvironment();
 
 app.set("trust proxy", trustProxyHops === 0 ? false : trustProxyHops);
+app.disable("x-powered-by");
 
-app.use(cors({
-    origin: process.env.CORS_ORIGIN,
-    exposedHeaders: ["Content-Disposition"],
-}));
+app.use(securityHeaders({ hstsEnabled }));
+app.use(cors(createCorsOptions(corsOrigins)));
 app.use((req, res, next) => {
-    req.id = req.headers["x-request-id"] || randomUUID();
+    req.id = normalizeRequestId(req.headers["x-request-id"], randomUUID);
     res.setHeader("X-Request-Id", req.id);
     next();
 });
@@ -90,6 +101,13 @@ app.use((err, req, res, next) => {
             data: null,
         });
     }
+    if (err?.code === "CORS_ORIGIN_DENIED") {
+        return res.status(403).json({
+            success: false,
+            message: "Origin tidak diizinkan",
+            data: null,
+        });
+    }
     console.error(`[${req.id}]`, err);
     return res.status(500).json({
         success: false,
@@ -105,6 +123,8 @@ if (isMainModule) {
     const server = app.listen(PORT, () => {
         console.log(`Server running on port ${PORT}`);
     });
+    server.requestTimeout = requestTimeoutMs;
+    server.headersTimeout = Math.min(requestTimeoutMs + 1_000, 301_000);
 
     const outboxInterval = setInterval(() => {
         processPendingNotifications().catch((err) =>
@@ -112,6 +132,18 @@ if (isMainModule) {
         );
     }, 30_000);
     outboxInterval.unref();
+
+    const cleanupRefreshTokens = () => {
+        deleteExpiredOrRevoked().catch((err) =>
+            console.error(`[REFRESH TOKEN CLEANUP] ${err.message}`),
+        );
+    };
+    void cleanupRefreshTokens();
+    const refreshTokenCleanupInterval = setInterval(
+        cleanupRefreshTokens,
+        6 * 60 * 60 * 1_000,
+    );
+    refreshTokenCleanupInterval.unref();
 
     let insightWorkerRunning = false;
     const runInsightWorker = async () => {
@@ -135,6 +167,7 @@ if (isMainModule) {
     const shutdown = (signal) => {
         console.log(`${signal} diterima, menghentikan server...`);
         clearInterval(outboxInterval);
+        clearInterval(refreshTokenCleanupInterval);
         clearInterval(insightInterval);
         server.close(async () => {
             await db.end();

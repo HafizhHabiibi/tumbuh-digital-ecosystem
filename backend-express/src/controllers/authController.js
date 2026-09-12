@@ -11,7 +11,11 @@ import {
     generateResetToken,
     verifyResetToken,
 } from "../utils/jwt.js";
-import { verifyTurnstile } from "../utils/turnstile.js";
+import {
+    getAllowedTurnstileHostnames,
+    isTurnstileResultAccepted,
+    verifyTurnstile,
+} from "../utils/turnstile.js";
 import { success, error } from "../utils/response.js";
 import {
     isRoleAllowedOnPlatform,
@@ -31,6 +35,7 @@ export const buatLogin = ({
     generateRefreshTokenFn = generateRefreshToken,
     saveRefreshToken = RefreshTokenModel.save,
     getNodeEnv = () => process.env.NODE_ENV,
+    getTurnstileHostnames = getAllowedTurnstileHostnames,
     now = () => Date.now(),
 } = {}) => async (req, res) => {
     try {
@@ -53,11 +58,20 @@ export const buatLogin = ({
             }
             try {
                 const ts = await verifyTurnstileFn(turnstileToken, req.ip);
-                if (!ts.success || (ts.action && ts.action !== "login")) {
+                if (!isTurnstileResultAccepted(
+                    ts,
+                    "login",
+                    getTurnstileHostnames(),
+                )) {
                     return error(res, "Turnstile verification failed", 400);
                 }
             } catch (err) {
-                return error(res, "Error saat verifikasi Turnstile", 500);
+                return error(
+                    res,
+                    "Layanan verifikasi keamanan tidak tersedia",
+                    503,
+                    "TURNSTILE_UNAVAILABLE",
+                );
             }
         }
 
@@ -157,11 +171,11 @@ export const changePassword = async (req, res) => {
             return error(res, "Password lama dan baru wajib diisi", 400);
         }
 
-        if (password_baru.length < 6) {
-            return error(res, "Password baru minimal 6 karakter", 400);
+        if (password_baru.length < 8) {
+            return error(res, "Password baru minimal 8 karakter", 400);
         }
-        if (password_baru.length > 72) {
-            return error(res, "Password baru maksimal 72 karakter", 400);
+        if (Buffer.byteLength(password_baru, "utf8") > 72) {
+            return error(res, "Password baru maksimal 72 byte UTF-8", 400);
         }
 
         const user = await UserModel.findById(userId);
@@ -191,6 +205,7 @@ export const buatForgotPassword = ({
     generateResetTokenFn = generateResetToken,
     verifyTurnstileFn = verifyTurnstile,
     getNodeEnv = () => process.env.NODE_ENV,
+    getTurnstileHostnames = getAllowedTurnstileHostnames,
 } = {}) => async (req, res) => {
     try {
         const { email, turnstileToken, platform } = req.body;
@@ -208,11 +223,20 @@ export const buatForgotPassword = ({
             }
             try {
                 const ts = await verifyTurnstileFn(turnstileToken, req.ip);
-                if (!ts.success || (ts.action && ts.action !== "forgot-password")) {
+                if (!isTurnstileResultAccepted(
+                    ts,
+                    "forgot-password",
+                    getTurnstileHostnames(),
+                )) {
                     return error(res, "Turnstile verification failed", 400);
                 }
             } catch (err) {
-                return error(res, "Error saat verifikasi Turnstile", 500);
+                return error(
+                    res,
+                    "Layanan verifikasi keamanan tidak tersedia",
+                    503,
+                    "TURNSTILE_UNAVAILABLE",
+                );
             }
         }
 
@@ -251,11 +275,11 @@ export const resetPassword = async (req, res) => {
             return error(res, "Token dan password baru wajib diisi", 400);
         }
 
-        if (password_baru.length < 6) {
-            return error(res, "Password baru minimal 6 karakter", 400);
+        if (password_baru.length < 8) {
+            return error(res, "Password baru minimal 8 karakter", 400);
         }
-        if (password_baru.length > 72) {
-            return error(res, "Password baru maksimal 72 karakter", 400);
+        if (Buffer.byteLength(password_baru, "utf8") > 72) {
+            return error(res, "Password baru maksimal 72 byte UTF-8", 400);
         }
 
         // Verify JWT reset token

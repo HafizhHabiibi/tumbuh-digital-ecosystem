@@ -83,3 +83,11 @@ export const revokeAllByUser = async (userId) => {
         userId,
     ]);
 };
+
+export const deleteExpiredOrRevoked = async () => {
+    const [result] = await db.query(
+        `DELETE FROM refresh_tokens
+         WHERE expires_at <= NOW() OR revoked = 1`,
+    );
+    return result.affectedRows || 0;
+};

@@ -29,8 +29,8 @@ export const createOrangTua = async (req, res) => {
             return error(res, "NIK harus terdiri dari 16 digit angka", 400);
         }
 
-        if (password.length < 6) {
-            return error(res, "Password harus berisi minimal 6 karakter", 400);
+        if (password.length < 8) {
+            return error(res, "Password harus berisi minimal 8 karakter", 400);
         }
 
         const emailExists = await OrangTuaModel.findByEmail(email);

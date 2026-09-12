@@ -22,27 +22,27 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- ==========================================================
 
 INSERT INTO users (id, email, password_hash, role, is_active) VALUES
-    ('01a053bb-fb3e-7fcd-bc42-a599a4f4d33c', 'meongterbang22@gmail.com', '$2b$10$2CL2mF39piuIn9FOEjbLd.J42PZKvq8IZRtkBlEOcBjBKI8EPiT4y', 'kader', TRUE);
+    ('01a053bb-fb3e-7fcd-bc42-a599a4f4d33c', 'riri.kader@example.test', '$2b$10$2CL2mF39piuIn9FOEjbLd.J42PZKvq8IZRtkBlEOcBjBKI8EPiT4y', 'kader', TRUE);
 INSERT INTO kader (id, user_id, nama_lengkap, no_hp) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e47b383706e6', '01a053bb-fb3e-7fcd-bc42-a599a4f4d33c', 'Riri Andayani', '081234567890');
 
 INSERT INTO users (id, email, password_hash, role, is_active) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e47cac09bdcb', 'budi.kader@gmail.com', '$2b$10$NO8oUnYwA7O.OUGNywYZx.dChWwP7m/c9ar53P183nGtANvKIPpoK', 'kader', TRUE);
+    ('01a053bb-fb3f-7b2a-ae2e-e47cac09bdcb', 'budi.kader@example.test', '$2b$10$NO8oUnYwA7O.OUGNywYZx.dChWwP7m/c9ar53P183nGtANvKIPpoK', 'kader', TRUE);
 INSERT INTO kader (id, user_id, nama_lengkap, no_hp) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e47d59244e78', '01a053bb-fb3f-7b2a-ae2e-e47cac09bdcb', 'Budi Santoso', '082345678901');
 
 INSERT INTO users (id, email, password_hash, role, is_active) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e47e78397374', 'sari.kader@gmail.com', '$2b$10$xI1RyOUs79p6Wj8fgawiOu4HPIWawYHD7lYcQ8/6TSBqjdLl/IT.y', 'kader', TRUE);
+    ('01a053bb-fb3f-7b2a-ae2e-e47e78397374', 'sari.kader@example.test', '$2b$10$xI1RyOUs79p6Wj8fgawiOu4HPIWawYHD7lYcQ8/6TSBqjdLl/IT.y', 'kader', TRUE);
 INSERT INTO kader (id, user_id, nama_lengkap, no_hp) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', '01a053bb-fb3f-7b2a-ae2e-e47e78397374', 'Sari Dewi', '083456789012');
 
 INSERT INTO users (id, email, password_hash, role, is_active) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e480ca12c0b8', 'bullmini123@gmail.com', '$2b$10$UYp.AaHeHX0Qcpq71X2EYuGqYkXIqQWQbZyOj/jv1paSMNOh4epgq', 'puskesmas', TRUE);
+    ('01a053bb-fb3f-7b2a-ae2e-e480ca12c0b8', 'ciko.puskesmas@example.test', '$2b$10$UYp.AaHeHX0Qcpq71X2EYuGqYkXIqQWQbZyOj/jv1paSMNOh4epgq', 'puskesmas', TRUE);
 INSERT INTO puskesmas (id, user_id, nama_lengkap, jabatan, no_hp) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e48116394f55', '01a053bb-fb3f-7b2a-ae2e-e480ca12c0b8', 'Ciko Wijaya', 'Bidan', '081234567891');
 
 INSERT INTO users (id, email, password_hash, role, is_active) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e4821d9e6f69', 'hana.pertiwi@gmail.com', '$2b$10$W5/6LJojewBZ9PS/cswwIu37jbRQkrAI6.L9hIA/PGrI7Ki9wTHWS', 'puskesmas', TRUE);
+    ('01a053bb-fb3f-7b2a-ae2e-e4821d9e6f69', 'hana.puskesmas@example.test', '$2b$10$W5/6LJojewBZ9PS/cswwIu37jbRQkrAI6.L9hIA/PGrI7Ki9wTHWS', 'puskesmas', TRUE);
 INSERT INTO puskesmas (id, user_id, nama_lengkap, jabatan, no_hp) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e48307ff8d45', '01a053bb-fb3f-7b2a-ae2e-e4821d9e6f69', 'dr. Hana Pertiwi', 'Dokter', '084567890123');
 
@@ -51,52 +51,52 @@ INSERT INTO puskesmas (id, user_id, nama_lengkap, jabatan, no_hp) VALUES
 -- ==========================================================
 
 INSERT INTO users (id, email, password_hash, role, is_active) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e48482d1eea2', 'aminah.kusuma@gmail.com', '$2b$10$5Ut5yuD3wvbRPX4upOe7XuQjLflsobaHbM/mPZXFhlePzl89Cx4BC', 'orang_tua', TRUE);
+    ('01a053bb-fb3f-7b2a-ae2e-e48482d1eea2', 'aminah.orangtua@example.test', '$2b$10$5Ut5yuD3wvbRPX4upOe7XuQjLflsobaHbM/mPZXFhlePzl89Cx4BC', 'orang_tua', TRUE);
 INSERT INTO orang_tua (id, user_id, dibuat_oleh_kader_id, nama_lengkap, no_hp, alamat, nik) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e485c9299aff', '01a053bb-fb3f-7b2a-ae2e-e48482d1eea2', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'Aminah Kusuma', '081111111101', 'Jl. Mawar No. 12 RT 01 RW 05', '3201010101870001');
 
 INSERT INTO users (id, email, password_hash, role, is_active) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e486b7958eae', 'dewi.susanti@gmail.com', '$2b$10$d0r7FObwGDCqBZVTh/kHseoBnjoZVJW5tM6x1GsL1aLno20bAU/1W', 'orang_tua', TRUE);
+    ('01a053bb-fb3f-7b2a-ae2e-e486b7958eae', 'dewi.orangtua@example.test', '$2b$10$d0r7FObwGDCqBZVTh/kHseoBnjoZVJW5tM6x1GsL1aLno20bAU/1W', 'orang_tua', TRUE);
 INSERT INTO orang_tua (id, user_id, dibuat_oleh_kader_id, nama_lengkap, no_hp, alamat, nik) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e487651e0ad0', '01a053bb-fb3f-7b2a-ae2e-e486b7958eae', '01a053bb-fb3f-7b2a-ae2e-e47d59244e78', 'Dewi Susanti', '081111111102', 'Jl. Melati No. 5 RT 02 RW 05', '3201010201890002');
 
 INSERT INTO users (id, email, password_hash, role, is_active) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e48898cce048', 'fatimah.rahman@gmail.com', '$2b$10$VXJdGXSNSkNM5oT.vtAm1.n1sxG7GqjZJexLsVQB7hA0C55bxaec2', 'orang_tua', TRUE);
+    ('01a053bb-fb3f-7b2a-ae2e-e48898cce048', 'fatimah.orangtua@example.test', '$2b$10$VXJdGXSNSkNM5oT.vtAm1.n1sxG7GqjZJexLsVQB7hA0C55bxaec2', 'orang_tua', TRUE);
 INSERT INTO orang_tua (id, user_id, dibuat_oleh_kader_id, nama_lengkap, no_hp, alamat, nik) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e48974295630', '01a053bb-fb3f-7b2a-ae2e-e48898cce048', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'Fatimah Rahman', '081111111103', 'Jl. Anggrek No. 8 RT 03 RW 05', '3201010301850003');
 
 INSERT INTO users (id, email, password_hash, role, is_active) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e48ae57ce66d', 'siti.rahayu@gmail.com', '$2b$10$f9BoUdcEFnkkXp1TAi6fuuIlRPuz5PGt0ENCPcfRC.OzxbQ6mTIIm', 'orang_tua', TRUE);
+    ('01a053bb-fb3f-7b2a-ae2e-e48ae57ce66d', 'siti.orangtua@example.test', '$2b$10$f9BoUdcEFnkkXp1TAi6fuuIlRPuz5PGt0ENCPcfRC.OzxbQ6mTIIm', 'orang_tua', TRUE);
 INSERT INTO orang_tua (id, user_id, dibuat_oleh_kader_id, nama_lengkap, no_hp, alamat, nik) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e48b4cf3b5f5', '01a053bb-fb3f-7b2a-ae2e-e48ae57ce66d', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'Siti Rahayu', '081111111104', 'Jl. Dahlia No. 3 RT 01 RW 05', '3201010401900004');
 
 INSERT INTO users (id, email, password_hash, role, is_active) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e48c00c5a32d', 'kartini.wulandari@gmail.com', '$2b$10$BcIX7sfv04oFXTUZjysdY.CgAER9A0y9UUUrHQQSFK10t5e6TalAu', 'orang_tua', TRUE);
+    ('01a053bb-fb3f-7b2a-ae2e-e48c00c5a32d', 'kartini.orangtua@example.test', '$2b$10$BcIX7sfv04oFXTUZjysdY.CgAER9A0y9UUUrHQQSFK10t5e6TalAu', 'orang_tua', TRUE);
 INSERT INTO orang_tua (id, user_id, dibuat_oleh_kader_id, nama_lengkap, no_hp, alamat, nik) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e48d81ef5b14', '01a053bb-fb3f-7b2a-ae2e-e48c00c5a32d', '01a053bb-fb3f-7b2a-ae2e-e47d59244e78', 'Kartini Wulandari', '081111111105', 'Jl. Kenanga No. 7 RT 04 RW 05', '3201010501880005');
 
 INSERT INTO users (id, email, password_hash, role, is_active) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e48e30953be0', 'rahayu.lestari@gmail.com', '$2b$10$QzPeaNRSsN31mgrWdWPtg.6k6/aVhTy942rKjqmYkzEsNOPbRmIdi', 'orang_tua', TRUE);
+    ('01a053bb-fb3f-7b2a-ae2e-e48e30953be0', 'rahayu.orangtua@example.test', '$2b$10$QzPeaNRSsN31mgrWdWPtg.6k6/aVhTy942rKjqmYkzEsNOPbRmIdi', 'orang_tua', TRUE);
 INSERT INTO orang_tua (id, user_id, dibuat_oleh_kader_id, nama_lengkap, no_hp, alamat, nik) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e48f0f1afec6', '01a053bb-fb3f-7b2a-ae2e-e48e30953be0', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'Rahayu Lestari', '081111111106', 'Jl. Bougenville No. 15 RT 02 RW 05', '3201010601910006');
 
 INSERT INTO users (id, email, password_hash, role, is_active) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e4900c20a059', 'wulan.sari@gmail.com', '$2b$10$CDwmi/WGZhiJJAmwDk4w.emXWI7e9a/pwdmG4pKwpCpG03X8dQJqu', 'orang_tua', TRUE);
+    ('01a053bb-fb3f-7b2a-ae2e-e4900c20a059', 'wulan.orangtua@example.test', '$2b$10$CDwmi/WGZhiJJAmwDk4w.emXWI7e9a/pwdmG4pKwpCpG03X8dQJqu', 'orang_tua', TRUE);
 INSERT INTO orang_tua (id, user_id, dibuat_oleh_kader_id, nama_lengkap, no_hp, alamat, nik) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e491d98f2c80', '01a053bb-fb3f-7b2a-ae2e-e4900c20a059', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'Wulan Sari', '081111111107', 'Jl. Cempaka No. 4 RT 03 RW 05', '3201010701920007');
 
 INSERT INTO users (id, email, password_hash, role, is_active) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e4920a40afd0', 'lestari.handayani@gmail.com', '$2b$10$2Ez4EH.0hM.l1Vz3KvwPF.cI7z9vQ00CGKA.0SjxPDF8p7oTnrgw.', 'orang_tua', TRUE);
+    ('01a053bb-fb3f-7b2a-ae2e-e4920a40afd0', 'lestari.orangtua@example.test', '$2b$10$2Ez4EH.0hM.l1Vz3KvwPF.cI7z9vQ00CGKA.0SjxPDF8p7oTnrgw.', 'orang_tua', TRUE);
 INSERT INTO orang_tua (id, user_id, dibuat_oleh_kader_id, nama_lengkap, no_hp, alamat, nik) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e493bb2fdec4', '01a053bb-fb3f-7b2a-ae2e-e4920a40afd0', '01a053bb-fb3f-7b2a-ae2e-e47d59244e78', 'Lestari Handayani', '081111111108', 'Jl. Flamboyan No. 9 RT 05 RW 05', '3201010801860008');
 
 INSERT INTO users (id, email, password_hash, role, is_active) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e49421a4ee5e', 'nuraini.putri@gmail.com', '$2b$10$Q4rNc/AMeJ1QB/d5Dwg7ZOgM8p9tJAh5KaqglIbQsnO3aV2TowEiO', 'orang_tua', TRUE);
+    ('01a053bb-fb3f-7b2a-ae2e-e49421a4ee5e', 'nuraini.orangtua@example.test', '$2b$10$Q4rNc/AMeJ1QB/d5Dwg7ZOgM8p9tJAh5KaqglIbQsnO3aV2TowEiO', 'orang_tua', TRUE);
 INSERT INTO orang_tua (id, user_id, dibuat_oleh_kader_id, nama_lengkap, no_hp, alamat, nik) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e495f9eb23d9', '01a053bb-fb3f-7b2a-ae2e-e49421a4ee5e', '01a053bb-fb3f-7b2a-ae2e-e47f466c1ac2', 'Nuraini Putri', '081111111109', 'Jl. Kamboja No. 2 RT 01 RW 05', '3201010901930009');
 
 INSERT INTO users (id, email, password_hash, role, is_active) VALUES
-    ('01a053bb-fb3f-7b2a-ae2e-e49602ad4be0', 'sumiati.wahyu@gmail.com', '$2b$10$14Vw6WTxOjahgxdjXfRmBufOiXpQlo27zW/VYl1sgFiQzkpCqFf2W', 'orang_tua', TRUE);
+    ('01a053bb-fb3f-7b2a-ae2e-e49602ad4be0', 'sumiati.orangtua@example.test', '$2b$10$14Vw6WTxOjahgxdjXfRmBufOiXpQlo27zW/VYl1sgFiQzkpCqFf2W', 'orang_tua', TRUE);
 INSERT INTO orang_tua (id, user_id, dibuat_oleh_kader_id, nama_lengkap, no_hp, alamat, nik) VALUES
     ('01a053bb-fb3f-7b2a-ae2e-e4974bd52e24', '01a053bb-fb3f-7b2a-ae2e-e49602ad4be0', '01a053bb-fb3f-7b2a-ae2e-e47b383706e6', 'Sumiati Wahyu', '081111111110', 'Jl. Teratai No. 6 RT 04 RW 05', '3201011001870010');
 

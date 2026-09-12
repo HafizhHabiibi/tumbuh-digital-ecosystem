@@ -157,27 +157,27 @@ const MEASUREMENT_DATES = [
 ];
 
 const KADER_LIST = [
-    { nama: "Riri Andayani", email: "meongterbang22@gmail.com", password: "password123", no_hp: "081234567890" },
-    { nama: "Budi Santoso", email: "budi.kader@gmail.com", password: "password123", no_hp: "082345678901" },
-    { nama: "Sari Dewi", email: "sari.kader@gmail.com", password: "password123", no_hp: "083456789012" },
+    { nama: "Riri Andayani", email: "riri.kader@example.test", password: "password123", no_hp: "081234567890" },
+    { nama: "Budi Santoso", email: "budi.kader@example.test", password: "password123", no_hp: "082345678901" },
+    { nama: "Sari Dewi", email: "sari.kader@example.test", password: "password123", no_hp: "083456789012" },
 ];
 
 const PUSKE_LIST = [
-    { nama: "Ciko Wijaya", email: "bullmini123@gmail.com", password: "password123", no_hp: "081234567891", jabatan: "Bidan" },
-    { nama: "dr. Hana Pertiwi", email: "hana.pertiwi@gmail.com", password: "password123", no_hp: "084567890123", jabatan: "Dokter" },
+    { nama: "Ciko Wijaya", email: "ciko.puskesmas@example.test", password: "password123", no_hp: "081234567891", jabatan: "Bidan" },
+    { nama: "dr. Hana Pertiwi", email: "hana.puskesmas@example.test", password: "password123", no_hp: "084567890123", jabatan: "Dokter" },
 ];
 
 const OT_LIST = [
-    { nama: "Aminah Kusuma", no_hp: "081111111101", alamat: "Jl. Mawar No. 12 RT 01 RW 05", nik: "3201010101870001", email: "aminah.kusuma@gmail.com", password: "password123" },
-    { nama: "Dewi Susanti", no_hp: "081111111102", alamat: "Jl. Melati No. 5 RT 02 RW 05", nik: "3201010201890002", email: "dewi.susanti@gmail.com", password: "password123" },
-    { nama: "Fatimah Rahman", no_hp: "081111111103", alamat: "Jl. Anggrek No. 8 RT 03 RW 05", nik: "3201010301850003", email: "fatimah.rahman@gmail.com", password: "password123" },
-    { nama: "Siti Rahayu", no_hp: "081111111104", alamat: "Jl. Dahlia No. 3 RT 01 RW 05", nik: "3201010401900004", email: "siti.rahayu@gmail.com", password: "password123" },
-    { nama: "Kartini Wulandari", no_hp: "081111111105", alamat: "Jl. Kenanga No. 7 RT 04 RW 05", nik: "3201010501880005", email: "kartini.wulandari@gmail.com", password: "password123" },
-    { nama: "Rahayu Lestari", no_hp: "081111111106", alamat: "Jl. Bougenville No. 15 RT 02 RW 05", nik: "3201010601910006", email: "rahayu.lestari@gmail.com", password: "password123" },
-    { nama: "Wulan Sari", no_hp: "081111111107", alamat: "Jl. Cempaka No. 4 RT 03 RW 05", nik: "3201010701920007", email: "wulan.sari@gmail.com", password: "password123" },
-    { nama: "Lestari Handayani", no_hp: "081111111108", alamat: "Jl. Flamboyan No. 9 RT 05 RW 05", nik: "3201010801860008", email: "lestari.handayani@gmail.com", password: "password123" },
-    { nama: "Nuraini Putri", no_hp: "081111111109", alamat: "Jl. Kamboja No. 2 RT 01 RW 05", nik: "3201010901930009", email: "nuraini.putri@gmail.com", password: "password123" },
-    { nama: "Sumiati Wahyu", no_hp: "081111111110", alamat: "Jl. Teratai No. 6 RT 04 RW 05", nik: "3201011001870010", email: "sumiati.wahyu@gmail.com", password: "password123" },
+    { nama: "Aminah Kusuma", no_hp: "081111111101", alamat: "Jl. Mawar No. 12 RT 01 RW 05", nik: "3201010101870001", email: "aminah.orangtua@example.test", password: "password123" },
+    { nama: "Dewi Susanti", no_hp: "081111111102", alamat: "Jl. Melati No. 5 RT 02 RW 05", nik: "3201010201890002", email: "dewi.orangtua@example.test", password: "password123" },
+    { nama: "Fatimah Rahman", no_hp: "081111111103", alamat: "Jl. Anggrek No. 8 RT 03 RW 05", nik: "3201010301850003", email: "fatimah.orangtua@example.test", password: "password123" },
+    { nama: "Siti Rahayu", no_hp: "081111111104", alamat: "Jl. Dahlia No. 3 RT 01 RW 05", nik: "3201010401900004", email: "siti.orangtua@example.test", password: "password123" },
+    { nama: "Kartini Wulandari", no_hp: "081111111105", alamat: "Jl. Kenanga No. 7 RT 04 RW 05", nik: "3201010501880005", email: "kartini.orangtua@example.test", password: "password123" },
+    { nama: "Rahayu Lestari", no_hp: "081111111106", alamat: "Jl. Bougenville No. 15 RT 02 RW 05", nik: "3201010601910006", email: "rahayu.orangtua@example.test", password: "password123" },
+    { nama: "Wulan Sari", no_hp: "081111111107", alamat: "Jl. Cempaka No. 4 RT 03 RW 05", nik: "3201010701920007", email: "wulan.orangtua@example.test", password: "password123" },
+    { nama: "Lestari Handayani", no_hp: "081111111108", alamat: "Jl. Flamboyan No. 9 RT 05 RW 05", nik: "3201010801860008", email: "lestari.orangtua@example.test", password: "password123" },
+    { nama: "Nuraini Putri", no_hp: "081111111109", alamat: "Jl. Kamboja No. 2 RT 01 RW 05", nik: "3201010901930009", email: "nuraini.orangtua@example.test", password: "password123" },
+    { nama: "Sumiati Wahyu", no_hp: "081111111110", alamat: "Jl. Teratai No. 6 RT 04 RW 05", nik: "3201011001870010", email: "sumiati.orangtua@example.test", password: "password123" },
 ];
 
 /**
@@ -284,7 +284,7 @@ async function generateSeeder() {
     for (let i = 0; i < KADER_LIST.length; i++) {
         const k = KADER_LIST[i];
         const ids = kaderIds[i];
-        console.log(`[Kader ${i + 1}] ${k.nama} | ${k.email}`);
+        console.log(`[Kader ${i + 1}] fixture dibuat`);
         lines.push(`INSERT INTO users (id, email, password_hash, role, is_active) VALUES`);
         lines.push(`    (${sq(ids.uId)}, ${sq(k.email)}, ${sq(kaderHashes[i])}, 'kader', TRUE);`);
         lines.push(`INSERT INTO kader (id, user_id, nama_lengkap, no_hp) VALUES`);
@@ -295,7 +295,7 @@ async function generateSeeder() {
     for (let i = 0; i < PUSKE_LIST.length; i++) {
         const p = PUSKE_LIST[i];
         const ids = puskeIds[i];
-        console.log(`[Puskesmas ${i + 1}] ${p.nama} | ${p.email}`);
+        console.log(`[Puskesmas ${i + 1}] fixture dibuat`);
         lines.push(`INSERT INTO users (id, email, password_hash, role, is_active) VALUES`);
         lines.push(`    (${sq(ids.uId)}, ${sq(p.email)}, ${sq(puskeHashes[i])}, 'puskesmas', TRUE);`);
         lines.push(`INSERT INTO puskesmas (id, user_id, nama_lengkap, jabatan, no_hp) VALUES`);
@@ -315,7 +315,7 @@ async function generateSeeder() {
         const ot = OT_LIST[i];
         const ids = otIds[i];
         const kaderAssign = kaderIds[i % KADER_LIST.length].kId;
-        console.log(`[OT ${i + 1}] ${ot.nama} | ${ot.email}`);
+        console.log(`[OT ${i + 1}] fixture dibuat`);
         lines.push(`INSERT INTO users (id, email, password_hash, role, is_active) VALUES`);
         lines.push(`    (${sq(ids.uId)}, ${sq(ot.email)}, ${sq(otHashes[i])}, 'orang_tua', TRUE);`);
         lines.push(`INSERT INTO orang_tua (id, user_id, dibuat_oleh_kader_id, nama_lengkap, no_hp, alamat, nik) VALUES`);

@@ -113,7 +113,7 @@
                     id="password_ot"
                     v-model="form.password"
                     :type="showPassword ? 'text' : 'password'"
-                    placeholder="Minimal 6 karakter"
+                    placeholder="Minimal 8 karakter"
                     :disabled="loading"
                     maxlength="72"
                     class="w-full pl-9 pr-10 py-2.5 rounded-xl text-sm bg-white border border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all text-slate-800 outline-none"
@@ -219,6 +219,10 @@
 
 <script setup>
 import { ref, computed, reactive, watch } from "vue";
+import {
+    isNewPasswordLengthValid,
+    passwordByteLength,
+} from "@/utils/password.js";
 
 const props = defineProps({
     loading: { type: Boolean, default: false },
@@ -268,10 +272,10 @@ const fieldError = computed(() => {
         e.nik = "NIK harus tepat 16 digit angka";
     if (!isEdit.value && form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
         e.email = "Format email tidak valid";
-    if (!isEdit.value && form.password && form.password.length < 6)
-        e.password = "Password minimal 6 karakter";
-    else if (!isEdit.value && form.password.length > 72)
-        e.password = "Password maksimal 72 karakter";
+    if (!isEdit.value && form.password && form.password.length < 8)
+        e.password = "Password minimal 8 karakter";
+    else if (!isEdit.value && passwordByteLength(form.password) > 72)
+        e.password = "Password maksimal 72 byte UTF-8";
     if (form.no_hp && !/^\+?\d{8,20}$/.test(form.no_hp))
         e.no_hp = "Format nomor telepon tidak valid";
     if (form.alamat && form.alamat.trim().length < 3)
@@ -296,8 +300,7 @@ const isValid = computed(
         form.nama_lengkap.trim().length >= 2 &&
         /^\d{16}$/.test(form.nik) &&
         (isEdit.value || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) &&
-        (isEdit.value ||
-            (form.password.length >= 6 && form.password.length <= 72)) &&
+        (isEdit.value || isNewPasswordLengthValid(form.password)) &&
         /^\+?\d{8,20}$/.test(form.no_hp) &&
         form.alamat.trim().length >= 3 &&
         Object.keys(fieldError.value).length === 0,

@@ -21,6 +21,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/authStore";
 import LoginBranding from "@/components/layout/LoginBranding.vue";
 import FormResetPassword from "@/components/forms/FormResetPassword.vue";
+import { isNewPasswordLengthValid } from "@/utils/password.js";
 
 const route = useRoute();
 const router = useRouter();
@@ -39,7 +40,7 @@ onMounted(() => {
 
 const isFormValid = computed(() => {
     const { password, passwordConfirmation } = form.value;
-    return password.length >= 6 && password.length <= 72 && password === passwordConfirmation;
+    return isNewPasswordLengthValid(password) && password === passwordConfirmation;
 });
 
 const handleSubmit = async () => {

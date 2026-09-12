@@ -140,7 +140,7 @@
                                 <label for="password_baru" class="block text-xs font-semibold text-slate-700">
                                     Password Baru
                                 </label>
-                                <span class="text-[11px] text-slate-400">Min. 6 karakter</span>
+                                <span class="text-[11px] text-slate-400">Min. 8 karakter</span>
                             </div>
                             <div class="relative">
                                 <i class="pi pi-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs" aria-hidden="true" />
@@ -310,6 +310,10 @@ import { ref, reactive, computed, onMounted } from "vue";
 import { useAuthStore } from "@/stores/authStore";
 import { useRouter } from "vue-router";
 import { formatTanggal, toLocalDateStr } from "@/utils/format.js";
+import {
+    isNewPasswordLengthValid,
+    passwordByteLength,
+} from "@/utils/password.js";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -339,7 +343,7 @@ const userInitial = computed(
 const isValid = computed(
     () =>
         Boolean(form.password_lama.trim()) &&
-        form.password_baru.length >= 6 &&
+        isNewPasswordLengthValid(form.password_baru) &&
         form.konfirmasi === form.password_baru,
 );
 
@@ -348,7 +352,8 @@ const validationErrors = computed(() => {
     const errors = {};
     if (!form.password_lama.trim()) errors.password_lama = "Password lama wajib diisi";
     if (!form.password_baru) errors.password_baru = "Password baru wajib diisi";
-    else if (form.password_baru.length < 6) errors.password_baru = "Password minimal 6 karakter";
+    else if (form.password_baru.length < 8) errors.password_baru = "Password minimal 8 karakter";
+    else if (passwordByteLength(form.password_baru) > 72) errors.password_baru = "Password maksimal 72 byte UTF-8";
     if (!form.konfirmasi) errors.konfirmasi = "Konfirmasi password wajib diisi";
     else if (form.konfirmasi !== form.password_baru) errors.konfirmasi = "Password tidak cocok";
     return errors;

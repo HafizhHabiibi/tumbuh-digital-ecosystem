@@ -54,7 +54,7 @@
                     </h1>
                     <p class="text-sm text-body leading-relaxed">
                         Password baru harus berbeda dari password sebelumnya dan
-                        6–72 karakter.
+                        minimal 8 karakter dan maksimal 72 byte UTF-8.
                     </p>
                 </header>
 
@@ -121,7 +121,7 @@
                                     id="new-password"
                                     :value="password"
                                     :type="showPassword ? 'text' : 'password'"
-                                    placeholder="Minimal 6 karakter"
+                                    placeholder="Minimal 8 karakter"
                                     autocomplete="new-password"
                                     maxlength="72"
                                     :disabled="loading"

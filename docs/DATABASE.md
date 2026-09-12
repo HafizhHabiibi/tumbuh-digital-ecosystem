@@ -44,7 +44,7 @@ erDiagram
 | `pemberian` | Vitamin, obat cacing, PMT | Unik per anak/jenis/tanggal |
 | `rujukan` | Rujukan dari pengukuran | Status `diajukan`, `ditangani`, `selesai` |
 | `pengaturan_jadwal` | Template jadwal default | Maksimal satu row melalui singleton key |
-| `jadwal_posyandu` | Jadwal aktual | Tanggal unik |
+| `jadwal_posyandu` | Jadwal aktual | Tanggal unik dan penanda pengiriman reminder H-1/hari-H |
 | `notifikasi` | Inbox orang tua | Referensi event dapat menjadi `NULL` bila event dihapus |
 | `refresh_tokens` | Hash refresh token Android | Token mentah tidak disimpan; mendukung multi-device |
 | `notification_outbox` | Antrean pengiriman FCM | Status/retry/available time untuk worker |
@@ -105,4 +105,3 @@ Repository memiliki tiga script perubahan existing database:
 Script tersebut bukan migration framework umum, tidak menyediakan urutan/version table lengkap, dan tidak menggantikan backup. Untuk finalisasi lokal gunakan database fresh. Sebelum memakai database existing atau data nyata, siapkan migration runner, backup terenkripsi, dan restore drill.
 
 Lihat [Configuration](./CONFIGURATION.md) untuk koneksi dan [Security dan Privacy](./SECURITY_AND_PRIVACY.md) untuk retensi serta batas data.
-

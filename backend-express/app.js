@@ -16,6 +16,10 @@ import {
     INSIGHT_PROCESSING_CONFIG,
     processPendingInsights,
 } from "./src/services/insightService.js";
+import {
+    JADWAL_REMINDER_INTERVAL_MS,
+    processScheduleReminders,
+} from "./src/services/jadwalReminderService.js";
 import authRoutes from "./src/routes/auth.js";
 import kaderRoutes from "./src/routes/kader.js";
 import puskesmasRoutes from "./src/routes/puskesmas.js";
@@ -164,11 +168,31 @@ if (isMainModule) {
     );
     insightInterval.unref();
 
+    let scheduleReminderWorkerRunning = false;
+    const runScheduleReminderWorker = async () => {
+        if (scheduleReminderWorkerRunning) return;
+        scheduleReminderWorkerRunning = true;
+        try {
+            await processScheduleReminders();
+        } catch (err) {
+            console.error(`[JADWAL REMINDER WORKER] ${err.message}`);
+        } finally {
+            scheduleReminderWorkerRunning = false;
+        }
+    };
+    void runScheduleReminderWorker();
+    const scheduleReminderInterval = setInterval(
+        runScheduleReminderWorker,
+        JADWAL_REMINDER_INTERVAL_MS,
+    );
+    scheduleReminderInterval.unref();
+
     const shutdown = (signal) => {
         console.log(`${signal} diterima, menghentikan server...`);
         clearInterval(outboxInterval);
         clearInterval(refreshTokenCleanupInterval);
         clearInterval(insightInterval);
+        clearInterval(scheduleReminderInterval);
         server.close(async () => {
             await db.end();
             process.exit(0);

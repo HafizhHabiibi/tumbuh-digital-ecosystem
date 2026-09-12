@@ -149,7 +149,13 @@ export const buatUpdateIfNoMeasurements = (database = db) => async (
     const [result] = await database.query(
         `UPDATE jadwal_posyandu
         SET tanggal = ?, waktu_mulai = ?, waktu_selesai = ?,
-            lokasi = ?, keterangan = ?
+            lokasi = ?, keterangan = ?,
+            reminder_h1_sent_at = CASE
+                WHEN ? THEN NULL ELSE reminder_h1_sent_at
+            END,
+            reminder_h_sent_at = CASE
+                WHEN ? THEN NULL ELSE reminder_h_sent_at
+            END
         WHERE id = ?
         AND NOT EXISTS (
             SELECT 1
@@ -162,6 +168,8 @@ export const buatUpdateIfNoMeasurements = (database = db) => async (
             data.waktu_selesai,
             data.lokasi,
             data.keterangan || null,
+            Boolean(data.reset_reminders),
+            Boolean(data.reset_reminders),
             id,
         ],
     );
@@ -204,4 +212,42 @@ export const findByTanggalExcluding = async (tanggal, excludeId) => {
 export const findAllOrangTua = async () => {
     const [rows] = await db.query("SELECT id, nama_lengkap FROM orang_tua");
     return rows;
+};
+
+export const findPendingReminders = async (tanggalHariIni, tanggalBesok) => {
+    const [rows] = await db.query(
+        `SELECT
+            id,
+            DATE_FORMAT(tanggal, '%Y-%m-%d') AS tanggal,
+            waktu_mulai,
+            waktu_selesai,
+            lokasi,
+            reminder_h1_sent_at,
+            reminder_h_sent_at
+        FROM jadwal_posyandu
+        WHERE (tanggal = ? AND reminder_h_sent_at IS NULL)
+           OR (tanggal = ? AND reminder_h1_sent_at IS NULL)
+        ORDER BY tanggal ASC`,
+        [tanggalHariIni, tanggalBesok],
+    );
+    return rows;
+};
+
+export const markReminderSent = async (jadwalId, reminderType) => {
+    const column = reminderType === "h1"
+        ? "reminder_h1_sent_at"
+        : reminderType === "h"
+            ? "reminder_h_sent_at"
+            : null;
+    if (!column) {
+        throw new Error("Tipe reminder jadwal tidak valid");
+    }
+
+    const [result] = await db.query(
+        `UPDATE jadwal_posyandu
+         SET ${column} = NOW()
+         WHERE id = ? AND ${column} IS NULL`,
+        [jadwalId],
+    );
+    return result.affectedRows === 1;
 };

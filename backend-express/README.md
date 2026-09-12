@@ -117,10 +117,11 @@ Backend tetap memverifikasi bearer token, status akun, role terbaru, dan kepemil
 Saat `app.js` dijalankan langsung, proses yang sama juga menjalankan:
 
 - pemrosesan notification outbox setiap 30 detik;
+- pemeriksaan reminder jadwal setiap 15 menit, dengan notifikasi H-1 mulai pukul 08.00 WIB dan hari-H mulai pukul 06.00 WIB;
 - cleanup refresh token saat startup dan setiap 6 jam;
 - insight worker dengan interval dari konfigurasi service AI.
 
-Seluruh worker tersebut berjalan bersama proses backend sehingga pemrosesan notifikasi, pembersihan token, dan pembuatan insight aktif saat API dijalankan.
+Seluruh worker tersebut berjalan bersama proses backend sehingga pemrosesan notifikasi, reminder jadwal, pembersihan token, dan pembuatan insight aktif saat API dijalankan.
 
 <a id="command-backend"></a>
 

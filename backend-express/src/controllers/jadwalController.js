@@ -275,11 +275,13 @@ export const updateJadwal = async (req, res) => {
         const waktuMulaiLama = jadwal.waktu_mulai?.slice(0, 5);
         const waktuSelesaiLama = jadwal.waktu_selesai?.slice(0, 5);
         const keteranganBaru = keterangan || null;
-        const adaPerubahan =
+        const adaPerubahanPelaksanaan =
             jadwal.tanggal !== tanggal ||
             waktuMulaiLama !== waktu_mulai ||
             waktuSelesaiLama !== waktu_selesai ||
-            jadwal.lokasi !== lokasi ||
+            jadwal.lokasi !== lokasi;
+        const adaPerubahan =
+            adaPerubahanPelaksanaan ||
             (jadwal.keterangan || null) !== keteranganBaru;
 
         if (!adaPerubahan) {
@@ -313,6 +315,7 @@ export const updateJadwal = async (req, res) => {
             waktu_selesai,
             lokasi,
             keterangan: keteranganBaru,
+            reset_reminders: adaPerubahanPelaksanaan,
         });
         if (!updated) {
             return error(

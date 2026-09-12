@@ -220,6 +220,8 @@ CREATE TABLE IF NOT EXISTS jadwal_posyandu (
     waktu_selesai TIME NOT NULL,
     lokasi VARCHAR(255) NOT NULL,
     keterangan TEXT DEFAULT NULL,
+    reminder_h1_sent_at DATETIME DEFAULT NULL,
+    reminder_h_sent_at DATETIME DEFAULT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (kader_id) REFERENCES kader(id) ON DELETE CASCADE,
     INDEX idx_jadwal_tanggal (tanggal)

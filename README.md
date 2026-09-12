@@ -95,7 +95,7 @@ Tumbuh Posyandu menggunakan MySQL sebagai penyimpanan terpusat untuk akun, profi
 | `pemberian` | Layanan Posyandu | Mencatat pemberian vitamin, obat cacing, dan makanan tambahan |
 | `rujukan` | Layanan Posyandu | Menyimpan pengajuan, penanganan, dan penyelesaian rujukan anak |
 | `pengaturan_jadwal` | Jadwal | Menyimpan konfigurasi jadwal default kegiatan Posyandu |
-| `jadwal_posyandu` | Jadwal | Menyimpan jadwal pelaksanaan Posyandu yang dapat dilihat pengguna |
+| `jadwal_posyandu` | Jadwal | Menyimpan jadwal pelaksanaan dan status pengiriman reminder H-1 serta hari-H |
 | `chat_messages` | Conversational AI | Menyimpan percakapan edukatif antara orang tua dan Gemini berdasarkan konteks pengukuran |
 | `notifikasi` | Informasi | Menyimpan inbox notifikasi untuk orang tua |
 | `notification_outbox` | Sistem | Mengelola antrean dan percobaan pengiriman notifikasi Firebase Cloud Messaging |

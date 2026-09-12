@@ -12,6 +12,7 @@ const perubahanJadwal = {
     waktu_selesai: "16:00",
     lokasi: "Balai Desa",
     keterangan: null,
+    reset_reminders: true,
 };
 
 test("jadwal tidak berubah jika tanggalnya sudah memiliki pengukuran", async () => {
@@ -42,8 +43,29 @@ test("jadwal tidak berubah jika tanggalnya sudah memiliki pengukuran", async () 
         "16:00",
         "Balai Desa",
         null,
+        true,
+        true,
         16,
     ]);
+});
+
+test("status reminder dipertahankan jika hanya keterangan jadwal berubah", async () => {
+    const calls = [];
+    const database = {
+        query: async (sql, params) => {
+            calls.push({ sql, params });
+            return [{ affectedRows: 1 }];
+        },
+    };
+
+    await buatUpdateIfNoMeasurements(database)(16, {
+        ...perubahanJadwal,
+        reset_reminders: false,
+    });
+
+    assert.match(calls[0].sql, /WHEN \? THEN NULL ELSE reminder_h1_sent_at/i);
+    assert.match(calls[0].sql, /WHEN \? THEN NULL ELSE reminder_h_sent_at/i);
+    assert.deepEqual(calls[0].params.slice(-3), [false, false, 16]);
 });
 
 test("jadwal berubah jika tanggalnya belum memiliki pengukuran", async () => {

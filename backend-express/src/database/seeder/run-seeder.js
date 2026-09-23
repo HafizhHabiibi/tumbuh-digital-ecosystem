@@ -1,5 +1,7 @@
 import mysql from "mysql2/promise";
 import fs from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import "dotenv/config";
 
 const required = ["DB_HOST", "DB_USER", "DB_NAME"];
@@ -8,10 +10,11 @@ if (missing.length > 0) {
     throw new Error(`Environment database belum lengkap: ${missing.join(", ")}`);
 }
 
-const sql = await fs.readFile(
-    new URL("./seeder.sql", import.meta.url),
-    "utf8",
-);
+const defaultSeederPath = fileURLToPath(new URL("./seeder.sql", import.meta.url));
+const seederPath = process.argv[2]
+    ? path.resolve(process.cwd(), process.argv[2])
+    : defaultSeederPath;
+const sql = await fs.readFile(seederPath, "utf8");
 
 const connection = await mysql.createConnection({
     host: process.env.DB_HOST,
@@ -25,7 +28,9 @@ const connection = await mysql.createConnection({
 
 try {
     await connection.query(sql);
-    console.log(`Seeder berhasil dijalankan pada database ${process.env.DB_NAME}`);
+    console.log(
+        `Seeder ${path.basename(seederPath)} berhasil dijalankan pada database ${process.env.DB_NAME}`,
+    );
 } finally {
     await connection.end();
 }

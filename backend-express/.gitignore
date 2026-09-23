@@ -1,8 +1,8 @@
 node_modules/
 .env
 src/database/seeder/seeder.sql
-src/database/seeder/private-posyandu19-data.json
-src/database/seeder/generate-private-posyandu19-seeder.js
-src/database/seeder/private-posyandu19-seeder.sql
+src/database/seeder/private-teratai-data.json
+src/database/seeder/generate-private-teratai-seeder.js
+src/database/seeder/private-teratai-seeder.sql
 firebase-service-account.json
 laporan-preview/

@@ -141,6 +141,22 @@ test("serializer pengukuran orang tua mengekspos seluruh field yang diizinkan", 
     assertTidakAdaDataTeknis(result);
 });
 
+test("serializer mempertahankan tanggal kalender dari objek Date MySQL WIB", () => {
+    const tanggalWib = new Date("2026-09-03T00:00:00+07:00");
+    const pengukuran = toOrangTuaPengukuran({
+        ...pengukuranTeknis,
+        tanggal_ukur: tanggalWib,
+    });
+    const rujukan = toOrangTuaRujukan({
+        ...rujukanTeknis,
+        tanggal_ukur: tanggalWib,
+    });
+
+    assert.equal(tanggalWib.toISOString(), "2026-09-02T17:00:00.000Z");
+    assert.equal(pengukuran.tanggal_ukur, "2026-09-03");
+    assert.equal(rujukan.tanggal_ukur, "2026-09-03");
+});
+
 test("serializer memetakan seluruh prioritas pemantauan ke status orang tua", () => {
     assert.deepEqual(
         ["rendah", "sedang", "tinggi"].map((kategori) =>

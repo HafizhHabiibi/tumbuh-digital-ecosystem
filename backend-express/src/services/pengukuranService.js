@@ -3,6 +3,7 @@ import * as PengukuranModel from "../models/pengukuranModel.js";
 import * as zscoreService from "./zscoreService.js";
 import * as sawService from "./sawService.js";
 import * as monitoringPriorityService from "./monitoringPriorityService.js";
+import { toDateOnly } from "../utils/dateOnly.js";
 
 const inputSAW = (zscores) => ({
     zscore_bbu: zscores.zscore_bbu,
@@ -352,7 +353,7 @@ export const getTrenGizi = async (bulan) => {
             jenis_kelamin: row.jenis_kelamin,
         });
 
-        const periode = row.tanggal_ukur.toISOString().slice(0, 7);
+        const periode = toDateOnly(row.tanggal_ukur, "tanggal_ukur").slice(0, 7);
         if (!tren[periode]) {
             tren[periode] = {
                 periode,

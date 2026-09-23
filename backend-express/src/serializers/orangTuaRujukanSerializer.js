@@ -1,3 +1,5 @@
+import { toDateOnly } from "../utils/dateOnly.js";
+
 const STATUS_RUJUKAN = new Set(["diajukan", "ditangani", "selesai"]);
 
 const requiredPositiveNumber = (value, field, { integer = false } = {}) => {
@@ -29,33 +31,6 @@ const optionalString = (value, field) => {
         throw new TypeError(`Nilai ${field} tidak valid untuk kontrak orang tua`);
     }
     return value;
-};
-
-const toDateOnly = (value) => {
-    if (value instanceof Date && !Number.isNaN(value.getTime())) {
-        return value.toISOString().slice(0, 10);
-    }
-    if (typeof value === "string") {
-        const dateOnly = value.slice(0, 10);
-        const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateOnly);
-        if (match) {
-            const [, yearText, monthText, dayText] = match;
-            const year = Number(yearText);
-            const month = Number(monthText);
-            const day = Number(dayText);
-            const date = new Date(Date.UTC(year, month - 1, day));
-            if (
-                date.getUTCFullYear() === year &&
-                date.getUTCMonth() === month - 1 &&
-                date.getUTCDate() === day
-            ) {
-                return dateOnly;
-            }
-        }
-    }
-    throw new TypeError(
-        "Nilai tanggal_ukur tidak valid untuk kontrak orang tua",
-    );
 };
 
 const toIsoTimestamp = (value, field, { nullable = false } = {}) => {
@@ -94,7 +69,7 @@ export const toOrangTuaRujukan = (rujukan) => {
         completed_at: toIsoTimestamp(rujukan.completed_at, "completed_at", {
             nullable: true,
         }),
-        tanggal_ukur: toDateOnly(rujukan.tanggal_ukur),
+        tanggal_ukur: toDateOnly(rujukan.tanggal_ukur, "tanggal_ukur"),
         berat_badan: requiredPositiveNumber(
             rujukan.berat_badan,
             "berat_badan",

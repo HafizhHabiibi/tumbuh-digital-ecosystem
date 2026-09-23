@@ -13,6 +13,9 @@ const db = mysql.createPool({
     // Kolom DATETIME MySQL memakai waktu operasional Posyandu (WIB).
     // Membacanya sebagai UTC akan menambahkan offset +7 lagi di client.
     timezone: "+07:00",
+    // DATE adalah tanggal kalender tanpa zona waktu. Pertahankan sebagai
+    // YYYY-MM-DD agar tidak bergeser ketika dikonversi melalui UTC.
+    dateStrings: ["DATE"],
     enableKeepAlive: true,
     keepAliveInitialDelay: 0,
 });

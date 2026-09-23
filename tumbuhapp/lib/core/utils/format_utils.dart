@@ -3,13 +3,33 @@ import 'package:intl/intl.dart';
 class FormatUtils {
   FormatUtils._();
 
+  static final RegExp _dateOnlyPattern = RegExp(
+    r'^(\d{4})-(\d{2})-(\d{2})$',
+  );
+
+  /// Tanggal kalender (`YYYY-MM-DD`) tidak memiliki zona waktu dan tidak boleh
+  /// dikonversi dengan `toLocal()`. Timestamp tetap dikonversi ke waktu lokal.
+  static DateTime _parseDate(String value) {
+    final match = _dateOnlyPattern.firstMatch(value);
+    if (match == null) return DateTime.parse(value).toLocal();
+
+    final year = int.parse(match.group(1)!);
+    final month = int.parse(match.group(2)!);
+    final day = int.parse(match.group(3)!);
+    final date = DateTime(year, month, day);
+    if (date.year != year || date.month != month || date.day != day) {
+      throw const FormatException('Tanggal kalender tidak valid');
+    }
+    return date;
+  }
+
   // ── Format Tanggal ────────────────────────────
 
   // 2024-03-15 → 15 Maret 2024
   static String formatTanggal(String? tanggal) {
     if (tanggal == null || tanggal.isEmpty) return '-';
     try {
-      final date = DateTime.parse(tanggal).toLocal();
+      final date = _parseDate(tanggal);
       return DateFormat('d MMMM yyyy', 'id').format(date);
     } catch (_) {
       return '-';
@@ -20,7 +40,7 @@ class FormatUtils {
   static String formatTanggalLengkap(String? tanggal) {
     if (tanggal == null || tanggal.isEmpty) return '-';
     try {
-      final date = DateTime.parse(tanggal).toLocal();
+      final date = _parseDate(tanggal);
       return DateFormat('EEEE, d MMMM yyyy', 'id').format(date);
     } catch (_) {
       return '-';

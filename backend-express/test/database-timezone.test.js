@@ -17,3 +17,7 @@ test("koneksi MySQL membaca DATETIME sebagai waktu WIB", () => {
         "12/9/2026",
     );
 });
+
+test("koneksi MySQL mempertahankan DATE sebagai tanggal kalender", () => {
+    assert.match(connectionSource, /dateStrings:\s*\[["']DATE["']\]/);
+});

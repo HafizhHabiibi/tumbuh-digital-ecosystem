@@ -1,3 +1,5 @@
+import { toDateOnly } from "../utils/dateOnly.js";
+
 const STATUS_PEMANTAUAN_DARI_PRIORITAS = Object.freeze({
     rendah: "rutin",
     sedang: "perlu_perhatian",
@@ -49,33 +51,6 @@ const requiredEnum = (value, field, allowed) => {
     return value;
 };
 
-const toDateOnly = (value) => {
-    if (value instanceof Date && !Number.isNaN(value.getTime())) {
-        return value.toISOString().slice(0, 10);
-    }
-    if (typeof value === "string") {
-        const dateOnly = value.slice(0, 10);
-        const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateOnly);
-        if (match) {
-            const [, yearText, monthText, dayText] = match;
-            const year = Number(yearText);
-            const month = Number(monthText);
-            const day = Number(dayText);
-            const date = new Date(Date.UTC(year, month - 1, day));
-            if (
-                date.getUTCFullYear() === year &&
-                date.getUTCMonth() === month - 1 &&
-                date.getUTCDate() === day
-            ) {
-                return dateOnly;
-            }
-        }
-    }
-    throw new TypeError(
-        "Nilai tanggal_ukur tidak valid untuk kontrak orang tua",
-    );
-};
-
 const toIsoTimestamp = (value) => {
     if (value === null || value === undefined || value === "") {
         throw new TypeError(
@@ -117,7 +92,7 @@ export const toOrangTuaPengukuran = (pengukuran) => {
             integer: true,
             min: 1,
         }),
-        tanggal_ukur: toDateOnly(pengukuran.tanggal_ukur),
+        tanggal_ukur: toDateOnly(pengukuran.tanggal_ukur, "tanggal_ukur"),
         berat_badan: requiredNumber(pengukuran.berat_badan, "berat_badan", {
             min: Number.MIN_VALUE,
         }),

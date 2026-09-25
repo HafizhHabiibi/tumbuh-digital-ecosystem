@@ -20,7 +20,12 @@ test("readiness siap ketika database dan key Gemini tersedia", async () => {
             model: "gemini-3.6-flash",
             totalKeys: 2,
             availableKeys: 2,
+            cooldownKeys: 0,
             disabledKeys: 0,
+            nextAvailableInMs: null,
+            apiKeys: ["key-rahasia"],
+            keyFingerprints: ["fingerprint-rahasia"],
+            stateReasons: ["credential-rahasia"],
         }),
     });
 
@@ -32,6 +37,10 @@ test("readiness siap ketika database dan key Gemini tersedia", async () => {
         ai: READINESS_COMPONENT_STATUS.READY,
         ai_model: "gemini-3.6-flash",
     });
+    assert.doesNotMatch(
+        JSON.stringify(result),
+        /key-rahasia|fingerprint-rahasia|credential-rahasia|availableKeys|cooldownKeys/,
+    );
 });
 
 test("readiness membedakan Gemini belum dikonfigurasi", async () => {

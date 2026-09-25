@@ -91,13 +91,17 @@ test("generateInsightContent memakai client terinjeksi dan menghasilkan teks", a
         },
     };
 
-    const result = await generateInsightContent(measurement, { client });
+    const result = await generateInsightContent(measurement, {
+        client,
+        requestId: "insight-request-1",
+    });
 
     assert.equal(result.model, "gemini-3.6-flash");
     assert.deepEqual(result.structured, validInsight);
     assert.match(result.insight_teks, /pemantauan rutin/);
     assert.equal(typeof request.validate, "function");
     assert.equal(request.maxOutputTokens, 1024);
+    assert.equal(request.requestId, "insight-request-1");
     assert.match(request.systemInstruction, /usia anak saat pengukuran/);
     assert.match(request.systemInstruction, /bukan usia anak saat ini/);
 });
@@ -150,12 +154,13 @@ test("generateChatContent memakai schema dan validator guardrail", async () => {
     const result = await generateChatContent(
         chatContext,
         "Apa variasi makanannya?",
-        { client },
+        { client, requestId: "chat-request-1" },
     );
 
     assert.equal(result.response_type, "answered");
     assert.equal(result.model, "gemini-3.6-flash");
     assert.equal(request.maxOutputTokens, 512);
+    assert.equal(request.requestId, "chat-request-1");
     assert.equal(request.responseSchema.type, "OBJECT");
     assert.match(request.systemInstruction, /usia anak saat pengukuran/);
     assert.match(request.systemInstruction, /bukan usia anak saat ini/);

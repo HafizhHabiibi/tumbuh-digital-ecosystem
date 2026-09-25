@@ -78,7 +78,7 @@ test("kegagalan retryable dijadwalkan kembali tanpa menghapus jumlah attempt", a
         attempt: 1,
         willRetry: true,
         retryDelaySeconds: 120,
-        errorMessage: "GEMINI_KEYS_EXHAUSTED",
+        errorMessage: "GEMINI_ALL_KEYS_RATE_LIMITED",
     });
 
     assert.match(captured.sql, /DATE_ADD\(NOW\(\), INTERVAL \? SECOND\)/);
@@ -86,7 +86,7 @@ test("kegagalan retryable dijadwalkan kembali tanpa menghapus jumlah attempt", a
         "pending",
         1,
         120,
-        "GEMINI_KEYS_EXHAUSTED",
+        "GEMINI_ALL_KEYS_RATE_LIMITED",
         4,
         1,
     ]);

@@ -42,6 +42,12 @@ test("startup menolak batas numerik Gemini yang tidak valid", () => {
         })),
         /GEMINI_TIMEOUT_MS/,
     );
+    assert.throws(
+        () => validateEnvironment(validEnvironment({
+            GEMINI_MAX_TOTAL_ATTEMPTS: "21",
+        })),
+        /GEMINI_MAX_TOTAL_ATTEMPTS/,
+    );
 });
 
 test("startup menormalisasi allowlist CORS dan hostname Turnstile", () => {

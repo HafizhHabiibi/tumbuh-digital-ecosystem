@@ -128,6 +128,7 @@ test("pesan aman memanggil Gemini lalu menyimpan pasangan pesan", async () => {
 
     assert.equal(generateCalls.length, 1);
     assert.equal(generateCalls[0][1], "Bagaimana pola makannya?");
+    assert.deepEqual(generateCalls[0][2], { requestId: undefined });
     assert.equal(repository.saved.length, 1);
     assert.equal(repository.reservations[0].userContent, "Bagaimana pola makannya?");
     assert.equal(result.idempotent, false);
@@ -169,10 +170,13 @@ test("service mencatat metadata hasil tanpa meneruskan isi pesan ke observabilit
     const service = makeService({
         repository,
         contextLoader: async () => context,
-        generate: async () => ({
-            response_type: "answered",
-            answer: "Variasikan makanan keluarga.",
-        }),
+        generate: async (...args) => {
+            events.push(["generate", args[2]]);
+            return {
+                response_type: "answered",
+                answer: "Variasikan makanan keluarga.",
+            };
+        },
         observability: {
             recordChatSuccess: (event) => events.push(["success", event]),
             recordChatFailure: (event) => events.push(["failure", event]),
@@ -191,13 +195,16 @@ test("service mencatat metadata hasil tanpa meneruskan isi pesan ke observabilit
         requestId: "req-aman",
     });
 
-    assert.deepEqual(events, [["success", {
-        requestId: "req-aman",
-        responseType: "answered",
-        idempotent: false,
-        providerUsed: true,
-        durationMs: 45,
-    }]]);
+    assert.deepEqual(events, [
+        ["generate", { requestId: "req-aman" }],
+        ["success", {
+            requestId: "req-aman",
+            responseType: "answered",
+            idempotent: false,
+            providerUsed: true,
+            durationMs: 45,
+        }],
+    ]);
     const serialized = JSON.stringify(events);
     assert.doesNotMatch(serialized, /Menu apa|orang-tua-rahasia|018f0000/);
 });

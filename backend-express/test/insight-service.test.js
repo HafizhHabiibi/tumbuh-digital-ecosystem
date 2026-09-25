@@ -78,7 +78,7 @@ test("error Gemini retryable dijadwalkan mengikuti retry-after provider", async 
         },
     };
     const providerError = new GeminiClientError("Key cooldown", {
-        code: "GEMINI_KEYS_EXHAUSTED",
+        code: "GEMINI_ALL_KEYS_RATE_LIMITED",
         retryable: true,
         retryAfterMs: 120000,
     });
@@ -95,7 +95,7 @@ test("error Gemini retryable dijadwalkan mengikuti retry-after provider", async 
     assert.equal(result.reason, "scheduled_retry");
     assert.equal(failure.retryDelaySeconds, 120);
     assert.equal(failure.willRetry, true);
-    assert.match(failure.errorMessage, /^GEMINI_KEYS_EXHAUSTED:/);
+    assert.match(failure.errorMessage, /^GEMINI_ALL_KEYS_RATE_LIMITED:/);
 });
 
 test("attempt terakhir dan error non-retryable menjadi failed terminal", async () => {

@@ -27,7 +27,7 @@ test("observability menghitung hasil chat tanpa mencatat isi atau identitas", ()
     });
     metrics.recordChatFailure({
         requestId: "req-3",
-        code: "GEMINI_KEYS_EXHAUSTED\nrahasia",
+        code: "GEMINI_ALL_KEYS_RATE_LIMITED\nrahasia",
         providerUsed: true,
         durationMs: 10,
     });
@@ -45,7 +45,7 @@ test("observability menghitung hasil chat tanpa mencatat isi atau identitas", ()
         provider_calls: 2,
     });
     assert.equal(snapshot.average_duration_ms, 50);
-    assert.equal(snapshot.errors.GEMINI_KEYS_EXHAUSTED_rahasia, 1);
+    assert.equal(snapshot.errors.GEMINI_ALL_KEYS_RATE_LIMITED_rahasia, 1);
 
     const serialized = logs.join("\n");
     assert.doesNotMatch(serialized, /orang_tua_id|pengukuran_id|message|content/i);

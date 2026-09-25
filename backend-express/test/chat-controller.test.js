@@ -81,7 +81,9 @@ test("controller memetakan error domain dan provider tanpa membocorkan detail", 
     const unavailable = buatChatController({
         sendMessage: async () => {
             throw new GeminiClientError("API key rahasia gagal", {
-                code: "GEMINI_KEYS_EXHAUSTED",
+                code: "GEMINI_ALL_KEYS_RATE_LIMITED",
+                retryable: true,
+                retryAfterMs: 30500,
             });
         },
     });
@@ -102,6 +104,12 @@ test("controller memetakan error domain dan provider tanpa membocorkan detail", 
     assert.equal(resNotFound.statusCode, 404);
     assert.equal(resUnavailable.statusCode, 503);
     assert.doesNotMatch(resUnavailable.body.message, /key|rahasia/i);
+    assert.deepEqual(resUnavailable.body.data, {
+        code: "AI_TEMPORARILY_UNAVAILABLE",
+        retry_after_ms: 30500,
+    });
+    assert.equal(resUnavailable.headers["retry-after"], "31");
+    assert.doesNotMatch(JSON.stringify(resUnavailable.body), /GEMINI|key|rahasia/i);
 });
 
 test("controller mengembalikan kode aman untuk penolakan data pribadi", async () => {

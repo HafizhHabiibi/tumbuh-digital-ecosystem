@@ -3,8 +3,10 @@ import assert from "node:assert/strict";
 import express from "express";
 
 import { buatChatController } from "../src/controllers/chatController.js";
+import { createGeminiClient } from "../src/integrations/geminiClient.js";
 import { buatChatRouter } from "../src/routes/chat.js";
 import { buatChatService } from "../src/services/chatService.js";
+import { generateChatContent } from "../src/services/geminiService.js";
 
 const IDS = {
     answered: "018f0000-0000-7000-8000-000000000001",
@@ -174,4 +176,131 @@ test("alur HTTP menjalankan guardrail, Gemini, persistence, idempotensi, dan his
         await new Promise((resolve) => server.close(resolve));
         server.closeAllConnections?.();
     }
+});
+
+test("alur chat merotasi empat key 429 dan berhasil dengan key kelima", async () => {
+    const keys = Array.from({ length: 5 }, (_, index) => `test-key-${index + 1}`);
+    const usedKeys = [];
+    const completed = [];
+    const client = createGeminiClient({
+        apiKeys: keys,
+        model: "gemini-test-model",
+        timeoutMs: 15000,
+        maxTotalAttempts: 6,
+        maxTransientRetries: 0,
+        invalidResponseRetries: 0,
+        keyCooldownMs: 60000,
+        maxBackoffMs: 4000,
+        nowFn: () => 1000,
+        randomFn: () => 0,
+        logger: { warn: () => {} },
+        httpClient: {
+            post: async (_url, _body, config) => {
+                const key = config.headers["x-goog-api-key"];
+                usedKeys.push(key);
+                if (key !== keys[4]) {
+                    const error = new Error("rate limited");
+                    error.response = {
+                        status: 429,
+                        headers: { "retry-after": "60" },
+                        data: { error: { status: "RESOURCE_EXHAUSTED" } },
+                    };
+                    throw error;
+                }
+                return {
+                    data: {
+                        candidates: [
+                            {
+                                content: {
+                                    parts: [
+                                        {
+                                            text: JSON.stringify({
+                                                response_type: "answered",
+                                                answer: "Variasikan telur, ikan, dan tempe.",
+                                            }),
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                };
+            },
+        },
+    });
+    const repository = {
+        reserveExchange: async (data) => ({
+            status: "reserved",
+            requestToken: "lease-rotation",
+            userMessage: {
+                id: 1,
+                client_message_id: data.clientMessageId,
+                role: "orang_tua",
+                content: data.userContent,
+            },
+        }),
+        completeExchange: async (data) => {
+            completed.push(data);
+            return {
+                user_message: data.userMessage,
+                assistant_message: {
+                    id: 2,
+                    role: "assistant",
+                    content: data.assistantContent,
+                    response_type: data.responseType,
+                },
+            };
+        },
+        releaseReservation: async () => {},
+    };
+    const context = {
+        pengukuran: {
+            jenis_kelamin: "L",
+            usia_bulan: 24,
+            berat_badan: 11,
+            tinggi_badan: 85,
+            nilai_imt: 15.22,
+            status_bbu: "berat_badan_normal",
+            status_tbu: "normal",
+            status_bbtb: "gizi_baik",
+            status_imtu: "gizi_baik",
+            prioritas_pemantauan: "rendah",
+        },
+        insight_awal: "Pertahankan pola makan beragam.",
+        riwayat_pesan: [],
+    };
+    const service = buatChatService({
+        repository,
+        contextLoader: async () => context,
+        generate: (chatContext, message, options) =>
+            generateChatContent(chatContext, message, { ...options, client }),
+        observability: {
+            recordChatSuccess: () => {},
+            recordChatFailure: () => {},
+        },
+    });
+
+    const result = await service.sendMessage({
+        pengukuranId: 12,
+        orangTuaId: "orang-tua-1",
+        clientMessageId: "018f0000-0000-7000-8000-000000000005",
+        message: "Apa variasi sumber proteinnya?",
+        requestId: "integration-five-key-rotation",
+    });
+
+    assert.equal(result.assistant_message.response_type, "answered");
+    assert.equal(
+        result.assistant_message.content,
+        "Variasikan telur, ikan, dan tempe.",
+    );
+    assert.deepEqual(usedKeys, keys);
+    assert.equal(completed.length, 1);
+    assert.deepEqual(client.getHealth(), {
+        model: "gemini-test-model",
+        totalKeys: 5,
+        availableKeys: 1,
+        cooldownKeys: 4,
+        disabledKeys: 0,
+        nextAvailableInMs: 60000,
+    });
 });

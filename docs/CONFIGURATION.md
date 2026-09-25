@@ -44,7 +44,7 @@ Copy-Item .env.example .env
 | Turnstile | `TURNSTILE_SECRET_KEY`, `TURNSTILE_ALLOWED_HOSTNAMES` | Untuk login/forgot-password Web; wajib pada `NODE_ENV=production` |
 | SMTP | `MAIL_USER`, `MAIL_PASS` | Ketika email reset password digunakan |
 | Gemini | `GEMINI_API_KEYS` atau `GEMINI_API_KEY` | Agar readiness AI, insight, dan chat berfungsi |
-| Gemini tuning | `GEMINI_MODEL`, `GEMINI_TIMEOUT_MS`, `GEMINI_MAX_RETRIES`, `GEMINI_KEY_COOLDOWN_MS`, `GEMINI_MAX_BACKOFF_MS` | Opsional; gunakan default example bila tidak ada kebutuhan khusus |
+| Gemini tuning | `GEMINI_MODEL`, `GEMINI_TIMEOUT_MS`, `GEMINI_MAX_TOTAL_ATTEMPTS`, `GEMINI_MAX_TRANSIENT_RETRIES`, `GEMINI_INVALID_RESPONSE_RETRIES`, `GEMINI_KEY_COOLDOWN_MS`, `GEMINI_MAX_BACKOFF_MS` | Opsional; `GEMINI_MAX_RETRIES` lama tetap didukung sebagai fallback transient retry |
 | Chat rate limit | `CHAT_RATE_LIMIT_WINDOW_MS`, `CHAT_RATE_LIMIT_MAX` | Opsional untuk menyesuaikan limit lokal |
 | Firebase Admin | `FIREBASE_SERVICE_ACCOUNT_BASE64` | Pilihan pertama credential server-side |
 | Firebase ADC | `FIREBASE_USE_APPLICATION_DEFAULT=true`, `GOOGLE_APPLICATION_CREDENTIALS` | Alternatif service-account Base64 |

@@ -18,7 +18,9 @@ GEMINI_API_KEYS=key_pertama,key_kedua
 GEMINI_API_KEY=
 GEMINI_MODEL=gemini-3.6-flash
 GEMINI_TIMEOUT_MS=15000
-GEMINI_MAX_RETRIES=2
+GEMINI_MAX_TOTAL_ATTEMPTS=6
+GEMINI_MAX_TRANSIENT_RETRIES=2
+GEMINI_INVALID_RESPONSE_RETRIES=1
 GEMINI_KEY_COOLDOWN_MS=60000
 GEMINI_MAX_BACKOFF_MS=4000
 
@@ -29,6 +31,13 @@ CHAT_RATE_LIMIT_MAX=10
 `GEMINI_API_KEYS` menerima beberapa key yang dipisahkan koma. Variabel
 `GEMINI_API_KEY` tetap didukung untuk satu key. Nilai model dapat diganti tanpa
 mengubah source code.
+
+`GEMINI_MAX_TOTAL_ATTEMPTS` membatasi seluruh panggilan provider untuk satu
+request. `GEMINI_MAX_TRANSIENT_RETRIES` mengatur retry `5xx`, timeout, dan
+network error dengan exponential backoff. `GEMINI_INVALID_RESPONSE_RETRIES`
+mengatur retry structured output yang kosong atau invalid tanpa memberi
+cooldown pada key. `GEMINI_MAX_RETRIES` lama tetap dibaca sebagai fallback
+untuk transient retry, tetapi konfigurasi baru dianjurkan.
 
 Konfigurasi numerik Gemini divalidasi ketika proses backend dimulai. Endpoint
 `GET /api/health/ready` juga memeriksa database dan ketersediaan key tanpa
@@ -41,6 +50,12 @@ menampilkan nilai key. Readiness mengembalikan komponen berikut:
   "ai_model": "gemini-3.6-flash"
 }
 ```
+
+Client Gemini menyimpan health pool internal berupa jumlah key `available`,
+`cooldown`, dan `disabled`, serta waktu sampai cooldown terdekat berakhir.
+Detail tersebut hanya digunakan untuk diagnosis internal. Endpoint readiness
+publik tetap hanya menampilkan status AI dan model, tanpa jumlah key,
+fingerprint, alasan state, atau credential.
 
 Nilai `ai` dapat berupa `ready`, `not_configured`, atau `unavailable`. Jalankan
 smoke test provider dengan konteks sintetis tanpa data pengguna setelah
@@ -209,6 +224,25 @@ Nilai `response_type`:
 | `409` | Insight belum siap atau idempotency key bentrok |
 | `429` | Batas pengiriman pesan terlampaui |
 | `503` | Provider AI sementara tidak tersedia |
+
+Error provider menggunakan kode publik yang stabil dan tidak mengekspos kode
+internal, credential, atau detail respons Gemini:
+
+```json
+{
+  "success": false,
+  "message": "Layanan edukasi AI sedang tidak tersedia, silakan coba kembali",
+  "data": {
+    "code": "AI_TEMPORARILY_UNAVAILABLE",
+    "retry_after_ms": 60000
+  }
+}
+```
+
+`retry_after_ms` dan header HTTP `Retry-After` hanya disertakan ketika provider
+memberikan waktu retry atau seluruh key sedang cooldown. Log internal tetap
+membedakan rate limit, credential invalid, provider unavailable, timeout,
+network error, output kosong, JSON invalid, dan schema invalid.
 
 Penolakan data pribadi menggunakan HTTP `400` dengan kode yang aman untuk UI:
 

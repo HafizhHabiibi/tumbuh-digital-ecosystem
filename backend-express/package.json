@@ -17,6 +17,7 @@
         "seed:run": "node src/database/seeder/run-seeder.js",
         "report:preview": "node scripts/generate-laporan-preview.js",
         "ai:smoke": "node scripts/smoke-test-gemini.js",
+        "ai:validate-keys": "node scripts/validate-gemini-keys.js",
         "ai:smoke:e2e": "node scripts/smoke-test-chat-e2e.js"
     },
     "dependencies": {

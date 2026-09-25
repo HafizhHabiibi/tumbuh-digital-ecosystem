@@ -142,7 +142,9 @@ export const buatChatService = (dependencies = {}) => {
             let response;
             if (evaluation.allowed) {
                 providerUsed = true;
-                response = await generate(context, evaluation.message);
+                response = await generate(context, evaluation.message, {
+                    requestId,
+                });
             } else {
                 response = {
                     response_type: evaluation.response_type,

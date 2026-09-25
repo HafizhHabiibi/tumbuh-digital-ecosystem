@@ -23,10 +23,21 @@ const handleChatError = (res, err) => {
         });
     }
     if (err instanceof GeminiClientError) {
+        const retryAfterMs = Number.isFinite(Number(err.retryAfterMs))
+            ? Math.max(0, Math.round(Number(err.retryAfterMs)))
+            : null;
+        if (retryAfterMs !== null) {
+            res.setHeader("Retry-After", String(Math.ceil(retryAfterMs / 1000)));
+        }
         return res.status(503).json({
             success: false,
             message: "Layanan edukasi AI sedang tidak tersedia, silakan coba kembali",
-            data: null,
+            data: {
+                code: "AI_TEMPORARILY_UNAVAILABLE",
+                ...(retryAfterMs === null
+                    ? {}
+                    : { retry_after_ms: retryAfterMs }),
+            },
         });
     }
     return error(res, err.message);

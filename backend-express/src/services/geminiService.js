@@ -127,6 +127,7 @@ Jangan menyatakan bahwa pengukuran kader tidak dapat dipercaya.`;
 export const generateInsightContent = async (data, options = {}) => {
     const client = options.client || getDefaultGeminiClient();
     const result = await client.generateStructuredContent({
+        requestId: options.requestId,
         systemInstruction: SYSTEM_INSTRUCTION,
         prompt: susunPromptInsight(data),
         responseSchema: INSIGHT_RESPONSE_SCHEMA,
@@ -176,6 +177,7 @@ export const susunPromptChat = (context, message) => {
 export const generateChatContent = async (context, message, options = {}) => {
     const client = options.client || getDefaultGeminiClient();
     const result = await client.generateStructuredContent({
+        requestId: options.requestId,
         systemInstruction: CHAT_SYSTEM_INSTRUCTION,
         prompt: susunPromptChat(context, message),
         responseSchema: CHAT_RESPONSE_SCHEMA,
